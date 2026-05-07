@@ -6,7 +6,7 @@ Ship a lat/lon grid on a web map, overlay a national grid (RD, UTM), add a
 historical artillery grid, or render an image-pixel grid on top of an IIIF
 viewer — all from the same layer class and a small `GridSystem` interface.
 
-**Live demos:** <https://zwaarcontrast.github.io/ol-graticule/> — bare-bones
+**Live demos:** <https://zwaarcontrast.nl/ol-graticule/> — bare-bones
 demo per package.
 
 ## Packages

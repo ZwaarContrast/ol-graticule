@@ -14,7 +14,7 @@ plus the period-correct British War Office (Dunnose) variant.
 > the foundation every theatre in this package is built on. If you find
 > this package useful, please go read his work and tip your hat.
 
-**Live demo:** <https://zwaarcontrast.github.io/ol-graticule/ol-graticule-modified-british-system/>
+**Live demo:** <https://zwaarcontrast.nl/ol-graticule/ol-graticule-modified-british-system/>
 
 ## Theatres
 

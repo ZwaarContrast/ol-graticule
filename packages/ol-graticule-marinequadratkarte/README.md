@@ -22,7 +22,7 @@ the anti-meridian-crossing squares in the Pacific.
 > distribute on npm yet. See [LICENSE.TODO.md](./LICENSE.TODO.md) for
 > the steps needed before public release.
 
-**Live demo:** <https://zwaarcontrast.github.io/ol-graticule/ol-graticule-marinequadratkarte/>
+**Live demo:** <https://zwaarcontrast.nl/ol-graticule/ol-graticule-marinequadratkarte/>
 
 ## Install (once published)
 

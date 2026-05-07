@@ -4,7 +4,7 @@ Generic proj4-backed `GridSystem` for [`@zwaarcontrast/ol-graticule`](../ol-grat
 Use it to render a graticule in any CRS — UTM zones, state planes, national
 grids — on top of any OL view projection.
 
-**Live demo:** <https://zwaarcontrast.github.io/ol-graticule/ol-graticule-projected/>
+**Live demo:** <https://zwaarcontrast.nl/ol-graticule/ol-graticule-projected/>
 
 ## Install
 

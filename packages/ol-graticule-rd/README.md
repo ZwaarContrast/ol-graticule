@@ -10,7 +10,7 @@ Dutch **Rijksdriehoekstelsel** (RD Amersfoort) grids for
 The **RDNAPTRANS 2018** NTv2 datum-shift grid is bundled inline — sub-centimetre
 accuracy with no asset to fetch and no bundler configuration required.
 
-**Live demo:** <https://zwaarcontrast.github.io/ol-graticule/ol-graticule-rd/>
+**Live demo:** <https://zwaarcontrast.nl/ol-graticule/ol-graticule-rd/>
 
 ## Install
 

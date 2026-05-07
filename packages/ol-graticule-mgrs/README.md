@@ -8,7 +8,7 @@ worldwide, with cursor readout of the full MGRS reference. Handles the
 Norway and Svalbard zone exceptions and falls back to UPS (Universal Polar
 Stereographic) above 84°N and below 80°S.
 
-**Live demo:** <https://zwaarcontrast.github.io/ol-graticule/ol-graticule-mgrs/>
+**Live demo:** <https://zwaarcontrast.nl/ol-graticule/ol-graticule-mgrs/>
 
 ## Install
 
