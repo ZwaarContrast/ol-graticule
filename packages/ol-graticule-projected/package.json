@@ -1,6 +1,6 @@
 {
   "name": "@zwaarcontrast/ol-graticule-projected",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "Generic proj4-backed grid system for ol-graticule. Works with any CRS.",
   "license": "MIT",
@@ -50,7 +50,7 @@
   "peerDependencies": {
     "ol": "^10.0.0",
     "proj4": "^2.9.0",
-    "@zwaarcontrast/ol-graticule": "^0.1.0"
+    "@zwaarcontrast/ol-graticule": "^1.0.0"
   },
   "devDependencies": {
     "@zwaarcontrast/ol-graticule": "*",
