@@ -14,7 +14,7 @@ add-on packages — see the [add-ons](#add-ons) section below.
 npm install @zwaarcontrast/ol-graticule ol
 ```
 
-Peer: `ol >=9 <11`. No other runtime dependencies.
+Peer: `ol ^10`. No other runtime dependencies.
 
 ## Usage
 

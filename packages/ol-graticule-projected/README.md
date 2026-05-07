@@ -12,7 +12,7 @@ grids — on top of any OL view projection.
 npm install @zwaarcontrast/ol-graticule @zwaarcontrast/ol-graticule-projected ol proj4
 ```
 
-Peers: `ol >=9 <11`, `proj4 ^2.9`, `@zwaarcontrast/ol-graticule`.
+Peers: `ol ^10`, `proj4 ^2.9`, `@zwaarcontrast/ol-graticule`.
 
 ## Usage
 

@@ -49,7 +49,7 @@
     "test:coverage": "vitest run --coverage"
   },
   "peerDependencies": {
-    "ol": ">=9 <11",
+    "ol": "^10.0.0",
     "@zwaarcontrast/ol-graticule": "^0.1.0"
   },
   "devDependencies": {

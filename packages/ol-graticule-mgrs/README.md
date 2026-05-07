@@ -20,7 +20,7 @@ npm install \
   ol proj4
 ```
 
-Peers: `ol >=9 <11`, `proj4 ^2.9`, `@zwaarcontrast/ol-graticule`,
+Peers: `ol ^10`, `proj4 ^2.9`, `@zwaarcontrast/ol-graticule`,
 `@zwaarcontrast/ol-graticule-projected`.
 
 ## Usage

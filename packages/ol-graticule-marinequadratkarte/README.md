@@ -30,7 +30,7 @@ the anti-meridian-crossing squares in the Pacific.
 npm install @zwaarcontrast/ol-graticule @zwaarcontrast/ol-graticule-marinequadratkarte ol
 ```
 
-Peers: `ol >=9 <11`, `@zwaarcontrast/ol-graticule`. **No proj4
+Peers: `ol ^10`, `@zwaarcontrast/ol-graticule`. **No proj4
 dependency** — all transforms go through OL's built-in 4326 ↔ 3857.
 
 ## Usage
