@@ -15,6 +15,7 @@ export default defineConfig({
       input: {
         index: resolve(__dirname, 'index.html'),
         'ol-graticule': resolve(__dirname, 'ol-graticule/index.html'),
+        'ol-graticule-pixel': resolve(__dirname, 'ol-graticule-pixel/index.html'),
         'ol-graticule-projected': resolve(__dirname, 'ol-graticule-projected/index.html'),
         'ol-graticule-modified-british-system': resolve(
           __dirname,
