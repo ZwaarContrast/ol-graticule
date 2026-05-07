@@ -1,0 +1,56 @@
+{
+  "name": "@zwaarcontrast/ol-graticule",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "OpenLayers graticule layer with pluggable grid systems, polygon clipping, and a cursor-position control.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZwaarContrast/ol-graticule.git",
+    "directory": "packages/ol-graticule"
+  },
+  "homepage": "https://github.com/ZwaarContrast/ol-graticule/tree/main/packages/ol-graticule#readme",
+  "bugs": {
+    "url": "https://github.com/ZwaarContrast/ol-graticule/issues"
+  },
+  "keywords": [
+    "openlayers",
+    "ol",
+    "graticule",
+    "grid",
+    "map",
+    "cartography",
+    "coordinate-grid",
+    "lat-lon"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "type-check": "tsc --build --noEmit",
+    "dev": "tsc --build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "peerDependencies": {
+    "ol": ">=9 <11"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2",
+    "vitest": "^4.0.17"
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "files": [],
+  "references": [
+    { "path": "./packages/ol-graticule" },
+    { "path": "./packages/ol-graticule-projected" },
+    { "path": "./packages/ol-graticule-marinequadratkarte" },
+    { "path": "./packages/ol-graticule-mgrs" },
+    { "path": "./packages/ol-graticule-modified-british-system" },
+    { "path": "./packages/ol-graticule-rd" }
+  ]
+}

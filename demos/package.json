@@ -1,0 +1,25 @@
+{
+  "name": "ol-graticule-demos",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@zwaarcontrast/ol-graticule": "*",
+    "@zwaarcontrast/ol-graticule-marinequadratkarte": "*",
+    "@zwaarcontrast/ol-graticule-mgrs": "*",
+    "@zwaarcontrast/ol-graticule-modified-british-system": "*",
+    "@zwaarcontrast/ol-graticule-projected": "*",
+    "@zwaarcontrast/ol-graticule-rd": "*",
+    "ol": "^10.0.0",
+    "proj4": "^2.12.0"
+  },
+  "devDependencies": {
+    "@types/proj4": "^2.5.5",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.0"
+  }
+}

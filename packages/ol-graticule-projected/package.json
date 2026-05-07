@@ -1,0 +1,60 @@
+{
+  "name": "@zwaarcontrast/ol-graticule-projected",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Generic proj4-backed grid system for ol-graticule. Works with any CRS.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZwaarContrast/ol-graticule.git",
+    "directory": "packages/ol-graticule-projected"
+  },
+  "homepage": "https://github.com/ZwaarContrast/ol-graticule/tree/main/packages/ol-graticule-projected#readme",
+  "bugs": {
+    "url": "https://github.com/ZwaarContrast/ol-graticule/issues"
+  },
+  "keywords": [
+    "openlayers",
+    "ol",
+    "graticule",
+    "grid",
+    "projected-grid",
+    "proj4",
+    "crs",
+    "epsg",
+    "utm"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "type-check": "tsc --build --noEmit",
+    "dev": "tsc --build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "peerDependencies": {
+    "ol": ">=9 <11",
+    "proj4": "^2.9.0",
+    "@zwaarcontrast/ol-graticule": "^0.1.0"
+  },
+  "devDependencies": {
+    "@zwaarcontrast/ol-graticule": "*",
+    "typescript": "^5.7.2",
+    "vitest": "^4.0.17"
+  }
+}

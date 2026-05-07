@@ -1,0 +1,63 @@
+{
+  "name": "@zwaarcontrast/ol-graticule-modified-british-system",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Modified British System letter-cell artillery grids for WWII theatres (Nord de Guerre, French Lambert I/II/III, British/Irish Cassini, War Office Cassini, Scandinavian Zone 3, Italian Northern/Southern, Iberian Peninsula) for ol-graticule.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZwaarContrast/ol-graticule.git",
+    "directory": "packages/ol-graticule-modified-british-system"
+  },
+  "homepage": "https://github.com/ZwaarContrast/ol-graticule/tree/main/packages/ol-graticule-modified-british-system#readme",
+  "bugs": {
+    "url": "https://github.com/ZwaarContrast/ol-graticule/issues"
+  },
+  "keywords": [
+    "openlayers",
+    "ol",
+    "graticule",
+    "grid",
+    "modified-british-system",
+    "wwii",
+    "artillery-grid",
+    "nord-de-guerre",
+    "cassini",
+    "lambert"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "type-check": "tsc --build --noEmit",
+    "dev": "tsc --build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "peerDependencies": {
+    "ol": ">=9 <11",
+    "proj4": "^2.9.0",
+    "@zwaarcontrast/ol-graticule": "^0.1.0",
+    "@zwaarcontrast/ol-graticule-projected": "^0.1.0"
+  },
+  "devDependencies": {
+    "@zwaarcontrast/ol-graticule": "*",
+    "@zwaarcontrast/ol-graticule-projected": "*",
+    "typescript": "^5.7.2",
+    "vitest": "^4.0.17"
+  }
+}

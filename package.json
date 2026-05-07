@@ -1,0 +1,55 @@
+{
+  "name": "ol-graticule-monorepo",
+  "private": true,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZwaarContrast/ol-graticule.git"
+  },
+  "homepage": "https://github.com/ZwaarContrast/ol-graticule#readme",
+  "bugs": {
+    "url": "https://github.com/ZwaarContrast/ol-graticule/issues"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "workspaces": [
+    "packages/*",
+    "demos"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "type-check": "tsc --build --noEmit",
+    "test": "npm run test --workspaces --if-present",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write \"**/*.{ts,js,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,md}\"",
+    "knip": "npx knip",
+    "changeset": "changeset",
+    "version": "changeset version && node scripts/aggregate-changelog.mjs",
+    "release": "npm run build && changeset publish",
+    "demo:dev": "npm run dev --workspace=ol-graticule-demos",
+    "demo:build": "npm run build && npm run build --workspace=ol-graticule-demos",
+    "clean": "tsc --build --clean && rm -rf packages/*/node_modules demos/node_modules demos/dist node_modules"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.31.0",
+    "@eslint/js": "^9.17.0",
+    "@types/proj4": "^2.5.5",
+    "@zwaarcontrast/ol-graticule-mgrs": "*",
+    "@typescript-eslint/eslint-plugin": "^8.18.2",
+    "@typescript-eslint/parser": "^8.18.2",
+    "@vitest/coverage-v8": "^4.0.17",
+    "eslint": "^9.17.0",
+    "eslint-config-prettier": "^9.1.0",
+    "happy-dom": "^20.9.0",
+    "knip": "^5.0.0",
+    "ol": "^10.0.0",
+    "prettier": "^3.4.2",
+    "proj4": "^2.12.0",
+    "typescript": "^5.7.2",
+    "vitest": "^4.0.17"
+  }
+}

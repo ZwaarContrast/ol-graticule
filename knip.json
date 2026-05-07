@@ -1,0 +1,16 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.{mjs,ts}"],
+      "project": ["scripts/**/*.{mjs,ts}"],
+      "ignoreDependencies": ["@types/proj4"]
+    },
+    "demos": {
+      "entry": ["index.html", "*/index.html", "*/main.ts", "shared.ts"],
+      "project": ["**/*.ts"],
+      "ignoreDependencies": ["@types/proj4"]
+    },
+    "packages/*": {}
+  }
+}
