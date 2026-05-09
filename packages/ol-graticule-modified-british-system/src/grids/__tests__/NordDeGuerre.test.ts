@@ -8,6 +8,7 @@ import {
   NORD_DE_GUERRE_PROJ4,
   NORD_DE_GUERRE_EXTENT,
   NORD_DE_GUERRE_CLIP_POLYGON,
+  NORD_DE_GUERRE_DEFAULT_TOWGS84,
 } from '../NordDeGuerre.js';
 
 describe('NordDeGuerre constants', () => {
@@ -74,25 +75,37 @@ describe('createNordDeGuerreGridSystem', () => {
   });
 
   /**
-   * Primary-source projection check. EPSG:27500 (ATF Paris / Nord de
-   * Guerre) is the registered code for the WWI artillery grid published
-   * by the French Service Géographique de l'Armée from 1915 onward; our
-   * proj4 string IS the EPSG canonical spec. Reference: https://epsg.io/27500
+   * Primary-source projection-geometry check. EPSG:27500 (ATF Paris /
+   * Nord de Guerre) is the registered code for the WWI artillery grid
+   * published by the French Service Géographique de l'Armée from 1915
+   * onward; our LCC parameters match the EPSG canonical spec.
+   * Reference: https://epsg.io/27500
    *
-   * Test: project the same point through our factory's proj4 AND through
-   * the canonical EPSG proj4 string from epsg.io; the two should agree
-   * to sub-metre precision across the WWI Western Front area.
+   * This test isolates LCC math from datum transformation. Source is
+   * lat/lon ON the Plessis 1817 ellipsoid with the Paris meridian, so
+   * no Helmert is applied either way — only the projection geometry
+   * is exercised. (See the `+towgs84` tests below for datum coverage.)
    */
-  it('matches the EPSG:27500 canonical proj4 across the Western Front', () => {
+  it('LCC projection geometry matches EPSG:27500 canonical across the Western Front', () => {
     createNordDeGuerreGridSystem();
-    // EPSG:27500 canonical via PROJ (`projinfo EPSG:27500`). Same physical
-    // projection as our factory's proj4 — lon_0 is 5.4° east of the Paris
-    // meridian (= 7°44'13.95" east of Greenwich) — written here with the
-    // built-in `+pm=paris` string instead of our explicit numeric value to
-    // exercise the equivalence.
+    // No-shift variant of our string — same LCC parameters as
+    // NORD_DE_GUERRE_PROJ4 but without +towgs84, to compare geometry only.
+    const oursNoShift =
+      '+proj=lcc +lat_1=49.5 +lat_0=49.5 +lon_0=5.4 +k_0=0.99950908 ' +
+      '+x_0=500000 +y_0=300000 +a=6376523 +rf=308.64 +pm=2.33720833333333 ' +
+      '+units=m +no_defs +type=crs';
+    // EPSG:27500 canonical via PROJ (`projinfo EPSG:27500`). Same
+    // physical projection — lon_0 is 5.4° east of the Paris meridian
+    // (= 7°44'13.95" east of Greenwich) — written here with the
+    // built-in `+pm=paris` string instead of our explicit numeric
+    // value to exercise the equivalence.
     const epsgCanonical =
       '+proj=lcc +lat_1=49.5 +lat_0=49.5 +lon_0=5.4 +k_0=0.99950908 ' +
       '+x_0=500000 +y_0=300000 +a=6376523 +rf=308.64 +pm=paris +units=m +no_defs';
+    // Source: Plessis 1817 lat/lon, Paris meridian — no datum shift
+    // applied, so we measure LCC math only.
+    const plessisLL =
+      '+proj=longlat +a=6376523 +rf=308.64 +pm=2.33720833333333 +no_defs';
     // Test points: WWI hotspots — Ypres, Verdun, Reims, Arras, Cambrai.
     const points: [number, number][] = [
       [2.8853, 50.8503],   // Ypres
@@ -102,11 +115,77 @@ describe('createNordDeGuerreGridSystem', () => {
       [3.2356, 50.1763],   // Cambrai
     ];
     for (const [lon, lat] of points) {
-      const [ours_x, ours_y] = proj4('EPSG:4326', NORD_DE_GUERRE_PROJ4).forward([lon, lat]);
-      const [epsg_x, epsg_y] = proj4('EPSG:4326', epsgCanonical).forward([lon, lat]);
+      const [ours_x, ours_y] = proj4(plessisLL, oursNoShift).forward([lon, lat]);
+      const [epsg_x, epsg_y] = proj4(plessisLL, epsgCanonical).forward([lon, lat]);
       expect(Math.abs(ours_x - epsg_x)).toBeLessThan(2);
       expect(Math.abs(ours_y - epsg_y)).toBeLessThan(2);
     }
+  });
+
+  /**
+   * The default proj4 string carries the empirical Helmert shift so
+   * that EPSG:27500 ↔ EPSG:4326 round-trips don't degrade to PROJ's
+   * "ballpark" no-shift fallback (~100 m error across the Western
+   * Front). See {@link NORD_DE_GUERRE_DEFAULT_TOWGS84} for source.
+   */
+  it('NORD_DE_GUERRE_PROJ4 includes the default towgs84', () => {
+    expect(NORD_DE_GUERRE_PROJ4).toContain(
+      `+towgs84=${NORD_DE_GUERRE_DEFAULT_TOWGS84.join(',')}`,
+    );
+  });
+
+  it('default factory call produces a measurable Helmert shift vs no-shift baseline', () => {
+    createNordDeGuerreGridSystem();
+    const noShift =
+      '+proj=lcc +lat_1=49.5 +lat_0=49.5 +lon_0=5.4 +k_0=0.99950908 ' +
+      '+x_0=500000 +y_0=300000 +a=6376523 +rf=308.64 +pm=2.33720833333333 ' +
+      '+units=m +no_defs';
+    // Verdun — well inside the area where the empirical Helmert was fitted.
+    const [withShiftX, withShiftY] = proj4('EPSG:4326', NORD_DE_GUERRE_PROJ4)
+      .forward([5.3833, 49.16]);
+    const [noShiftX, noShiftY] = proj4('EPSG:4326', noShift)
+      .forward([5.3833, 49.16]);
+    const dx = withShiftX - noShiftX;
+    const dy = withShiftY - noShiftY;
+    // The empirical shift moves the projected point by ~100 m at Verdun.
+    // Loose bounds — we're proving the towgs84 is wired up, not asserting
+    // exact magnitude.
+    expect(Math.hypot(dx, dy)).toBeGreaterThan(50);
+    expect(Math.hypot(dx, dy)).toBeLessThan(200);
+  });
+
+  it('accepts a caller override for towgs84', () => {
+    // Custom shift: doubled translations.
+    const custom = [2767.6, 77.4, 784, 0, 0, 0, 0] as const;
+    createNordDeGuerreGridSystem({ towgs84: custom });
+    expect(proj4.defs(NORD_DE_GUERRE_CRS)).toBeTruthy();
+    // The registered string should now reflect the custom values.
+    expect(proj4.defs(NORD_DE_GUERRE_CRS)).toMatchObject({
+      datum_params: [...custom],
+    });
+    // Restore default for subsequent tests.
+    createNordDeGuerreGridSystem();
+  });
+
+  it('accepts towgs84: null to register the canonical EPSG:27500 with no shift', () => {
+    createNordDeGuerreGridSystem({ towgs84: null });
+    // proj4js parses +towgs84 into datum_params; absence means the field
+    // is undefined or empty.
+    const def = proj4.defs(NORD_DE_GUERRE_CRS) as { datum_params?: number[] };
+    expect(def.datum_params === undefined || def.datum_params.length === 0).toBe(true);
+    // Restore default for subsequent tests.
+    createNordDeGuerreGridSystem();
+  });
+
+  it('rejects towgs84 arrays that are not 3 or 7 elements long', () => {
+    expect(() =>
+      createNordDeGuerreGridSystem({ towgs84: [1, 2] as readonly number[] }),
+    ).toThrow(/3 or 7 elements/);
+    expect(() =>
+      createNordDeGuerreGridSystem({ towgs84: [1, 2, 3, 4] as readonly number[] }),
+    ).toThrow(/3 or 7 elements/);
+    // Restore default for subsequent tests.
+    createNordDeGuerreGridSystem();
   });
 
   it('accepts a caller override for clipPolygon', () => {

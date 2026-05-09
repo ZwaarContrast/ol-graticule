@@ -25,6 +25,7 @@ export {
   NORD_DE_GUERRE_PROJ4,
   NORD_DE_GUERRE_EXTENT,
   NORD_DE_GUERRE_CLIP_POLYGON,
+  NORD_DE_GUERRE_DEFAULT_TOWGS84,
 } from './grids/NordDeGuerre.js';
 export type { NordDeGuerreGridSystemOptions } from './grids/NordDeGuerre.js';
 

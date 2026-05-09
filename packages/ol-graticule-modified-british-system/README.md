@@ -188,7 +188,18 @@ For each theatre `<T>`:
 All theatres have been smoke-tested against either Thierry's translator
 or a primary documentary anchor:
 
-- **Nord de Guerre** — original implementation, broadly validated.
+- **Nord de Guerre** — LCC parameters match EPSG:27500 canonical to
+  sub-metre precision. Datum tie to WGS84 uses an empirical 3-parameter
+  Helmert (`+towgs84=1383.8,38.7,392,0,0,0,0`) baked into the default
+  proj4 string; EPSG/IGN publish no transformation for ATF Paris ↔
+  WGS84, so this is the best published estimate. Source: Bill Sayers,
+  [*Transforming French WW1 Lambert Coordinates to WGS84*][nde-towgs84]
+  (16 January 2024) — fitted across 13 WWI Initial Point survey plats,
+  10/13 within 20 m, three outliers up to ~100 m. Override per call via
+  `createNordDeGuerreGridSystem({ towgs84: ... })`, or pass `null` to
+  fall back to the canonical no-shift definition.
+
+[nde-towgs84]: https://wanderingcartographer.wordpress.com/2024/01/16/transforming-french-ww1-lambert-coordinates-to-wgs84/
 - **French Lambert I/II/III** — origins back-solved from Thierry's
   translator at metre-level precision.
 - **British Cassini (OS Delamere)** — matches Thierry's translator. NOT
