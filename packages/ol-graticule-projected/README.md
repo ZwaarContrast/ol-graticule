@@ -77,6 +77,31 @@ convenience shortcut that calls it for you.
 | `targetScreenPx` | `number` | `100` | Desired minimum spacing (px) between major lines. Drives interval selection. |
 | `densificationPoints` | `number` | `100` | Points per grid line for curved rendering across projections. Higher = smoother, slower. |
 
+### Reverse: parse a typed coordinate back
+
+`ProjectedGridSystem.parseCoordinate` takes a label and returns view-projection
+coords:
+
+```ts
+import { ParseError } from '@zwaarcontrast/ol-graticule';
+
+try {
+  const center = gridSystem.parseCoordinate('500000 5000000', map.getView().getProjection());
+  map.getView().animate({ center });
+} catch (err) {
+  if (err instanceof ParseError) console.warn(err.reason);
+}
+```
+
+For per-axis CRSs (the common case) it splits on whitespace or comma and
+parses each half via the formatter (`"500000 5000000"`, `"500000, 5000000"`,
+`"500000 m 5000000 m"`). For degree-units CRSs, hemisphere markers route the
+two halves to lat/lon automatically; without markers, plain `"x y"` is
+treated as `"lon lat"`. Compound formatters (e.g. `MBSFormatter` from
+ol-graticule-modified-british-system) plug in via `formatter.parseCoordinate`
+so you can type `"vK 617 517"` directly and the system transforms the result
+to your view projection.
+
 ### `extent` vs `clipPolygon`
 
 - Use `extent` when the CRS has a rectangular validity region (UTM zones,

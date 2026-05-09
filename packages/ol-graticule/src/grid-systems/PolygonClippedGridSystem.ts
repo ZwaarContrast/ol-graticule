@@ -17,6 +17,7 @@ import { clipPolylineToPolygon, createClipScratch, type ClipScratch } from '../c
 import { densifyRing, projectRing } from '../clipping/densifyRing.js';
 import { snapRingToCellGrid } from '../clipping/snapRingToCellGrid.js';
 import { transformExtentSampled } from '../util/geo.js';
+import { ParseError } from '../util/ParseError.js';
 
 /** Clip-polygon input for {@link PolygonClippedGridSystem}. */
 export interface PolygonClip {
@@ -201,6 +202,13 @@ export class PolygonClippedGridSystem implements GridSystem {
     }
     const sample = this.source_.formatCoordinate(coordinate, viewProjection);
     return isCombinedFormatted(sample) ? { combined: '—' } : { x: '—', y: '—' };
+  }
+
+  parseCoordinate(text: string, viewProjection: ProjectionLike): [number, number] {
+    if (!this.source_.parseCoordinate) {
+      throw new ParseError(text, 'source grid system does not support parseCoordinate');
+    }
+    return this.source_.parseCoordinate(text, viewProjection);
   }
 
   private viewState_(viewProjection: ProjectionLike, resolution: number): ViewState {

@@ -381,4 +381,54 @@ describe('ProjectedGridSystem', () => {
       }
     });
   });
+
+  describe('parseCoordinate', () => {
+    it('parses a metric pair and transforms to view projection (UTM 33N → 3857)', () => {
+      const system = new ProjectedGridSystem({
+        crs: 'EPSG:32633',
+        proj4Def: '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +type=crs',
+      });
+      const [x, y] = system.parseCoordinate('500000 5000000', 'EPSG:3857');
+      expect(Number.isFinite(x)).toBe(true);
+      expect(Number.isFinite(y)).toBe(true);
+      // UTM 33N (500000, 5000000) — central meridian 15°E, ~45.13°N.
+      // 3857 longitude is exact (proj scaling), latitude depends on UTM↔WGS84.
+      expect(x).toBeCloseTo(1669792, -2);
+      expect(y).toBeGreaterThan(5_500_000);
+      expect(y).toBeLessThan(5_700_000);
+    });
+
+    it('accepts a trailing-km pair (regression: 3-token "x y unit" used to fail)', () => {
+      const utm = new ProjectedGridSystem({
+        crs: 'EPSG:32633',
+        proj4Def: '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +type=crs',
+      });
+      const [bareX, bareY] = utm.parseCoordinate('500000 5000000 m', 'EPSG:32633');
+      expect(bareX).toBeCloseTo(500000, 6);
+      expect(bareY).toBeCloseTo(5000000, 6);
+      const [kmX, kmY] = utm.parseCoordinate('500 5000 km', 'EPSG:32633');
+      expect(kmX).toBeCloseTo(500000, 6);
+      expect(kmY).toBeCloseTo(5000000, 6);
+    });
+
+    it('routes hemispheres through DegreeFormatter when CRS is EPSG:4326', () => {
+      const system = new ProjectedGridSystem({ crs: 'EPSG:4326' });
+      const [x, y] = system.parseCoordinate('50.85N 4.35E', 'EPSG:4326');
+      expect(x).toBeCloseTo(4.35, 6);
+      expect(y).toBeCloseTo(50.85, 6);
+    });
+
+    it('round-trips formatCoordinate output', () => {
+      const utm = new ProjectedGridSystem({
+        crs: 'EPSG:32633',
+        proj4Def: '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +type=crs',
+      });
+      const original: [number, number] = [500000, 5000000];
+      const formatted = utm.formatCoordinate(original, 'EPSG:32633');
+      if (!isAxisFormatted(formatted)) throw new Error('expected axis formatting');
+      const [px, py] = utm.parseCoordinate(`${formatted.x} ${formatted.y}`, 'EPSG:32633');
+      expect(px).toBeCloseTo(original[0], 0);
+      expect(py).toBeCloseTo(original[1], 0);
+    });
+  });
 });

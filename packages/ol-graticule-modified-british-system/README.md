@@ -117,6 +117,37 @@ const gridSystem = createBritishCassiniGridSystem({
 });
 ```
 
+### Reverse: parse an MBS reference back to a coordinate
+
+The factories return a `GridSystem` with `parseCoordinate` wired up — type
+in any reference and get back view-projection metres for `view.animate(...)`:
+
+```ts
+import { ParseError } from '@zwaarcontrast/ol-graticule';
+
+const grid = createNordDeGuerreGridSystem();
+
+try {
+  const center = grid.parseCoordinate('vK 617 517', map.getView().getProjection());
+  map.getView().animate({ center, duration: 400 });
+} catch (err) {
+  if (err instanceof ParseError) console.warn(err.reason);
+}
+```
+
+Lenient input forms accepted:
+
+- `vK`, `vK6175`, `vK 617 517`, `VK90449926` — case-insensitive 2-letter
+  prefix + `0/2/4/6/8/10` digits, with optional whitespace. Returns the
+  cell **centre** at the precision implied by the digit count (100 km / 10 km
+  / 1 km / 100 m / 10 m / 1 m). Round-trips with `formatMBS`.
+- Numeric fallback: `309.02 296.80`, `309.02, 296.80`, optional trailing
+  `km` (default) or `m`.
+
+`MBSFormatter.parseCoordinate(text)` is also available standalone — it
+returns `[easting, northing]` in CRS metres without the projection
+transform, useful when you're consuming the package outside of OpenLayers.
+
 ### Building a custom theatre
 
 Compose `MBSFormatter` with one of the family-letter constants (or a

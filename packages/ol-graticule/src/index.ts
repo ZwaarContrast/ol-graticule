@@ -12,6 +12,9 @@ export type {
 
 export { isCombinedFormatted, isAxisFormatted } from './types.js';
 
+export { ParseError } from './util/ParseError.js';
+export { splitCoordinatePair, parsePairViaFormatter } from './util/parseCoordinatePair.js';
+
 export { DegreeIntervals } from './intervals/DegreeIntervals.js';
 export { PixelIntervals } from './intervals/PixelIntervals.js';
 export { MetricIntervals } from './intervals/MetricIntervals.js';
@@ -19,7 +22,7 @@ export { MetricIntervals } from './intervals/MetricIntervals.js';
 export { DegreeFormatter } from './formatters/DegreeFormatter.js';
 export type { DegreeFormat } from './formatters/DegreeFormatter.js';
 export { PixelFormatter } from './formatters/PixelFormatter.js';
-export { MetricFormatter } from './formatters/MetricFormatter.js';
+export { MetricFormatter, parseLinear } from './formatters/MetricFormatter.js';
 export type { MetricFormatterOptions } from './formatters/MetricFormatter.js';
 
 export { PixelGridSystem } from './grid-systems/PixelGridSystem.js';

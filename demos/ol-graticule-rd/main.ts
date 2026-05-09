@@ -14,6 +14,7 @@ import {
   RD_NEW_EXTENT,
 } from '@zwaarcontrast/ol-graticule-rd';
 import { gridLine, edgeLabelText, cursorStyle } from '../shared';
+import { createCoordinateInput } from '../coordinateInput';
 
 const gridSystem = createRDNewGridSystem();
 
@@ -33,3 +34,14 @@ const map = new Map({
 map.getView().fit(transformExtent(RD_NEW_EXTENT, RD_NEW_CRS, 'EPSG:3857'), {
   padding: [40, 40, 40, 40],
 });
+
+const badge = document.querySelector<HTMLElement>('.badge');
+if (badge) {
+  createCoordinateInput({
+    map,
+    gridSystem,
+    host: badge,
+    placeholder: '155000 463000 m',
+    hint: 'Easting Northing in metres (EPSG:28992 origin = Amersfoort).',
+  });
+}

@@ -2,11 +2,12 @@
 
 import Polygon from 'ol/geom/Polygon';
 
-import { BoundedCache, normalizeLon } from '@zwaarcontrast/ol-graticule';
+import { BoundedCache, ParseError, normalizeLon } from '@zwaarcontrast/ol-graticule';
 
 import { findById, getAllLargeSquares } from './lookup.js';
-import type { RectSquare, LatLon } from './types.js';
+import type { RectSquare, LatLon, Square } from './types.js';
 import { isPolySquare } from './types.js';
+import { rectCrossesAntimeridian, lonSpanDeg, squareExtent } from './geo.js';
 
 const polyCache = new WeakMap<LatLon[], Polygon>();
 
@@ -104,4 +105,47 @@ export function formatGridRef(ref: string): string {
   const result = ref.length <= 2 ? ref : `${ref.slice(0, 2)} ${ref.slice(2)}`;
   gridRefCache.set(ref, result);
   return result;
+}
+
+/**
+ * Parse a Kriegsmarine grid-reference string. Lenient: accepts `"BC"`,
+ * `"BC 6175"`, `"BC6175"`, `"bc 6 1 7 5"`, case-insensitive. Returns the
+ * canonical, whitespace-free form (`"BC6175"`). Throws {@link ParseError}
+ * when the input does not match a 2-letter prefix + 0–8 digits.
+ */
+export function parseGridRef(text: string): string {
+  const condensed = text.replace(/\s+/g, '');
+  if (condensed.length === 0) throw new ParseError(text, 'empty input');
+  const m = condensed.match(/^([a-zA-Z])([a-zA-Z])(\d{0,8})$/);
+  if (!m) throw new ParseError(text, 'expected two letters followed by 0–8 digits');
+  return m[1]!.toUpperCase() + m[2]!.toUpperCase() + m[3]!;
+}
+
+/** Geographic centre (`[lat, lon]`) of `sq`. Bbox centre for polygonal squares. */
+function squareCenterLatLon(sq: Square): LatLon {
+  if (isPolySquare(sq)) {
+    const ext = squareExtent(sq);
+    const centerLat = (ext[1] + ext[3]) / 2;
+    const centerLon = (ext[0] + ext[2]) / 2;
+    return [centerLat, centerLon];
+  }
+  const { nw, se } = sq;
+  const centerLat = (nw[0] + se[0]) / 2;
+  const centerLon = rectCrossesAntimeridian(nw, se)
+    ? normalizeLon(nw[1] + lonSpanDeg(nw, se) / 2)
+    : (nw[1] + se[1]) / 2;
+  return [centerLat, centerLon];
+}
+
+/**
+ * Resolve a Kriegsmarine grid reference to its geographic centre. Accepts the
+ * same lenient input forms as {@link parseGridRef}. Returns `[lat, lon]` in
+ * WGS84. Throws {@link ParseError} for unparseable input or unknown
+ * references.
+ */
+export function gridRefToCoordinate(text: string): LatLon {
+  const ref = parseGridRef(text);
+  const sq = findById(ref);
+  if (!sq) throw new ParseError(text, `unknown grid reference "${ref}"`);
+  return squareCenterLatLon(sq);
 }

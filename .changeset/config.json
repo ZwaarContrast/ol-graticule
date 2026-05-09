@@ -15,5 +15,8 @@
   "access": "public",
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
-  "ignore": ["@zwaarcontrast/ol-graticule-marinequadratkarte"]
+  "ignore": ["@zwaarcontrast/ol-graticule-marinequadratkarte"],
+  "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
+    "onlyUpdatePeerDependentsWhenOutOfRange": true
+  }
 }

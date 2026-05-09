@@ -70,6 +70,18 @@ export interface GridSystem {
     viewProjection: ProjectionLike
   ): FormattedCoordinate;
 
+  /**
+   * Parse a label or compound reference back into view-projection coordinates.
+   * Throws {@link ParseError} when `text` cannot be interpreted. Compound-cell
+   * references resolve to the cell centre at whatever precision the input
+   * implies. Validity (CRS extent, clip polygon) is intentionally not checked
+   * here — use {@link isValidCoordinate} on the result if needed.
+   */
+  parseCoordinate?(
+    text: string,
+    viewProjection: ProjectionLike
+  ): [number, number];
+
   /** Labels centered inside grid cells. */
   getCellLabels?(
     extent: Extent,
@@ -98,6 +110,21 @@ export interface LabelFormatter {
 
   /** Short cell-center label. */
   formatCellLabel?(x: number, y: number): string | undefined;
+
+  /**
+   * Parse a single-axis label back into a numeric value in the formatter's
+   * native units (degrees, metres, pixels, …). Throws {@link ParseError} on
+   * unparseable input.
+   */
+  parse?(text: string, axis: 'x' | 'y'): number;
+
+  /**
+   * Parse a compound coordinate reference back into a numeric pair in the
+   * formatter's native units. Compound-cell forms resolve to the cell centre
+   * at the precision implied by the input. Throws {@link ParseError} on
+   * unparseable input.
+   */
+  parseCoordinate?(text: string): [number, number];
 }
 
 /** Determines the spacing between grid lines at a given zoom level. */

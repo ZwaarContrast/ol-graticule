@@ -448,4 +448,28 @@ describe('PolygonClippedGridSystem', () => {
       expect(clipped.isValidCoordinate!([-13000, 6710000], 'EPSG:3857')).toBe(false);
     });
   });
+
+  describe('parseCoordinate', () => {
+    it('delegates to source.parseCoordinate', () => {
+      const source = makeSystem([]);
+      source.parseCoordinate = vi.fn().mockReturnValue([42, 99]);
+      const clipped = new PolygonClippedGridSystem({
+        source,
+        clipPolygon: { rings: [square], crs: 'EPSG:3857' },
+      });
+      expect(clipped.parseCoordinate!('whatever', 'EPSG:3857')).toEqual([42, 99]);
+      expect(source.parseCoordinate).toHaveBeenCalledWith('whatever', 'EPSG:3857');
+    });
+
+    it('throws ParseError when source has no parseCoordinate', () => {
+      const source = makeSystem([]);
+      const clipped = new PolygonClippedGridSystem({
+        source,
+        clipPolygon: { rings: [square], crs: 'EPSG:3857' },
+      });
+      expect(() => clipped.parseCoordinate!('anything', 'EPSG:3857')).toThrow(
+        /source grid system does not support parseCoordinate/,
+      );
+    });
+  });
 });

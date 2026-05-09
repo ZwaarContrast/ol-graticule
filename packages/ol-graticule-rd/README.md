@@ -48,6 +48,27 @@ Both factories are synchronous and idempotent. They:
 Options other than the baked-in ones (CRS, proj4, extent, clip polygon) are
 forwarded to `ProjectedGridSystem` — e.g. `createRDNewGridSystem({ targetScreenPx: 120 })`.
 
+### Reverse: parse a typed RD coordinate
+
+The factories return a polygon-clipped `ProjectedGridSystem`, which inherits
+`parseCoordinate`:
+
+```ts
+import { ParseError } from '@zwaarcontrast/ol-graticule';
+
+try {
+  const center = gridSystem.parseCoordinate('155000 463000', map.getView().getProjection());
+  map.getView().animate({ center });
+} catch (err) {
+  if (err instanceof ParseError) console.warn(err.reason);
+}
+```
+
+Accepted forms: `"155000 463000"`, `"155000, 463000"`, optional trailing
+`m` or `km` (e.g. `"155 463 km"`). Validity against the NL clip polygon is
+**not** enforced — call `isValidCoordinate(coord)` on the result if you need
+to reject Amersfoort-relative locations outside the country.
+
 ## Exports
 
 Factories (synchronous):

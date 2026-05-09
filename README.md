@@ -62,6 +62,28 @@ const map = new Map({
 });
 ```
 
+## Reverse: parse a typed coordinate
+
+Every built-in grid system implements an optional `parseCoordinate(text, projection)`
+that turns a typed reference back into view-projection coords — wire it up
+to a search input to fly the map to a typed location.
+
+```ts
+import { ParseError } from '@zwaarcontrast/ol-graticule';
+
+try {
+  const center = gridSystem.parseCoordinate(input.value, map.getView().getProjection());
+  map.getView().animate({ center, duration: 400 });
+} catch (err) {
+  if (err instanceof ParseError) showError(err.reason);
+}
+```
+
+Lenient input by design: DMS/DDM/DD with hemisphere markers for
+`GeographicGridSystem`, metric variants for `MetricFormatter`, full MBS and
+Kriegsmarine references for those grids. See each package's README for the
+exact accepted forms.
+
 ## Custom grid systems
 
 The `GridSystem` interface has four methods — implement it yourself to draw

@@ -175,4 +175,29 @@ describe('KriegsmarineGridSystem', () => {
       expect(gs.formatCoordinate(wrappedWest, 'EPSG:3857')).toEqual(baseline);
     });
   });
+
+  describe('parseCoordinate', () => {
+    it('returns a finite coordinate in EPSG:3857 for a known ref', () => {
+      const gs = new KriegsmarineGridSystem();
+      const [x, y] = gs.parseCoordinate('AN', 'EPSG:3857');
+      expect(Number.isFinite(x)).toBe(true);
+      expect(Number.isFinite(y)).toBe(true);
+    });
+
+    it('round-trips formatCoordinate ↔ parseCoordinate for a known location', () => {
+      const gs = new KriegsmarineGridSystem();
+      const formatted = gs.formatCoordinate([0, 7000000], 'EPSG:3857');
+      if (!('combined' in formatted) || formatted.combined === '—') {
+        throw new Error('expected a non-empty combined ref');
+      }
+      const [x, y] = gs.parseCoordinate(formatted.combined, 'EPSG:3857');
+      const round = gs.formatCoordinate([x, y], 'EPSG:3857');
+      expect(round).toEqual(formatted);
+    });
+
+    it('throws ParseError on garbage input', () => {
+      const gs = new KriegsmarineGridSystem();
+      expect(() => gs.parseCoordinate('hello', 'EPSG:3857')).toThrow();
+    });
+  });
 });

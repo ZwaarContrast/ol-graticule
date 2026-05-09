@@ -7,6 +7,7 @@ import type { GridSystem, GridLabel, IntervalStrategy, LabelFormatter, Formatted
 import { PixelIntervals } from '../intervals/PixelIntervals.js';
 import { PixelFormatter } from '../formatters/PixelFormatter.js';
 import { buildStraightGridLine, isOnMajorLine } from '../util/gridlines.js';
+import { parsePairViaFormatter } from '../util/parseCoordinatePair.js';
 
 const MAJOR_SKIP_EPSILON_RATIO = 0.01;
 
@@ -136,5 +137,10 @@ export class PixelGridSystem implements GridSystem {
       x: this.formatter_.format(x, 'x'),
       y: this.formatter_.format(this.yMap_.toDisplayY(y), 'y'),
     };
+  }
+
+  parseCoordinate(text: string, _viewProjection: ProjectionLike): [number, number] {
+    const [x, displayY] = parsePairViaFormatter(this.formatter_, text);
+    return [x, this.yMap_.toDisplayY(displayY)];
   }
 }

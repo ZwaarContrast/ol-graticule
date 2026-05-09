@@ -170,12 +170,48 @@ These packages plug their own `GridSystem` into `UniversalGraticule`:
 | [`@zwaarcontrast/ol-graticule-modified-british-system`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-modified-british-system) | Modified British System letter-cell artillery grids for ten WWII theatres (Nord de Guerre, French Lambert I/II/III, British/Irish Cassini, War Office Cassini, Scandinavian Zone 3, Italian Northern/Southern, Iberian Peninsula). |
 | `@zwaarcontrast/ol-graticule-marinequadratkarte` | WWII Kriegsmarine naval grid (not yet published — see [repo](https://github.com/zwaarcontrast/ol-graticule)). |
 
+### Reverse: parse a label back to a coordinate
+
+Every built-in grid system also implements the optional `parseCoordinate`
+method, which turns a typed label back into view-projection coordinates —
+useful for "go to" search inputs.
+
+```ts
+import { ParseError } from '@zwaarcontrast/ol-graticule';
+
+const gridSystem = new GeographicGridSystem();
+
+try {
+  const [x, y] = gridSystem.parseCoordinate('50°51′N 4°21′E', map.getView().getProjection());
+  map.getView().animate({ center: [x, y], duration: 400 });
+} catch (err) {
+  if (err instanceof ParseError) console.warn(err.reason);
+}
+```
+
+Parsing is lenient: hemisphere markers route axes for `GeographicGridSystem`
+(`50°N 4°E` and `4°E 50°N` both work); plain pairs default to `"x y"` order
+(lon-lat for geographic, easting-northing for linear). Compound formats
+(MBS letter-cells, Kriegsmarine references) round-trip via the formatter's
+own `parseCoordinate`. Spatial validity is intentionally **not** checked —
+call `isValidCoordinate` on the result if you need it.
+
+The underlying single-axis `parse` lives on the formatter:
+
+```ts
+new DegreeFormatter().parse("50°37'02\"N", 'y');   // 50.6172…
+new MetricFormatter().parse('1.2345 km');           // 1234.5
+new PixelFormatter().parse('123 px');               // 123
+```
+
 ## API reference
 
 - **`UniversalGraticule(options)`** — `VectorLayer` subclass. `setGridSystem(grid | null)` to swap/disable.
 - **`CursorPositionControl(options)`** — OL `Control`. Renders edge labels (axis grids) or a floating compound label (MBS/Kriegsmarine) depending on the grid system.
-- **`GridSystem`** — interface with `getFeatures`, `getLabels`, `formatCoordinate`, optional `getCellLabels`, optional `isValidCoordinate`. Implement it to draw any grid describable in code.
-- **Built-in grids**: `PixelGridSystem`, `GeographicGridSystem`.
+- **`GridSystem`** — interface with `getFeatures`, `getLabels`, `formatCoordinate`, optional `parseCoordinate`, `getCellLabels`, `isValidCoordinate`. Implement it to draw any grid describable in code.
+- **`LabelFormatter`** — `format` / optional `formatCoordinate` / optional `parse` / optional `parseCoordinate` / optional `formatCellLabel`.
+- **`ParseError`** — thrown by `parse*` methods on unparseable input. Has `text` and `reason` fields.
+- **Built-in grids**: `PixelGridSystem`, `GeographicGridSystem`, `PolygonClippedGridSystem`.
 - **Built-in formatters**: `PixelFormatter`, `DegreeFormatter` (DMS / DD / DDM), `MetricFormatter`.
 - **Built-in intervals**: `PixelIntervals`, `DegreeIntervals`, `MetricIntervals`.
 - **Style helpers**: `createDefaultEdgeLabelHandler`, `createDefaultCellLabelHandler`, `resolveLineStyle`, `DEFAULT_LINE_STROKE`, `DEFAULT_CURSOR_COLOR`.

@@ -75,6 +75,33 @@ coordinateToGridRef([54.5, 5.2], 0);                  // -> "AN"
 Input order is `[latitude, longitude]`. Returns `undefined` when the point
 is outside the grid's covered area (there are a few such gaps near the poles).
 
+### Reverse: parse a grid reference back to a coordinate
+
+```ts
+import {
+  parseGridRef,
+  gridRefToCoordinate,
+  KriegsmarineGridSystem,
+} from '@zwaarcontrast/ol-graticule-marinequadratkarte';
+import { ParseError } from '@zwaarcontrast/ol-graticule';
+
+parseGridRef('bc 6175');           // -> "BC6175" (canonical, whitespace-free)
+gridRefToCoordinate('BC 6175');    // -> [lat, lon] of the cell centre
+
+// Or, via the GridSystem (returns view-projection coords):
+try {
+  const center = grid.parseCoordinate('BC 6175', map.getView().getProjection());
+  map.getView().animate({ center });
+} catch (err) {
+  if (err instanceof ParseError) console.warn(err.reason);
+}
+```
+
+Lenient: case-insensitive, whitespace-anywhere, 2-letter prefix + 0–8 digits.
+Polygonal-square centres use the bounding-box midpoint (close to the
+geometric centre for the well-behaved squares; can drift on highly L-shaped
+ones).
+
 ## Credits
 
 ### Jan Kockrow — navalgrid.com

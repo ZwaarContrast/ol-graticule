@@ -169,4 +169,44 @@ describe('@zwaarcontrast/ol-graticule-rd', () => {
       expect(system.isValidCoordinate(ams, 'EPSG:3857')).toBe(false);
     });
   });
+
+  describe('parseCoordinate', () => {
+    it('accepts "155000 463000" in metres on EPSG:28992 view', () => {
+      const system = createRDNewGridSystem();
+      const [x, y] = system.parseCoordinate!('155000 463000', 'EPSG:28992');
+      expect(x).toBeCloseTo(155000, 6);
+      expect(y).toBeCloseTo(463000, 6);
+    });
+
+    it('accepts "155 463 km" (regression: this used to fail through PolygonClipped→Projected→splitCoordinatePair)', () => {
+      const system = createRDNewGridSystem();
+      const [x, y] = system.parseCoordinate!('155 463 km', 'EPSG:28992');
+      expect(x).toBeCloseTo(155000, 6);
+      expect(y).toBeCloseTo(463000, 6);
+    });
+
+    it('accepts "155, 463 km" with comma', () => {
+      const system = createRDNewGridSystem();
+      const [x, y] = system.parseCoordinate!('155, 463 km', 'EPSG:28992');
+      expect(x).toBeCloseTo(155000, 6);
+      expect(y).toBeCloseTo(463000, 6);
+    });
+
+    it('accepts "155000 463000 m" with explicit metre suffix', () => {
+      const system = createRDNewGridSystem();
+      const [x, y] = system.parseCoordinate!('155000 463000 m', 'EPSG:28992');
+      expect(x).toBeCloseTo(155000, 6);
+      expect(y).toBeCloseTo(463000, 6);
+    });
+
+    it('transforms RD metres to a Web Mercator view projection', () => {
+      const system = createRDNewGridSystem();
+      const [x, y] = system.parseCoordinate!('155000 463000', 'EPSG:3857');
+      // RD (155000, 463000) ≈ Amersfoort tower; lands roughly mid-Netherlands in 3857.
+      expect(x).toBeGreaterThan(550_000);
+      expect(x).toBeLessThan(650_000);
+      expect(y).toBeGreaterThan(6_800_000);
+      expect(y).toBeLessThan(6_900_000);
+    });
+  });
 });

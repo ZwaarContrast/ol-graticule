@@ -10,10 +10,11 @@ import {
 } from '@zwaarcontrast/ol-graticule';
 import { KriegsmarineGridSystem } from '@zwaarcontrast/ol-graticule-marinequadratkarte';
 import { gridLine, cellLabelHandler, cursorStyle } from '../shared';
+import { createCoordinateInput } from '../coordinateInput';
 
 const gridSystem = new KriegsmarineGridSystem();
 
-new Map({
+const map = new Map({
   target: 'map',
   layers: [
     new TileLayer({ source: new OSM() }),
@@ -32,3 +33,14 @@ new Map({
     zoom: 4,
   }),
 });
+
+const badge = document.querySelector<HTMLElement>('.badge');
+if (badge) {
+  createCoordinateInput({
+    map,
+    gridSystem,
+    host: badge,
+    placeholder: 'BC 6175',
+    hint: '2-letter prefix + 0–8 digits, e.g. BC, BC6, BC6175.',
+  });
+}

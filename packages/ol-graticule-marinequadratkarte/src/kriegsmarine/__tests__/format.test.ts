@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { coordinateToGridRef, formatGridRef } from '../format.js';
+import { ParseError } from '@zwaarcontrast/ol-graticule';
+import {
+  coordinateToGridRef,
+  formatGridRef,
+  parseGridRef,
+  gridRefToCoordinate,
+} from '../format.js';
 
 describe('Kriegsmarine format', () => {
   describe('formatGridRef', () => {
@@ -103,4 +109,56 @@ describe('Kriegsmarine format', () => {
     });
   });
 
+  describe('parseGridRef', () => {
+    it('canonicalises 2-letter prefix and digits', () => {
+      expect(parseGridRef('BC')).toBe('BC');
+      expect(parseGridRef('BC 6175')).toBe('BC6175');
+      expect(parseGridRef('BC6175')).toBe('BC6175');
+    });
+
+    it('is case-insensitive on the prefix', () => {
+      expect(parseGridRef('bc 6175')).toBe('BC6175');
+      expect(parseGridRef('Bc6175')).toBe('BC6175');
+    });
+
+    it('accepts whitespace anywhere', () => {
+      expect(parseGridRef('  BC  6  1  7  5  ')).toBe('BC6175');
+    });
+
+    it('throws ParseError on garbage', () => {
+      expect(() => parseGridRef('')).toThrow(ParseError);
+      expect(() => parseGridRef('1234')).toThrow(ParseError);
+      expect(() => parseGridRef('BC123456789')).toThrow(ParseError);
+    });
+  });
+
+  describe('gridRefToCoordinate', () => {
+    it('round-trips the 2-character ref of a known coordinate', () => {
+      const refOut = coordinateToGridRef([47, -66], 0);
+      expect(refOut).toBeDefined();
+      const [lat, lon] = gridRefToCoordinate(refOut!);
+      expect(coordinateToGridRef([lat, lon], 0)).toBe(refOut);
+    });
+
+    it('round-trips a fully-subdivided ref', () => {
+      const refOut = coordinateToGridRef([47, -66], 4);
+      expect(refOut).toBeDefined();
+      const [lat, lon] = gridRefToCoordinate(refOut!);
+      expect(coordinateToGridRef([lat, lon], 4)).toBe(refOut);
+    });
+
+    it('round-trips a polygonal-square ref (AD)', () => {
+      const [lat, lon] = gridRefToCoordinate('AD');
+      expect(coordinateToGridRef([lat, lon], 0)).toBe('AD');
+    });
+
+    it('throws ParseError on unknown ref', () => {
+      // 'ZZ' isn't a real bigram in the grid.
+      expect(() => gridRefToCoordinate('ZZ')).toThrow(ParseError);
+    });
+
+    it('throws ParseError on malformed input', () => {
+      expect(() => gridRefToCoordinate('hello')).toThrow(ParseError);
+    });
+  });
 });

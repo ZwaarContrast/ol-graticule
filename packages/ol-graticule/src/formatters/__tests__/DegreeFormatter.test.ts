@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { DegreeFormatter } from '../DegreeFormatter.js';
+import { ParseError } from '../../util/ParseError.js';
 
 describe('DegreeFormatter', () => {
   describe('DMS format', () => {
@@ -90,6 +91,116 @@ describe('DegreeFormatter', () => {
     it('defaults to DMS', () => {
       const formatter = new DegreeFormatter();
       expect(formatter.format(10, 'x')).toBe('10\u00B000\u203200\u2033E');
+    });
+  });
+
+  describe('parse', () => {
+    const formatter = new DegreeFormatter();
+
+    it('round-trips DMS format output', () => {
+      for (const v of [5.5, -5.5, 49.5, -33.25, 10 + 30 / 60 + 31 / 3600]) {
+        const text = formatter.format(v, 'x');
+        expect(formatter.parse(text, 'x')).toBeCloseTo(v, 6);
+      }
+    });
+
+    it('round-trips DD format output', () => {
+      const dd = new DegreeFormatter('dd');
+      for (const v of [45, 5.5, -120.75]) {
+        const axis = v < 0 || v > 90 ? 'x' : 'y';
+        const text = dd.format(v, axis);
+        expect(dd.parse(text, axis)).toBeCloseTo(v, 4);
+      }
+    });
+
+    it('round-trips DDM format output', () => {
+      const ddm = new DegreeFormatter('ddm');
+      for (const v of [45, 5.5, 49.255]) {
+        const text = ddm.format(v, 'y');
+        expect(ddm.parse(text, 'y')).toBeCloseTo(v, 6);
+      }
+    });
+
+    it('parses lenient DMS variants', () => {
+      expect(formatter.parse("50 37 2 N", 'y')).toBeCloseTo(50 + 37 / 60 + 2 / 3600, 6);
+      expect(formatter.parse("50d37m02sN", 'y')).toBeCloseTo(50 + 37 / 60 + 2 / 3600, 6);
+      expect(formatter.parse("N50 37 02", 'y')).toBeCloseTo(50 + 37 / 60 + 2 / 3600, 6);
+      expect(formatter.parse("50\u00B037'02\"", 'y')).toBeCloseTo(50 + 37 / 60 + 2 / 3600, 6);
+    });
+
+    it('parses bare numbers (no hemisphere, no sign)', () => {
+      expect(formatter.parse('50.6172', 'y')).toBeCloseTo(50.6172, 6);
+      expect(formatter.parse('-50.6172', 'y')).toBeCloseTo(-50.6172, 6);
+    });
+
+    it('hemisphere takes precedence over leading sign', () => {
+      expect(formatter.parse('-50.6172N', 'y')).toBeCloseTo(50.6172, 6);
+    });
+
+    it('routes hemisphere by axis', () => {
+      expect(formatter.parse('5.5E', 'x')).toBeCloseTo(5.5, 6);
+      expect(formatter.parse('5.5W', 'x')).toBeCloseTo(-5.5, 6);
+      expect(formatter.parse('5.5N', 'y')).toBeCloseTo(5.5, 6);
+      expect(formatter.parse('5.5S', 'y')).toBeCloseTo(-5.5, 6);
+    });
+
+    it('throws ParseError on empty input', () => {
+      expect(() => formatter.parse('', 'x')).toThrow(ParseError);
+      expect(() => formatter.parse('   ', 'x')).toThrow(ParseError);
+    });
+
+    it('throws ParseError on garbage', () => {
+      expect(() => formatter.parse('hello', 'x')).toThrow(ParseError);
+    });
+
+    it('throws ParseError on multiple hemispheres', () => {
+      expect(() => formatter.parse('50N E', 'x')).toThrow(ParseError);
+    });
+
+    it('throws ParseError when hemisphere mismatches axis', () => {
+      expect(() => formatter.parse('50N', 'x')).toThrow(ParseError);
+      expect(() => formatter.parse('50E', 'y')).toThrow(ParseError);
+    });
+
+    it('throws ParseError when minutes or seconds out of range', () => {
+      expect(() => formatter.parse('50 70 0 N', 'y')).toThrow(ParseError);
+      expect(() => formatter.parse('50 30 60 N', 'y')).toThrow(ParseError);
+    });
+
+    it('throws ParseError on too many numeric components', () => {
+      expect(() => formatter.parse('1 2 3 4 N', 'y')).toThrow(ParseError);
+    });
+  });
+
+  describe('parseCoordinate', () => {
+    const formatter = new DegreeFormatter();
+
+    it('default order is "lon lat" without hemisphere markers', () => {
+      const [lon, lat] = formatter.parseCoordinate('4.35 50.85');
+      expect(lon).toBeCloseTo(4.35, 6);
+      expect(lat).toBeCloseTo(50.85, 6);
+    });
+
+    it('routes axes when first half carries N/S marker', () => {
+      const [lon, lat] = formatter.parseCoordinate('50°51′N, 4°21′E');
+      expect(lat).toBeCloseTo(50 + 51 / 60, 4);
+      expect(lon).toBeCloseTo(4 + 21 / 60, 4);
+    });
+
+    it('routes axes when second half carries E/W marker but first has none', () => {
+      const [lon, lat] = formatter.parseCoordinate('4°21′E 50°51′N');
+      expect(lon).toBeCloseTo(4 + 21 / 60, 4);
+      expect(lat).toBeCloseTo(50 + 51 / 60, 4);
+    });
+
+    it('handles negative pair without hemispheres', () => {
+      const [lon, lat] = formatter.parseCoordinate('-4.5, -50.8');
+      expect(lon).toBeCloseTo(-4.5, 6);
+      expect(lat).toBeCloseTo(-50.8, 6);
+    });
+
+    it('throws ParseError on two-of-same-axis hemispheres', () => {
+      expect(() => formatter.parseCoordinate('50N 4N')).toThrow(ParseError);
     });
   });
 });

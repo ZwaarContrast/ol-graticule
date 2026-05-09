@@ -21,7 +21,8 @@ import {
   emitFlatLineFeatures,
 } from '@zwaarcontrast/ol-graticule';
 import { getAllLargeSquares, findById, ensureIndexed } from '../kriegsmarine/lookup.js';
-import { coordinateToGridRef, formatGridRef, childRefCandidates } from '../kriegsmarine/format.js';
+import { coordinateToGridRef, formatGridRef, childRefCandidates, gridRefToCoordinate } from '../kriegsmarine/format.js';
+import { ParseError } from '@zwaarcontrast/ol-graticule';
 import {
   squareExtent,
   squareScreenSize,
@@ -160,6 +161,17 @@ export class KriegsmarineGridSystem implements GridSystem {
     if (lon === undefined || lat === undefined) return { combined: '—' };
     const ref = coordinateToGridRef([lat, lon], this.maxDepth_);
     return { combined: ref ? formatGridRef(ref) : '—' };
+  }
+
+  parseCoordinate(text: string, viewProjection: ProjectionLike): [number, number] {
+    const [lat, lon] = gridRefToCoordinate(text);
+    const projected = transform([lon, lat], 'EPSG:4326', viewProjection);
+    const px = projected[0];
+    const py = projected[1];
+    if (px === undefined || py === undefined || !Number.isFinite(px) || !Number.isFinite(py)) {
+      throw new ParseError(text, 'transform produced non-finite coordinate');
+    }
+    return [px, py];
   }
 
   /** Walk the grid tree and return every leaf square; memoized per render frame. */

@@ -41,6 +41,7 @@ import {
   cellLabelHandler,
   cursorStyle,
 } from '../shared';
+import { createCoordinateInput, type CoordinateInputHandle } from '../coordinateInput';
 
 interface Theatre {
   label: string;
@@ -128,6 +129,7 @@ const map = new Map({
 
 let cursorControl: CursorPositionControl | null = null;
 let graticuleLayer: Layer | null = null;
+let coordInput: CoordinateInputHandle | null = null;
 
 function applyTheatre(key: string): void {
   const theatre = theatres[key];
@@ -150,6 +152,18 @@ function applyTheatre(key: string): void {
   if (cursorControl) map.removeControl(cursorControl);
   cursorControl = new CursorPositionControl({ gridSystem, style: cursorStyle });
   map.addControl(cursorControl);
+
+  if (coordInput) coordInput.destroy();
+  const badge = document.querySelector<HTMLElement>('.badge');
+  if (badge) {
+    coordInput = createCoordinateInput({
+      map,
+      gridSystem,
+      host: badge,
+      placeholder: 'vK 617 517',
+      hint: 'MBS reference (e.g. vK, vK617517, vK90449926) or "easting northing" km.',
+    });
+  }
 
   map.getView().fit(
     transformExtent(theatre.fitExtent, theatre.fitCrs, 'EPSG:3857'),

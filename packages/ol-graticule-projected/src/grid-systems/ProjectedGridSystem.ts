@@ -22,11 +22,13 @@ import {
   MetricIntervals,
   MetricFormatter,
   ProjectionScratch,
+  ParseError,
   RenderCache,
   emitFlatLineFeatures,
   isOnMajorLine,
   densifyCount,
   measureTargetResolution,
+  parsePairViaFormatter,
   pushAxisGridLineSpecs,
   transformExtentSampled,
 } from '@zwaarcontrast/ol-graticule';
@@ -283,6 +285,17 @@ export class ProjectedGridSystem implements GridSystem {
       x: this.formatter_.format(tx, 'x'),
       y: this.formatter_.format(ty, 'y'),
     };
+  }
+
+  parseCoordinate(text: string, viewProjection: ProjectionLike): [number, number] {
+    const [cx, cy] = parsePairViaFormatter(this.formatter_, text);
+    const projected = transform([cx, cy], this.crs_, viewProjection);
+    const px = projected[0];
+    const py = projected[1];
+    if (px === undefined || py === undefined || !Number.isFinite(px) || !Number.isFinite(py)) {
+      throw new ParseError(text, 'transform produced non-finite coordinate');
+    }
+    return [px, py];
   }
 
   private effectiveExtent_(): Extent | undefined {

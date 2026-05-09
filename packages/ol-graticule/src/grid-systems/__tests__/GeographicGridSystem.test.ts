@@ -235,4 +235,38 @@ describe('GeographicGridSystem', () => {
       expect(intervals.getInterval).toHaveBeenCalledTimes(2);
     });
   });
+
+  describe('parseCoordinate', () => {
+    it('returns view-projection coords (EPSG:3857) for a typed lat/lon', () => {
+      const system = new GeographicGridSystem();
+      const [x, y] = system.parseCoordinate('50.85N 4.35E', 'EPSG:3857');
+      // Brussels (≈ 4.35°E, 50.85°N) lands in 3857 ~ (484240, 6594800).
+      expect(x).toBeCloseTo(484240, -2);
+      expect(y).toBeCloseTo(6594800, -2);
+    });
+
+    it('round-trips formatCoordinate output (DMS rounding ~30 m)', () => {
+      const system = new GeographicGridSystem();
+      const original: [number, number] = [484240, 6594800];
+      const formatted = system.formatCoordinate(original, 'EPSG:3857');
+      if (!('x' in formatted)) throw new Error('expected axis-formatted');
+      const [px, py] = system.parseCoordinate(`${formatted.x} ${formatted.y}`, 'EPSG:3857');
+      expect(px).toBeCloseTo(original[0], -2);
+      expect(py).toBeCloseTo(original[1], -2);
+    });
+
+    it('treats unmarked pairs as "lon lat"', () => {
+      const system = new GeographicGridSystem();
+      const [x, y] = system.parseCoordinate('4.35 50.85', 'EPSG:3857');
+      expect(x).toBeCloseTo(484240, -2);
+      expect(y).toBeCloseTo(6594800, -2);
+    });
+
+    it('returns identity for EPSG:4326 view projection', () => {
+      const system = new GeographicGridSystem();
+      const [x, y] = system.parseCoordinate('4.35E 50.85N', 'EPSG:4326');
+      expect(x).toBeCloseTo(4.35, 6);
+      expect(y).toBeCloseTo(50.85, 6);
+    });
+  });
 });

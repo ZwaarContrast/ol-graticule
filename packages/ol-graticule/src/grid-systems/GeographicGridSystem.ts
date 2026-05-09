@@ -1,6 +1,6 @@
 import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
-import { transformExtent, getTransform } from 'ol/proj';
+import { transformExtent, getTransform, transform } from 'ol/proj';
 import type { TransformFunction } from 'ol/proj';
 import type { Extent } from 'ol/extent';
 import type { Geometry } from 'ol/geom';
@@ -19,6 +19,8 @@ import {
 } from '../util/gridlines.js';
 import { ProjectionScratch } from '../util/projectionScratch.js';
 import { normalizeLon } from '../util/geo.js';
+import { ParseError } from '../util/ParseError.js';
+import { parsePairViaFormatter } from '../util/parseCoordinatePair.js';
 
 const MAJOR_SKIP_EPSILON_RATIO = 0.5;
 
@@ -111,6 +113,17 @@ export class GeographicGridSystem implements GridSystem {
       x: this.formatter_.format(lon, 'x'),
       y: this.formatter_.format(lat, 'y'),
     };
+  }
+
+  parseCoordinate(text: string, viewProjection: ProjectionLike): [number, number] {
+    const [lon, lat] = parsePairViaFormatter(this.formatter_, text);
+    const projected = transform([lon, lat], 'EPSG:4326', viewProjection);
+    const px = projected[0];
+    const py = projected[1];
+    if (px === undefined || py === undefined || !Number.isFinite(px) || !Number.isFinite(py)) {
+      throw new ParseError(text, 'transform produced non-finite coordinate');
+    }
+    return [px, py];
   }
 
   private renderContext_(extent: Extent, resolution: number, viewProjection: ProjectionLike): RenderContext {

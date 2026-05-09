@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { ParseError } from '@zwaarcontrast/ol-graticule';
 import { MBSFormatter } from '../MBSFormatter';
 import { NORD_DE_GUERRE_SCHEME } from '../schemes';
 
@@ -113,6 +114,102 @@ describe('MBSFormatter', () => {
     it('returns the full MBS reference as a single combined label', () => {
       const result = formatter.formatCoordinate(350000, 150000);
       expect(result).toEqual({ combined: 'vZ 500 500' });
+    });
+  });
+
+  describe('parse() — single-axis metric', () => {
+    it('round-trips format output (km)', () => {
+      for (const v of [0, 500000, 350500, 1000]) {
+        expect(formatter.parse(formatter.format(v, 'x'), 'x')).toBeCloseTo(v, 6);
+      }
+    });
+
+    it('accepts m suffix and unitless values', () => {
+      expect(formatter.parse('1234 m')).toBeCloseTo(1234, 6);
+      expect(formatter.parse('1234')).toBeCloseTo(1234, 6);
+    });
+  });
+
+  describe('parseCoordinate() — compound MBS reference', () => {
+    it('returns cell centre at 100 km precision for "vK"', () => {
+      // 'v' at firstLetterGrid[0][0]; 'K' at secondLetterGrid[4][4] (FGHJK).
+      // baseE_m = (-100 + 0*500 + 4*100) * 1000 = 300_000
+      // baseN_m = (0 + 0*500 + 4*100) * 1000 = 400_000
+      // Cell is 100 km × 100 km, centre offset = 50_000 m on each axis.
+      const [e, n] = formatter.parseCoordinate('vK');
+      expect(e).toBeCloseTo(350_000, 6);
+      expect(n).toBeCloseTo(450_000, 6);
+    });
+
+    it('returns cell centre at 100 m precision for "vK 617 517"', () => {
+      // formatMBS rounds to nearest 100 m → cell N=617 is centred on 61_700 m.
+      const [e, n] = formatter.parseCoordinate('vK 617 517');
+      expect(e).toBeCloseTo(361_700, 6);
+      expect(n).toBeCloseTo(451_700, 6);
+    });
+
+    it('returns cell centre at 10 m precision for "vK90449926"', () => {
+      // 8 digits → 10 m precision; cell N=9044 is centred on 90_440 m.
+      const [e, n] = formatter.parseCoordinate('vK90449926');
+      expect(e).toBeCloseTo(390_440, 6);
+      expect(n).toBeCloseTo(499_260, 6);
+    });
+
+    it('round-trips formatMBS ↔ parseCoordinate', () => {
+      const ref = 'vK 617 517';
+      const [e, n] = formatter.parseCoordinate(ref);
+      expect(formatter.formatMBS(e, n)).toBe(ref);
+    });
+
+    it('is case-insensitive', () => {
+      const a = formatter.parseCoordinate('vK 617 517');
+      const b = formatter.parseCoordinate('VK617517');
+      const c = formatter.parseCoordinate('Vk 617517');
+      expect(b).toEqual(a);
+      expect(c).toEqual(a);
+    });
+
+    it('accepts numeric fallback in km', () => {
+      const [e, n] = formatter.parseCoordinate('309.02 296.80');
+      expect(e).toBeCloseTo(309_020, 6);
+      expect(n).toBeCloseTo(296_800, 6);
+    });
+
+    it('accepts numeric fallback with comma', () => {
+      const [e, n] = formatter.parseCoordinate('309.02, 296.80');
+      expect(e).toBeCloseTo(309_020, 6);
+      expect(n).toBeCloseTo(296_800, 6);
+    });
+
+    it('accepts numeric fallback with km suffix', () => {
+      const [e, n] = formatter.parseCoordinate('309.02 296.80 km');
+      expect(e).toBeCloseTo(309_020, 6);
+      expect(n).toBeCloseTo(296_800, 6);
+    });
+
+    it('accepts numeric fallback with m suffix', () => {
+      const [e, n] = formatter.parseCoordinate('309020 296800 m');
+      expect(e).toBeCloseTo(309_020, 6);
+      expect(n).toBeCloseTo(296_800, 6);
+    });
+
+    it('throws ParseError on odd digit count', () => {
+      expect(() => formatter.parseCoordinate('vK123')).toThrow(ParseError);
+    });
+
+    it('throws ParseError on >10 digits', () => {
+      expect(() => formatter.parseCoordinate('vK123456789012')).toThrow(ParseError);
+    });
+
+    it('throws ParseError on unknown letter', () => {
+      // 'I' is the omitted letter in the 25-letter MBS alphabet.
+      expect(() => formatter.parseCoordinate('iX 617 517')).toThrow(ParseError);
+      expect(() => formatter.parseCoordinate('vI 617 517')).toThrow(ParseError);
+    });
+
+    it('throws ParseError on garbage', () => {
+      expect(() => formatter.parseCoordinate('')).toThrow(ParseError);
+      expect(() => formatter.parseCoordinate('hello')).toThrow(ParseError);
     });
   });
 });

@@ -10,6 +10,7 @@ import {
 } from '@zwaarcontrast/ol-graticule';
 import { ProjectedGridSystem } from '@zwaarcontrast/ol-graticule-projected';
 import { gridLine, edgeLabelText, cursorStyle } from '../shared';
+import { createCoordinateInput } from '../coordinateInput';
 
 // UTM zone 33N is only valid within ~6° of its central meridian (15°E).
 // Clip to the zone's EPSG bounding box so the graticule doesn't draw
@@ -40,3 +41,14 @@ const map = new Map({
 map.getView().fit(transformExtent(zoneExtent, 'EPSG:32633', 'EPSG:3857'), {
   padding: [40, 40, 40, 40],
 });
+
+const badge = document.querySelector<HTMLElement>('.badge');
+if (badge) {
+  createCoordinateInput({
+    map,
+    gridSystem,
+    host: badge,
+    placeholder: '500000 5000000',
+    hint: 'UTM 33N easting/northing in metres.',
+  });
+}

@@ -154,4 +154,28 @@ describe('PixelGridSystem', () => {
       expect(result).toEqual({ x: '100 px', y: '250 px' });
     });
   });
+
+  describe('parseCoordinate', () => {
+    it('returns the pair as-is for non-inverted Y', () => {
+      const system = new PixelGridSystem();
+      expect(system.parseCoordinate('800 600', '')).toEqual([800, 600]);
+    });
+
+    it('flips display Y back to OL Y when yInverted', () => {
+      const system = new PixelGridSystem({ yInverted: true });
+      const [x, y] = system.parseCoordinate('100 250', '');
+      expect(x).toBe(100);
+      expect(y).toBe(-250);
+    });
+
+    it('round-trips formatCoordinate output (yInverted)', () => {
+      const system = new PixelGridSystem({ yInverted: true });
+      const original: [number, number] = [1234, -567];
+      const formatted = system.formatCoordinate(original, '');
+      if (!('x' in formatted)) throw new Error('expected axis-formatted');
+      const [px, py] = system.parseCoordinate(`${formatted.x} ${formatted.y}`, '');
+      expect(px).toBe(1234);
+      expect(py).toBe(-567);
+    });
+  });
 });

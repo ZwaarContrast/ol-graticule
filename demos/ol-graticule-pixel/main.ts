@@ -10,6 +10,7 @@ import {
   CursorPositionControl,
 } from '@zwaarcontrast/ol-graticule';
 import { gridLine, edgeLabelText, cursorStyle } from '../shared';
+import { createCoordinateInput } from '../coordinateInput';
 
 const WIDTH = 2000;
 const HEIGHT = 1200;
@@ -82,7 +83,7 @@ const projection = new Projection({
 
 const gridSystem = new PixelGridSystem({ yInverted: true });
 
-new Map({
+const map = new Map({
   target: 'map',
   layers: [
     new ImageLayer({
@@ -103,3 +104,14 @@ new Map({
     minResolution: 0.25,
   }),
 });
+
+const badge = document.querySelector<HTMLElement>('.badge');
+if (badge) {
+  createCoordinateInput({
+    map,
+    gridSystem,
+    host: badge,
+    placeholder: '800 600 px',
+    hint: 'X Y in image pixels (top-left origin).',
+  });
+}

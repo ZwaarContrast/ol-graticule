@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { PixelFormatter } from '../PixelFormatter.js';
+import { ParseError } from '../../util/ParseError.js';
 
 describe('PixelFormatter', () => {
   const formatter = new PixelFormatter();
@@ -38,6 +39,54 @@ describe('PixelFormatter', () => {
       const a = f.format(250.1);
       const b = f.format(250.4);
       expect(Object.is(a, b)).toBe(true);
+    });
+  });
+
+  describe('parse', () => {
+    const f = new PixelFormatter();
+
+    it('round-trips format output', () => {
+      for (const v of [0, 100, 1234, -50]) {
+        expect(f.parse(f.format(v))).toBe(v);
+      }
+    });
+
+    it('parses lenient variants', () => {
+      expect(f.parse('123')).toBe(123);
+      expect(f.parse('123px')).toBe(123);
+      expect(f.parse('123 px')).toBe(123);
+      expect(f.parse('123 PX')).toBe(123);
+      expect(f.parse('-50')).toBe(-50);
+    });
+
+    it('throws ParseError on garbage', () => {
+      expect(() => f.parse('')).toThrow(ParseError);
+      expect(() => f.parse('hello')).toThrow(ParseError);
+    });
+  });
+
+  describe('parseCoordinate', () => {
+    const f = new PixelFormatter();
+
+    it('handles whitespace pair', () => {
+      expect(f.parseCoordinate('800 600')).toEqual([800, 600]);
+    });
+
+    it('handles comma pair', () => {
+      expect(f.parseCoordinate('800, 600')).toEqual([800, 600]);
+    });
+
+    it('handles trailing px on the pair', () => {
+      expect(f.parseCoordinate('800 600 px')).toEqual([800, 600]);
+    });
+
+    it('handles per-half px', () => {
+      expect(f.parseCoordinate('800px 600px')).toEqual([800, 600]);
+    });
+
+    it('throws ParseError on empty or three-token input', () => {
+      expect(() => f.parseCoordinate('')).toThrow(ParseError);
+      expect(() => f.parseCoordinate('1 2 3')).toThrow(ParseError);
     });
   });
 });
