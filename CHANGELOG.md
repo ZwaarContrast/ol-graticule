@@ -1,5 +1,107 @@
 # Changelog
 
+## 2.1.0
+
+### @zwaarcontrast/ol-graticule
+
+### Minor Changes
+
+- ce473c8: Add `parseCoordinate` for typed coordinate input — wire a search box up to
+  `gridSystem.parseCoordinate(text, projection)` and fly the map to a typed
+  reference. All built-in grid systems and formatters support it; parsing is
+  lenient (DMS/DDM/DD with hemisphere markers, metric pairs with km/m
+  suffixes, MBS letter-cells like `vK 617 517`, RD `155 463 km`).
+  - New: `ParseError` (thrown on unparseable input) and `parseCoordinate` on
+    every built-in `GridSystem` (`Geographic`, `Projected`, `Pixel`,
+    `PolygonClipped`, plus the MBS factories via `Projected`).
+  - New: `parse` and `parseCoordinate` on `DegreeFormatter`, `MetricFormatter`,
+    `PixelFormatter`, `MBSFormatter`. `DegreeFormatter` routes hemisphere
+    markers internally; `MetricFormatter` accepts trailing units that apply
+    to both halves (`"155 463 km"`) or per-half units (`"500 km 5000 km"`).
+  - New utility exports: `splitCoordinatePair`, `parsePairViaFormatter`,
+    `parseLinear`.
+  - Each demo gains a coordinate-input widget exercising the parser.
+
+### @zwaarcontrast/ol-graticule-mgrs
+
+### Minor Changes
+
+- ce473c8: Add `parseCoordinate` for typed coordinate input — wire a search box up to
+  `gridSystem.parseCoordinate(text, projection)` and fly the map to a typed
+  reference. All built-in grid systems and formatters support it; parsing is
+  lenient (DMS/DDM/DD with hemisphere markers, metric pairs with km/m
+  suffixes, MBS letter-cells like `vK 617 517`, RD `155 463 km`).
+  - New: `ParseError` (thrown on unparseable input) and `parseCoordinate` on
+    every built-in `GridSystem` (`Geographic`, `Projected`, `Pixel`,
+    `PolygonClipped`, plus the MBS factories via `Projected`).
+  - New: `parse` and `parseCoordinate` on `DegreeFormatter`, `MetricFormatter`,
+    `PixelFormatter`, `MBSFormatter`. `DegreeFormatter` routes hemisphere
+    markers internally; `MetricFormatter` accepts trailing units that apply
+    to both halves (`"155 463 km"`) or per-half units (`"500 km 5000 km"`).
+  - New utility exports: `splitCoordinatePair`, `parsePairViaFormatter`,
+    `parseLinear`.
+  - Each demo gains a coordinate-input widget exercising the parser.
+
+### @zwaarcontrast/ol-graticule-modified-british-system
+
+### Minor Changes
+
+- ce473c8: Add `parseCoordinate` for typed coordinate input — wire a search box up to
+  `gridSystem.parseCoordinate(text, projection)` and fly the map to a typed
+  reference. All built-in grid systems and formatters support it; parsing is
+  lenient (DMS/DDM/DD with hemisphere markers, metric pairs with km/m
+  suffixes, MBS letter-cells like `vK 617 517`, RD `155 463 km`).
+  - New: `ParseError` (thrown on unparseable input) and `parseCoordinate` on
+    every built-in `GridSystem` (`Geographic`, `Projected`, `Pixel`,
+    `PolygonClipped`, plus the MBS factories via `Projected`).
+  - New: `parse` and `parseCoordinate` on `DegreeFormatter`, `MetricFormatter`,
+    `PixelFormatter`, `MBSFormatter`. `DegreeFormatter` routes hemisphere
+    markers internally; `MetricFormatter` accepts trailing units that apply
+    to both halves (`"155 463 km"`) or per-half units (`"500 km 5000 km"`).
+  - New utility exports: `splitCoordinatePair`, `parsePairViaFormatter`,
+    `parseLinear`.
+  - Each demo gains a coordinate-input widget exercising the parser.
+
+### @zwaarcontrast/ol-graticule-projected
+
+### Minor Changes
+
+- ce473c8: Add `parseCoordinate` for typed coordinate input — wire a search box up to
+  `gridSystem.parseCoordinate(text, projection)` and fly the map to a typed
+  reference. All built-in grid systems and formatters support it; parsing is
+  lenient (DMS/DDM/DD with hemisphere markers, metric pairs with km/m
+  suffixes, MBS letter-cells like `vK 617 517`, RD `155 463 km`).
+  - New: `ParseError` (thrown on unparseable input) and `parseCoordinate` on
+    every built-in `GridSystem` (`Geographic`, `Projected`, `Pixel`,
+    `PolygonClipped`, plus the MBS factories via `Projected`).
+  - New: `parse` and `parseCoordinate` on `DegreeFormatter`, `MetricFormatter`,
+    `PixelFormatter`, `MBSFormatter`. `DegreeFormatter` routes hemisphere
+    markers internally; `MetricFormatter` accepts trailing units that apply
+    to both halves (`"155 463 km"`) or per-half units (`"500 km 5000 km"`).
+  - New utility exports: `splitCoordinatePair`, `parsePairViaFormatter`,
+    `parseLinear`.
+  - Each demo gains a coordinate-input widget exercising the parser.
+
+### @zwaarcontrast/ol-graticule-rd
+
+### Minor Changes
+
+- ce473c8: Add `parseCoordinate` for typed coordinate input — wire a search box up to
+  `gridSystem.parseCoordinate(text, projection)` and fly the map to a typed
+  reference. All built-in grid systems and formatters support it; parsing is
+  lenient (DMS/DDM/DD with hemisphere markers, metric pairs with km/m
+  suffixes, MBS letter-cells like `vK 617 517`, RD `155 463 km`).
+  - New: `ParseError` (thrown on unparseable input) and `parseCoordinate` on
+    every built-in `GridSystem` (`Geographic`, `Projected`, `Pixel`,
+    `PolygonClipped`, plus the MBS factories via `Projected`).
+  - New: `parse` and `parseCoordinate` on `DegreeFormatter`, `MetricFormatter`,
+    `PixelFormatter`, `MBSFormatter`. `DegreeFormatter` routes hemisphere
+    markers internally; `MetricFormatter` accepts trailing units that apply
+    to both halves (`"155 463 km"`) or per-half units (`"500 km 5000 km"`).
+  - New utility exports: `splitCoordinatePair`, `parsePairViaFormatter`,
+    `parseLinear`.
+  - Each demo gains a coordinate-input widget exercising the parser.
+
 ## 2.0.0
 
 ### @zwaarcontrast/ol-graticule-mgrs
