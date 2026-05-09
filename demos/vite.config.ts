@@ -1,13 +1,22 @@
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import { resolve } from 'node:path';
 
-// GitHub Pages serves this repo at /ol-graticule/. Override with
-// DEMO_BASE=/ when previewing from the repo root locally without a sub-path.
 const base = process.env.DEMO_BASE ?? '/ol-graticule/';
+const GA_ID = 'G-BJJQSZZZGV';
+
+const gtag: Plugin = {
+  name: 'inject-ga4',
+  apply: 'build',
+  transformIndexHtml(html) {
+    const snippet = `\n    <script async src="https://www.googletagmanager.com/gtag/js?id=${GA_ID}"></script>\n    <script>\n      window.dataLayer = window.dataLayer || [];\n      function gtag(){dataLayer.push(arguments);}\n      gtag('js', new Date());\n      gtag('config', '${GA_ID}');\n    </script>`;
+    return html.replace('</head>', `${snippet}\n  </head>`);
+  },
+};
 
 export default defineConfig({
   base,
   root: __dirname,
+  plugins: [gtag],
   build: {
     outDir: 'dist',
     emptyOutDir: true,
