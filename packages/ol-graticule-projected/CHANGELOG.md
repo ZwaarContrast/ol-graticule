@@ -1,5 +1,11 @@
 # @zwaarcontrast/ol-graticule-projected
 
+## 2.0.0
+
+### Patch Changes
+
+- @zwaarcontrast/ol-graticule@2.0.0
+
 ## 1.0.0
 
 ### Minor Changes
