@@ -22,6 +22,8 @@ the anti-meridian-crossing squares in the Pacific.
 > distribute on npm yet. See [LICENSE.TODO.md](./LICENSE.TODO.md) for
 > the steps needed before public release.
 
+![Kriegsmarine Naval Grid large squares over the North Atlantic and Europe](https://github.com/ZwaarContrast/ol-graticule/raw/main/packages/ol-graticule-marinequadratkarte/images/preview.jpg)
+
 **Live demo:** <https://zwaarcontrast.nl/ol-graticule/ol-graticule-marinequadratkarte/>
 
 ## Install (once published)

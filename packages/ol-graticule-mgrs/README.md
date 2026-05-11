@@ -8,6 +8,8 @@ worldwide, with cursor readout of the full MGRS reference. Handles the
 Norway and Svalbard zone exceptions and falls back to UPS (Universal Polar
 Stereographic) above 84°N and below 80°S.
 
+![MGRS grid zones over western Europe](https://github.com/ZwaarContrast/ol-graticule/raw/main/packages/ol-graticule-mgrs/images/preview.jpg)
+
 **Live demo:** <https://zwaarcontrast.nl/ol-graticule/ol-graticule-mgrs/>
 
 ## Install

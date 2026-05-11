@@ -14,6 +14,8 @@ plus the period-correct British War Office (Dunnose) variant.
 > the foundation every theatre in this package is built on. If you find
 > this package useful, please go read his work and tip your hat.
 
+![Nord de Guerre MBS grid overlaid on Belgium and northern France](https://github.com/ZwaarContrast/ol-graticule/raw/main/packages/ol-graticule-modified-british-system/images/preview.jpg)
+
 **Live demo:** <https://zwaarcontrast.nl/ol-graticule/ol-graticule-modified-british-system/>
 
 ## Theatres

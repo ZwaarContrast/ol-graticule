@@ -6,6 +6,8 @@ Ships with two built-in grid systems (pixel and geographic lat/lon) and a
 cursor position control. Other CRSs and historical grids are published as
 add-on packages, see the [add-ons](#add-ons) section below.
 
+![Geographic lat/lon graticule rendered over a world map](https://github.com/ZwaarContrast/ol-graticule/raw/main/packages/ol-graticule/images/preview.jpg)
+
 **Live demo:** <https://zwaarcontrast.nl/ol-graticule/ol-graticule/>
 
 ## Install

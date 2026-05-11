@@ -25,6 +25,8 @@ Renders both Luftwaffe grid systems used during the Second World War:
 > GNMV; for that, see
 > [`@zwaarcontrast/ol-graticule-marinequadratkarte`](../ol-graticule-marinequadratkarte).
 
+![Luftwaffe GNMV ZZG cells (05 Ost, 15 Ost, 25 Ost) over northern Europe](https://github.com/ZwaarContrast/ol-graticule/raw/main/packages/ol-graticule-luftwaffe-planquadrat/images/preview.jpg)
+
 **Live demo:** <https://zwaarcontrast.nl/ol-graticule/ol-graticule-luftwaffe-planquadrat/>
 
 ## Install
