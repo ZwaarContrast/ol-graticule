@@ -1,6 +1,6 @@
 {
   "name": "@zwaarcontrast/ol-graticule",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "type": "module",
   "description": "OpenLayers graticule layer with pluggable grid systems, polygon clipping, and a cursor-position control.",
   "license": "MIT",
