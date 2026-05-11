@@ -15,7 +15,7 @@ demo per package.
 |---|---|
 | [`@zwaarcontrast/ol-graticule`](./packages/ol-graticule) | `UniversalGraticule` layer, `CursorPositionControl`, `PixelGridSystem`, `GeographicGridSystem` (EPSG:4326). No proj4 dependency. |
 | [`@zwaarcontrast/ol-graticule-projected`](./packages/ol-graticule-projected) | `ProjectedGridSystem`, any CRS via proj4. |
-| [`@zwaarcontrast/ol-graticule-modified-british-system`](./packages/ol-graticule-modified-british-system) | Modified British System artillery grids (Nord de Guerre for now). |
+| [`@zwaarcontrast/ol-graticule-modified-british-system`](./packages/ol-graticule-modified-british-system) | Modified British System letter-cell artillery grids for ten WWII theatres (Nord de Guerre, British/Irish Cassini, French Lambert I/II/III, War Office Cassini, Scandinavian Zone 3, Italian Northern/Southern, Iberian Peninsula). |
 | [`@zwaarcontrast/ol-graticule-rd`](./packages/ol-graticule-rd) | Dutch RD Amersfoort grids (EPSG:28991 Old, EPSG:28992 New). Netherlands coverage polygon baked in. |
 | [`@zwaarcontrast/ol-graticule-mgrs`](./packages/ol-graticule-mgrs) | Military Grid Reference System (MGRS / NATO grid) over UTM, with Norway and Svalbard exceptions. |
 | [`@zwaarcontrast/ol-graticule-luftwaffe-planquadrat`](./packages/ol-graticule-luftwaffe-planquadrat) | WWII Luftwaffe Planquadrat reference grids: Gradnetzmeldeverfahren (GNMV) and Jägermeldenetz (JMN). |
@@ -31,7 +31,7 @@ what you need.
 | Lat/lon graticule on a web map | `@zwaarcontrast/ol-graticule` |
 | Pixel ruler on an IIIF viewer | `@zwaarcontrast/ol-graticule` |
 | UTM / state plane / custom proj4 CRS | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-projected` + `proj4` |
-| Nord de Guerre artillery grid | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-modified-british-system` (+ `@zwaarcontrast/ol-graticule-projected` + `proj4`) |
+| MBS artillery grid (any of 10 WWII theatres) | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-modified-british-system` (+ `@zwaarcontrast/ol-graticule-projected` + `proj4`) |
 | Dutch RD grid | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-rd` (+ `@zwaarcontrast/ol-graticule-projected` + `proj4`) |
 | MGRS / NATO grid | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-mgrs` (+ `@zwaarcontrast/ol-graticule-projected` + `proj4`) |
 | Luftwaffe GNMV / JMN | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-luftwaffe-planquadrat` |
