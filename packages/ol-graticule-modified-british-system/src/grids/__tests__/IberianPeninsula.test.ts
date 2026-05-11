@@ -82,7 +82,7 @@ const sheetCorners: Array<{
 
 describe('Iberian Peninsula MBS factory', () => {
   for (const anchor of sheetCorners) {
-    it(`reproduces ${anchor.sheet} ${anchor.corner} corner — ${anchor.url}`, () => {
+    it(`reproduces ${anchor.sheet} ${anchor.corner} corner, ${anchor.url}`, () => {
       // Side-effect: register the CRS with proj4/OL.
       createIberianPeninsulaGridSystem();
       const [x, y] = transform([anchor.lon, anchor.lat], 'EPSG:4326', IBERIAN_PENINSULA_CRS);

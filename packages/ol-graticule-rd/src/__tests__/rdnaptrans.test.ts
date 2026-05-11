@@ -20,7 +20,7 @@ describe('registerRDNAPTRANS2018', () => {
 
     // After registration, defining a proj4 CRS that references the grid
     // must not throw. Without the grid present, proj4 would fall through
-    // via @null — still not throw, but coord accuracy drops; the stronger
+    // via @null, still not throw, but coord accuracy drops; the stronger
     // signal is that defs + first transform succeeds end-to-end.
     expect(() =>
       proj4.defs(

@@ -1,4 +1,12 @@
-/** Letter schemes and grid origins for known MBS theatres. */
+/**
+ * Letter schemes and grid origins for known MBS theatres.
+ *
+ * Every theatre's first-letter and second-letter grid, including the cyclic
+ * rotations that identify each letter family, is reconstructed from Thierry
+ * Arsicaud's Echo Delta site (https://www.echodelta.net/mbs/eng-welcome.php).
+ * Echo Delta has done decades of patient archival work that this package
+ * would not exist without. See the package README for the full credit.
+ */
 
 /** Indexing: `[geoRow][geoCol]`; `geoRow=0` is south, `geoCol=0` is west. */
 export interface MBSLetterGrids {
@@ -74,7 +82,7 @@ export const BRITISH_CASSINI_FAMILY_LETTERS: MBSLetterGrids = {
   secondLetterGrid: ['VWXYZ', 'QRSTU', 'LMNOP', 'FGHJK', 'ABCDE'],
 };
 
-/** British Cassini — Cassini-Soldner on the OS Delamere origin, Airy 1830. Tile SW at projected (100 km, −300 km). */
+/** British Cassini, Cassini-Soldner on the OS Delamere origin, Airy 1830. Tile SW at projected (100 km, −300 km). */
 export const BRITISH_CASSINI_SCHEME: MBSLetterScheme = {
   ...BRITISH_CASSINI_FAMILY_LETTERS,
   eOriginKm: 100,
@@ -82,7 +90,7 @@ export const BRITISH_CASSINI_SCHEME: MBSLetterScheme = {
 };
 
 /**
- * Irish Cassini — 1825 OSI Cassini-Soldner. Cassini origin 53°30'N, 8°W on
+ * Irish Cassini, 1825 OSI Cassini-Soldner. Cassini origin 53°30'N, 8°W on
  * Airy 1830; false E/N = 200/250 km. Ireland fits inside a single 500 km
  * square labelled `i` (lowercase, theatre-specific). Other 24 first-letter
  * positions use `-` sentinel for "no cell here". Grid origin (0, 0).
@@ -95,7 +103,7 @@ export const IRISH_CASSINI_SCHEME: MBSLetterScheme = {
 };
 
 /**
- * War Office Cassini Grid ("WOFO" / "Purple Grid") — Dunnose-origin
+ * War Office Cassini Grid ("WOFO" / "Purple Grid"), Dunnose-origin
  * Cassini-Soldner on Airy 1830; false E/N 500 km W and 100 km S of Dunnose.
  * Letter arrangement shared with {@link BRITISH_CASSINI_FAMILY_LETTERS}.
  * Tile SW coincides with the WOFO false origin.
@@ -121,7 +129,7 @@ export const SCANDINAVIAN_ZONE_3_FAMILY_LETTERS: MBSLetterGrids = {
   secondLetterGrid: ['LMNOP', 'FGHJK', 'ABCDE', 'VWXYZ', 'QRSTU'],
 };
 
-/** Scandinavian Zone 3 — LCC, lat_1=55°, lat_2=60°, lat_0=57.5°, lon_0=20°, Bessel 1841. Tile SW at (0, 0). */
+/** Scandinavian Zone 3, LCC, lat_1=55°, lat_2=60°, lat_0=57.5°, lon_0=20°, Bessel 1841. Tile SW at (0, 0). */
 export const SCANDINAVIAN_ZONE_3_SCHEME: MBSLetterScheme = {
   ...SCANDINAVIAN_ZONE_3_FAMILY_LETTERS,
   eOriginKm: 0,
@@ -143,21 +151,21 @@ export const ITALIAN_NORTHERN_FAMILY_LETTERS: MBSLetterGrids = {
   secondLetterGrid: ['FGHJK', 'ABCDE', 'VWXYZ', 'QRSTU', 'LMNOP'],
 };
 
-/** Italian Northern — LCC, lat_1=43°20', lat_2=48°30', lat_0=45°55', lon_0=14°, Bessel 1841. Tile SW at (0, 0). */
+/** Italian Northern, LCC, lat_1=43°20', lat_2=48°30', lat_0=45°55', lon_0=14°, Bessel 1841. Tile SW at (0, 0). */
 export const ITALIAN_NORTHERN_SCHEME: MBSLetterScheme = {
   ...ITALIAN_NORTHERN_FAMILY_LETTERS,
   eOriginKm: 0,
   nOriginKm: 0,
 };
 
-/** Italian Southern — LCC, lat_1=37°, lat_2=42°, lon_0=14°, Bessel 1841. Reuses {@link BRITISH_CASSINI_FAMILY_LETTERS}. Tile SW at (0, 0). */
+/** Italian Southern, LCC, lat_1=37°, lat_2=42°, lon_0=14°, Bessel 1841. Reuses {@link BRITISH_CASSINI_FAMILY_LETTERS}. Tile SW at (0, 0). */
 export const ITALIAN_SOUTHERN_SCHEME: MBSLetterScheme = {
   ...BRITISH_CASSINI_FAMILY_LETTERS,
   eOriginKm: 0,
   nOriginKm: 0,
 };
 
-/** Iberian Peninsula — tangent LCC at lat_0=40°N on Hayford 1924, Madrid Royal Observatory meridian. Reuses {@link BRITISH_CASSINI_FAMILY_LETTERS}. Tile SW at (0, 0). */
+/** Iberian Peninsula, tangent LCC at lat_0=40°N on Hayford 1924, Madrid Royal Observatory meridian. Reuses {@link BRITISH_CASSINI_FAMILY_LETTERS}. Tile SW at (0, 0). */
 export const IBERIAN_PENINSULA_SCHEME: MBSLetterScheme = {
   ...BRITISH_CASSINI_FAMILY_LETTERS,
   eOriginKm: 0,

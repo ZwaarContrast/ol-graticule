@@ -16,6 +16,7 @@ import { MgrsGridSystem } from '@zwaarcontrast/ol-graticule-mgrs';
 import { createRDNewGridSystem } from '@zwaarcontrast/ol-graticule-rd';
 import { createNordDeGuerreGridSystem } from '@zwaarcontrast/ol-graticule-modified-british-system';
 import { KriegsmarineGridSystem } from '@zwaarcontrast/ol-graticule-marinequadratkarte';
+import { LuftwaffeGridSystem } from '@zwaarcontrast/ol-graticule-luftwaffe-planquadrat';
 import Stroke from 'ol/style/Stroke';
 
 interface Scene {
@@ -63,6 +64,18 @@ const scenes: Scene[] = [
     build: () => new KriegsmarineGridSystem(),
     centerLonLat: [-2.0, 51.0],
     zoom: 4.5,
+  },
+  {
+    label: 'Luftwaffe (GNMV)',
+    build: () => new LuftwaffeGridSystem({ system: 'gnmv' }),
+    centerLonLat: [13.4, 52.5],
+    zoom: 6.5,
+  },
+  {
+    label: 'Luftwaffe (JMN)',
+    build: () => new LuftwaffeGridSystem({ system: 'jmn' }),
+    centerLonLat: [6.9, 51.0],
+    zoom: 6.5,
   },
 ];
 

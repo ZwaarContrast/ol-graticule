@@ -5,7 +5,7 @@ import { loadNadgrid, __resetNadgridLoadCache } from '../loadNadgrid.js';
 /**
  * Minimal NTv2 header. proj4's nadgrid parser is permissive enough that a
  * buffer with the right magic + subgrid count will load. Actual coordinate
- * transformations using this grid would be nonsense, but that's fine — we're
+ * transformations using this grid would be nonsense, but that's fine, we're
  * testing registration plumbing, not proj4's math.
  *
  * NTv2 layout: 11-record overview + per-subgrid header + grid records.

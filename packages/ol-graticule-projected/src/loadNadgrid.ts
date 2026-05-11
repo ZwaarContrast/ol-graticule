@@ -21,9 +21,9 @@ export interface LoadNadgridOptions {
  * so proj4 strings that reference `+nadgrids=@name` can resolve it.
  *
  * `source` accepts:
- *   - `ArrayBuffer` — used directly
- *   - `URL`         — passed to `fetch`
- *   - `string`      — passed to `fetch` (absolute URL or page-relative path)
+ *   - `ArrayBuffer`, used directly
+ *   - `URL`        , passed to `fetch`
+ *   - `string`     , passed to `fetch` (absolute URL or page-relative path)
  *
  * File-URL fetching depends on the runtime: modern browsers and Node 21+
  * handle `file:` URLs via `fetch`. On older Node versions, read the grid
@@ -55,7 +55,7 @@ export function loadNadgrid(
   })();
 
   promise.catch(() => {
-    // Only evict if this is still the cached promise — a concurrent
+    // Only evict if this is still the cached promise, a concurrent
     // `force: true` call may have replaced it with a fresh attempt.
     if (inFlight.get(name) === promise) inFlight.delete(name);
   });
@@ -75,7 +75,7 @@ async function fetchAsArrayBuffer(input: string | URL): Promise<ArrayBuffer> {
 
 /**
  * Test-only: drop all cached nadgrid load promises so the next call re-runs
- * the loader. Does not unregister grids from proj4 — that's owned by proj4
+ * the loader. Does not unregister grids from proj4, that's owned by proj4
  * and persists for the process lifetime.
  */
 export function __resetNadgridLoadCache(): void {

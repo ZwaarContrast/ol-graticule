@@ -4,7 +4,7 @@ import { register } from 'ol/proj/proj4';
 /**
  * Track which `(code, proj4Def)` pairs we've already processed so repeat
  * `registerCRS` calls in the same process become no-ops. We key on both
- * the EPSG code and the proj4 string — if the caller passes a *different*
+ * the EPSG code and the proj4 string, if the caller passes a *different*
  * definition for the same code later, we update the registry rather than
  * silently keeping the old one.
  */
@@ -26,7 +26,7 @@ const registered = new Map<string, string>();
  * const grid = new ProjectedGridSystem({ crs: 'EPSG:28992' });
  * ```
  *
- * Built-in CRSs (`EPSG:4326`, `EPSG:3857`) don't need registration — OL
+ * Built-in CRSs (`EPSG:4326`, `EPSG:3857`) don't need registration, OL
  * ships with them. `ProjectedGridSystem` will throw a clear error if it
  * encounters an unknown CRS, so missing `registerCRS` calls surface
  * immediately.

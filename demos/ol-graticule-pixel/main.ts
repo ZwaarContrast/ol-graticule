@@ -62,14 +62,14 @@ function buildBackground(): string {
   ctx.fillStyle = 'rgba(180, 215, 245, 0.7)';
   ctx.font = '500 18px ui-monospace, monospace';
   ctx.textAlign = 'left';
-  ctx.fillText('(0, 0) — top-left', 24, 28);
+  ctx.fillText('(0, 0), top-left', 24, 28);
   ctx.textAlign = 'right';
-  ctx.fillText(`(${WIDTH}, 0) — top-right`, WIDTH - 24, 28);
+  ctx.fillText(`(${WIDTH}, 0), top-right`, WIDTH - 24, 28);
   ctx.textAlign = 'left';
   ctx.textBaseline = 'bottom';
-  ctx.fillText(`(0, ${HEIGHT}) — bottom-left`, 24, HEIGHT - 16);
+  ctx.fillText(`(0, ${HEIGHT}), bottom-left`, 24, HEIGHT - 16);
   ctx.textAlign = 'right';
-  ctx.fillText(`(${WIDTH}, ${HEIGHT}) — bottom-right`, WIDTH - 24, HEIGHT - 16);
+  ctx.fillText(`(${WIDTH}, ${HEIGHT}), bottom-right`, WIDTH - 24, HEIGHT - 16);
 
   return c.toDataURL('image/png');
 }

@@ -36,6 +36,10 @@ export default defineConfig({
           __dirname,
           'ol-graticule-marinequadratkarte/index.html',
         ),
+        'ol-graticule-luftwaffe-planquadrat': resolve(
+          __dirname,
+          'ol-graticule-luftwaffe-planquadrat/index.html',
+        ),
       },
     },
   },

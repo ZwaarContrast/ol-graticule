@@ -15,7 +15,7 @@ import {
 export interface CursorPositionControlOptions {
   /** Grid system whose `formatCoordinate` produces the x/y label strings. */
   gridSystem?: GridSystem | null;
-  /** Style config — CSS color and typography for the indicator. */
+  /** Style config, CSS color and typography for the indicator. */
   style?: CursorStyle;
   /** CSS class name applied to the control's root element. */
   className?: string | undefined;

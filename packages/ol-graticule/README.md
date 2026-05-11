@@ -4,7 +4,7 @@ Flexible graticule layer for OpenLayers with a pluggable `GridSystem` strategy.
 
 Ships with two built-in grid systems (pixel and geographic lat/lon) and a
 cursor position control. Other CRSs and historical grids are published as
-add-on packages — see the [add-ons](#add-ons) section below.
+add-on packages, see the [add-ons](#add-ons) section below.
 
 **Live demo:** <https://zwaarcontrast.nl/ol-graticule/ol-graticule/>
 
@@ -70,14 +70,13 @@ where the Y axis goes down in image space but OL's Y axis goes up.
 
 Both `UniversalGraticule` and `CursorPositionControl` treat their grid-system
 slot as the single source of truth for what (and whether) they render. Pass a
-new grid to switch, pass `null` to deactivate, pass a grid again to reactivate
-— no separate visibility toggle required.
+new grid to switch, pass `null` to deactivate, pass a grid again to reactivate, no separate visibility toggle required.
 
 ```ts
 const graticule = new UniversalGraticule({ gridSystem: new GeographicGridSystem() });
 const cursor = new CursorPositionControl({ gridSystem: new GeographicGridSystem() });
 
-// Switch to a different grid — both update in place.
+// Switch to a different grid, both update in place.
 graticule.setGridSystem(new PixelGridSystem());
 cursor.setGridSystem(new PixelGridSystem());
 
@@ -98,7 +97,7 @@ the layer and control into your map up front and activate them later.
 | Option | Type | Default | What it does |
 |---|---|---|---|
 | `gridSystem` | `GridSystem \| null` | `null` | The grid to draw. `null` = inactive layer. |
-| `style` | `GraticuleStyle` | library defaults | Line / edge-label / cell-label config — see [Styling](#styling). |
+| `style` | `GraticuleStyle` | library defaults | Line / edge-label / cell-label config, see [Styling](#styling). |
 | `xLabelPosition` | `'top' \| 'bottom'` | `'top'` | Which edge gets x-axis (lon/easting) labels. |
 | `yLabelPosition` | `'left' \| 'right'` | `'left'` | Which edge gets y-axis (lat/northing) labels. |
 | `xLabelOffset` | `number` (px) | `2` | Inset for x-axis labels from the top/bottom edge. |
@@ -135,13 +134,13 @@ new UniversalGraticule({
 });
 ```
 
-- **`line`** — one `Stroke` (same for major + minor), a `{ major, minor? }`
+- **`line`**, one `Stroke` (same for major + minor), a `{ major, minor? }`
   pair, or a custom OL `StyleLike` that inspects each feature's
   `gridLineType` property.
-- **`edgeLabel`** — omit to hide; `true` for library defaults; a `Text` for a
+- **`edgeLabel`**, omit to hide; `true` for library defaults; a `Text` for a
   styled template (cloned per label); or a full `EdgeLabelStyleHandler` for
   pooled custom rendering.
-- **`cellLabel`** — omit for library defaults (used by MBS, Kriegsmarine);
+- **`cellLabel`**, omit for library defaults (used by MBS, Kriegsmarine);
   `false` to suppress; or a `CellLabelStyleHandler` for custom rendering.
   Tweak the defaults with
   `createDefaultCellLabelHandler({ fontFamily, fadeStops, … })`.
@@ -168,13 +167,12 @@ These packages plug their own `GridSystem` into `UniversalGraticule`:
 | [`@zwaarcontrast/ol-graticule-rd`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-rd) | Dutch RD Amersfoort (EPSG:28992 / 28991) with bundled RDNAPTRANS 2018 datum-shift grid. |
 | [`@zwaarcontrast/ol-graticule-mgrs`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-mgrs) | Military Grid Reference System (MGRS / NATO grid) over UTM, with Norway/Svalbard exceptions. |
 | [`@zwaarcontrast/ol-graticule-modified-british-system`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-modified-british-system) | Modified British System letter-cell artillery grids for ten WWII theatres (Nord de Guerre, French Lambert I/II/III, British/Irish Cassini, War Office Cassini, Scandinavian Zone 3, Italian Northern/Southern, Iberian Peninsula). |
-| `@zwaarcontrast/ol-graticule-marinequadratkarte` | WWII Kriegsmarine naval grid (not yet published — see [repo](https://github.com/zwaarcontrast/ol-graticule)). |
+| `@zwaarcontrast/ol-graticule-marinequadratkarte` | WWII Kriegsmarine naval grid (not yet published, see [repo](https://github.com/zwaarcontrast/ol-graticule)). |
 
 ### Reverse: parse a label back to a coordinate
 
 Every built-in grid system also implements the optional `parseCoordinate`
-method, which turns a typed label back into view-projection coordinates —
-useful for "go to" search inputs.
+method, which turns a typed label back into view-projection coordinates, useful for "go to" search inputs.
 
 ```ts
 import { ParseError } from '@zwaarcontrast/ol-graticule';
@@ -193,8 +191,7 @@ Parsing is lenient: hemisphere markers route axes for `GeographicGridSystem`
 (`50°N 4°E` and `4°E 50°N` both work); plain pairs default to `"x y"` order
 (lon-lat for geographic, easting-northing for linear). Compound formats
 (MBS letter-cells, Kriegsmarine references) round-trip via the formatter's
-own `parseCoordinate`. Spatial validity is intentionally **not** checked —
-call `isValidCoordinate` on the result if you need it.
+own `parseCoordinate`. Spatial validity is intentionally **not** checked, call `isValidCoordinate` on the result if you need it.
 
 The underlying single-axis `parse` lives on the formatter:
 
@@ -206,11 +203,11 @@ new PixelFormatter().parse('123 px');               // 123
 
 ## API reference
 
-- **`UniversalGraticule(options)`** — `VectorLayer` subclass. `setGridSystem(grid | null)` to swap/disable.
-- **`CursorPositionControl(options)`** — OL `Control`. Renders edge labels (axis grids) or a floating compound label (MBS/Kriegsmarine) depending on the grid system.
-- **`GridSystem`** — interface with `getFeatures`, `getLabels`, `formatCoordinate`, optional `parseCoordinate`, `getCellLabels`, `isValidCoordinate`. Implement it to draw any grid describable in code.
-- **`LabelFormatter`** — `format` / optional `formatCoordinate` / optional `parse` / optional `parseCoordinate` / optional `formatCellLabel`.
-- **`ParseError`** — thrown by `parse*` methods on unparseable input. Has `text` and `reason` fields.
+- **`UniversalGraticule(options)`**, `VectorLayer` subclass. `setGridSystem(grid | null)` to swap/disable.
+- **`CursorPositionControl(options)`**, OL `Control`. Renders edge labels (axis grids) or a floating compound label (MBS/Kriegsmarine) depending on the grid system.
+- **`GridSystem`**, interface with `getFeatures`, `getLabels`, `formatCoordinate`, optional `parseCoordinate`, `getCellLabels`, `isValidCoordinate`. Implement it to draw any grid describable in code.
+- **`LabelFormatter`**, `format` / optional `formatCoordinate` / optional `parse` / optional `parseCoordinate` / optional `formatCellLabel`.
+- **`ParseError`**, thrown by `parse*` methods on unparseable input. Has `text` and `reason` fields.
 - **Built-in grids**: `PixelGridSystem`, `GeographicGridSystem`, `PolygonClippedGridSystem`.
 - **Built-in formatters**: `PixelFormatter`, `DegreeFormatter` (DMS / DD / DDM), `MetricFormatter`.
 - **Built-in intervals**: `PixelIntervals`, `DegreeIntervals`, `MetricIntervals`.

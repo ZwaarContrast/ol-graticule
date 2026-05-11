@@ -1,3 +1,10 @@
+/**
+ * Letter scheme, projection parameters, and coverage polygon for this theatre
+ * are sourced from Thierry Arsicaud's Echo Delta site
+ * (https://www.echodelta.net/mbs/eng-welcome.php). See the package README for
+ * the full credit.
+ */
+
 import { PolygonClippedGridSystem, extentFromPolygon } from '@zwaarcontrast/ol-graticule';
 import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
 import type { ProjectedGridSystemOptions } from '@zwaarcontrast/ol-graticule-projected';
@@ -6,7 +13,7 @@ import { IRISH_CASSINI_SCHEME } from '../formatters/schemes.js';
 import { MBSIntervals } from '../intervals/MBSIntervals.js';
 
 /**
- * Irish Cassini — 1825 Ordnance Survey of Ireland Cassini-Soldner.
+ * Irish Cassini, 1825 Ordnance Survey of Ireland Cassini-Soldner.
  * Projection origin 53°30'N, 8°W, Airy 1830, false E/N 200 / 250 km.
  * Ireland fits inside a single 500 km square labelled `i` (non-standard;
  * the 25-letter A–Z-minus-I alphabet skips `I`). No EPSG code; registered

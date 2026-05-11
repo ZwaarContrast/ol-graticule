@@ -75,7 +75,7 @@ describe('Kriegsmarine format', () => {
       // Panning one world east past the antimeridian leaves pointer
       // coordinates at lon = actualLon + 360. The same North-Atlantic
       // point that resolves to "BC" at lon=-66 must still resolve to
-      // "BC" when expressed as lon=294 — not silently pick up an
+      // "BC" when expressed as lon=294, not silently pick up an
       // antimeridian-crossing rect in the normal range.
       expect(coordinateToGridRef([47, 294], 0)).toBe(coordinateToGridRef([47, -66], 0));
     });
@@ -90,7 +90,7 @@ describe('Kriegsmarine format', () => {
     });
 
     it('finds a square in a polygonal region (UK/Scotland area)', () => {
-      // ~56°N, 4°W — should be in AM or AN area
+      // ~56°N, 4°W, should be in AM or AN area
       const ref = coordinateToGridRef([56, -4], 0);
       expect(ref).toBeDefined();
     });

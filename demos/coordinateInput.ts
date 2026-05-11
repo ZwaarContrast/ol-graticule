@@ -13,7 +13,7 @@ export interface CoordinateInputOptions {
   gridSystem: GridSystem;
   /** Host element the widget is appended to (typically the demo's `.badge`). */
   host: HTMLElement;
-  /** Placeholder text — what kind of input do we expect? */
+  /** Placeholder text, what kind of input do we expect? */
   placeholder: string;
   /** Optional one-line hint shown beneath the input. */
   hint?: string | undefined;

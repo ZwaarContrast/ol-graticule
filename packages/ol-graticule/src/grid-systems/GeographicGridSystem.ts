@@ -103,7 +103,7 @@ export class GeographicGridSystem implements GridSystem {
     const toDeg = getTransform(viewProjection, 'EPSG:4326');
     const [rawLon, lat] = toDeg(coordinate, undefined, 2);
     if (rawLon === undefined || lat === undefined) {
-      return { x: '—', y: '—' };
+      return { x: '-', y: '-' };
     }
     const lon = normalizeLon(rawLon);
     if (this.formatter_.formatCoordinate) {

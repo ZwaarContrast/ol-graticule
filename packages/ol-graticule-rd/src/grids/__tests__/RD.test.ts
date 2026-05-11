@@ -31,7 +31,7 @@ describe('@zwaarcontrast/ol-graticule-rd', () => {
       // identity (~100 m error) instead of the 7-parameter transform.
       // The rotations must be in arc-seconds (proj4's expected unit) and
       // in Position Vector convention (sign-flipped from EPSG's Coordinate
-      // Frame publication) — the previous µrad / Coord-Frame values
+      // Frame publication), the previous µrad / Coord-Frame values
       // produced ~170 m error through proj4's pipeline.
       expect(RD_NEW_PROJ4).toContain('+towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725');
       expect(RD_NEW_PROJ4).toContain('+nadgrids=@rdtrans2018,@null');
@@ -116,8 +116,8 @@ describe('@zwaarcontrast/ol-graticule-rd', () => {
     });
 
     it('uses the RDNAPTRANS 2018 grid for WGS84 → RD conversions (sub-meter accuracy)', () => {
-      // With the grid loaded, the Westertoren (Amsterdam) — a well-published
-      // RDNAPTRANS test point — maps from ETRS89 / WGS84 to its canonical
+      // With the grid loaded, the Westertoren (Amsterdam), a well-published
+      // RDNAPTRANS test point, maps from ETRS89 / WGS84 to its canonical
       // RD coordinates to within sub-meter precision. Without the grid, the
       // Helmert fallback produces ~150 m of error at this location, so this
       // assertion is a strong signal that the NTv2 grid is wired up.

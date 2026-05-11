@@ -1,3 +1,10 @@
+/**
+ * Letter scheme, projection parameters, and coverage polygon for this theatre
+ * are sourced from Thierry Arsicaud's Echo Delta site
+ * (https://www.echodelta.net/mbs/eng-welcome.php). See the package README for
+ * the full credit.
+ */
+
 import { PolygonClippedGridSystem, extentFromPolygon } from '@zwaarcontrast/ol-graticule';
 import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
 import type { ProjectedGridSystemOptions } from '@zwaarcontrast/ol-graticule-projected';
@@ -6,7 +13,7 @@ import { BRITISH_CASSINI_SCHEME } from '../formatters/schemes.js';
 import { MBSIntervals } from '../intervals/MBSIntervals.js';
 
 /**
- * British Cassini — Cassini-Soldner on the OS Cassini-Delamere origin
+ * British Cassini, Cassini-Soldner on the OS Cassini-Delamere origin
  * (Cheshire, 53°13'17.274"N, 2°41'03.562"W), Airy 1830 ellipsoid.
  * Civilian OS grid (1801–c.1920s); for the WWII military Dunnose grid see
  * {@link createWarOfficeCassiniGridSystem}. No EPSG code; registered as

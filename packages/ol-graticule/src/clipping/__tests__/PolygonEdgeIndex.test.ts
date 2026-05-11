@@ -43,7 +43,7 @@ describe('PolygonEdgeIndex', () => {
     const index = new PolygonEdgeIndex(thin);
     const out: number[] = [];
     index.queryBBox(-10, -10, 200, 200, out);
-    // Four edges, each unique — dedup must hold.
+    // Four edges, each unique, dedup must hold.
     expect(new Set(out).size).toBe(out.length);
     expect(out.length).toBe(4);
   });
@@ -76,7 +76,7 @@ describe('PolygonEdgeIndex', () => {
     }
     const index = new PolygonEdgeIndex(poly);
     const out: number[] = [];
-    // Narrow bbox at the +X side — should return only a subset of edges.
+    // Narrow bbox at the +X side, should return only a subset of edges.
     index.queryBBox(9, -1, 11, 1, out);
     expect(out.length).toBeGreaterThan(0);
     expect(out.length).toBeLessThan(n);

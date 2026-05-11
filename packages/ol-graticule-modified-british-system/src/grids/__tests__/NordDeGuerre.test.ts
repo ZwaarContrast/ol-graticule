@@ -83,30 +83,30 @@ describe('createNordDeGuerreGridSystem', () => {
    *
    * This test isolates LCC math from datum transformation. Source is
    * lat/lon ON the Plessis 1817 ellipsoid with the Paris meridian, so
-   * no Helmert is applied either way — only the projection geometry
+   * no Helmert is applied either way, only the projection geometry
    * is exercised. (See the `+towgs84` tests below for datum coverage.)
    */
   it('LCC projection geometry matches EPSG:27500 canonical across the Western Front', () => {
     createNordDeGuerreGridSystem();
-    // No-shift variant of our string — same LCC parameters as
+    // No-shift variant of our string, same LCC parameters as
     // NORD_DE_GUERRE_PROJ4 but without +towgs84, to compare geometry only.
     const oursNoShift =
       '+proj=lcc +lat_1=49.5 +lat_0=49.5 +lon_0=5.4 +k_0=0.99950908 ' +
       '+x_0=500000 +y_0=300000 +a=6376523 +rf=308.64 +pm=2.33720833333333 ' +
       '+units=m +no_defs +type=crs';
     // EPSG:27500 canonical via PROJ (`projinfo EPSG:27500`). Same
-    // physical projection — lon_0 is 5.4° east of the Paris meridian
-    // (= 7°44'13.95" east of Greenwich) — written here with the
+    // physical projection, lon_0 is 5.4° east of the Paris meridian
+    // (= 7°44'13.95" east of Greenwich), written here with the
     // built-in `+pm=paris` string instead of our explicit numeric
     // value to exercise the equivalence.
     const epsgCanonical =
       '+proj=lcc +lat_1=49.5 +lat_0=49.5 +lon_0=5.4 +k_0=0.99950908 ' +
       '+x_0=500000 +y_0=300000 +a=6376523 +rf=308.64 +pm=paris +units=m +no_defs';
-    // Source: Plessis 1817 lat/lon, Paris meridian — no datum shift
+    // Source: Plessis 1817 lat/lon, Paris meridian, no datum shift
     // applied, so we measure LCC math only.
     const plessisLL =
       '+proj=longlat +a=6376523 +rf=308.64 +pm=2.33720833333333 +no_defs';
-    // Test points: WWI hotspots — Ypres, Verdun, Reims, Arras, Cambrai.
+    // Test points: WWI hotspots, Ypres, Verdun, Reims, Arras, Cambrai.
     const points: [number, number][] = [
       [2.8853, 50.8503],   // Ypres
       [5.3833, 49.1600],   // Verdun
@@ -140,7 +140,7 @@ describe('createNordDeGuerreGridSystem', () => {
       '+proj=lcc +lat_1=49.5 +lat_0=49.5 +lon_0=5.4 +k_0=0.99950908 ' +
       '+x_0=500000 +y_0=300000 +a=6376523 +rf=308.64 +pm=2.33720833333333 ' +
       '+units=m +no_defs';
-    // Verdun — well inside the area where the empirical Helmert was fitted.
+    // Verdun, well inside the area where the empirical Helmert was fitted.
     const [withShiftX, withShiftY] = proj4('EPSG:4326', NORD_DE_GUERRE_PROJ4)
       .forward([5.3833, 49.16]);
     const [noShiftX, noShiftY] = proj4('EPSG:4326', noShift)
@@ -148,7 +148,7 @@ describe('createNordDeGuerreGridSystem', () => {
     const dx = withShiftX - noShiftX;
     const dy = withShiftY - noShiftY;
     // The empirical shift moves the projected point by ~100 m at Verdun.
-    // Loose bounds — we're proving the towgs84 is wired up, not asserting
+    // Loose bounds, we're proving the towgs84 is wired up, not asserting
     // exact magnitude.
     expect(Math.hypot(dx, dy)).toBeGreaterThan(50);
     expect(Math.hypot(dx, dy)).toBeLessThan(200);
@@ -199,7 +199,7 @@ describe('createNordDeGuerreGridSystem', () => {
     const withDefault = createNordDeGuerreGridSystem();
 
     // Build a narrow view extent (in EPSG:3857) roughly over that triangle.
-    // We don't need correctness of the view — we just need the override
+    // We don't need correctness of the view, we just need the override
     // polygon to admit at least one grid line that the default rejects.
     const viewExtent: [number, number, number, number] = [
       200_000, 6_000_000, 400_000, 6_200_000,

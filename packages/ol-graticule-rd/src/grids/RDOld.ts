@@ -3,7 +3,7 @@ import { buildRDProj4, createRDGridSystem, type RDGridSystemOptions } from './sh
 import { RD_NEW_CLIP_POLYGON } from './RDNew.js';
 
 /**
- * RD Old (Rijksdriehoekstelsel) — EPSG:28991. The pre-1989 Dutch national
+ * RD Old (Rijksdriehoekstelsel), EPSG:28991. The pre-1989 Dutch national
  * grid, same projection as RD New but with origin shifted to (0, 0).
  * Produces coordinates like (-150000, 50000) for Amersfoort instead of
  * (155000, 463000).
@@ -32,7 +32,7 @@ export type RDOldGridSystemOptions = RDGridSystemOptions;
  * polygon pre-configured.
  *
  * Registers the bundled RDNAPTRANS 2018 NTv2 grid synchronously before
- * returning — see {@link createRDNewGridSystem} for the rationale.
+ * returning, see {@link createRDNewGridSystem} for the rationale.
  * Registers the RD Old CRS with proj4/OL on first call.
  */
 export function createRDOldGridSystem(

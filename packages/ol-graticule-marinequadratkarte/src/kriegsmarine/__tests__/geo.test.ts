@@ -10,7 +10,7 @@ import type { RectSquare, PolySquare } from '../types.js';
 
 describe('rectCrossesAntimeridian', () => {
   it('is true when east-to-west longitude span exceeds 180°', () => {
-    // NW at 170°E, SE at -170°E (i.e. 190° round the short way) — crosses.
+    // NW at 170°E, SE at -170°E (i.e. 190° round the short way), crosses.
     expect(rectCrossesAntimeridian([55, 170], [50, -170])).toBe(true);
   });
 

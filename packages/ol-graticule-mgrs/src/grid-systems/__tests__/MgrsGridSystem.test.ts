@@ -8,7 +8,7 @@ import { MgrsGridSystem } from '../MgrsGridSystem.js';
  * Project the GZD-outline meridians onto the meridian map and return,
  * keyed by longitude, the disjoint [latLo, latHi] segments that the grid
  * actually drew. Uses `EPSG:4326` as the view CRS so points come back
- * pre-projected to lat/lon — no inverse transform needed.
+ * pre-projected to lat/lon, no inverse transform needed.
  */
 function meridianSegmentsAt(
   features: Feature<Geometry>[],
@@ -40,7 +40,7 @@ describe('MgrsGridSystem GZD outlines', () => {
     // in U and W (standard 31/32 boundary) but vanishes in V because
     // 32V is widened to lon 3-12 (Norway exception). Drawing one straight
     // line from lat 50 to 70 at lon=6 would be a phantom boundary inside
-    // the widened 32V — we must instead emit two disjoint segments.
+    // the widened 32V, we must instead emit two disjoint segments.
     const grid = new MgrsGridSystem();
     const features = grid.getFeatures(
       [-12, 50, 18, 70],
@@ -93,7 +93,7 @@ describe('MgrsGridSystem GZD outlines', () => {
 
   it('omits the dropped Svalbard meridians {6,12,18,24,30,36} in X band only', () => {
     // Viewport is X-band only (lat 73-83). At those latitudes none of
-    // the standard 6° meridians 6/12/18/24/30/36 are GZD boundaries —
+    // the standard 6° meridians 6/12/18/24/30/36 are GZD boundaries,
     // the widened odd zones (31X 0-9, 33X 9-21, 35X 21-33, 37X 33-42)
     // make 9, 21, 33 the actual boundaries instead.
     const grid = new MgrsGridSystem();

@@ -6,7 +6,7 @@ import { NORD_DE_GUERRE_SCHEME } from '../schemes';
 describe('MBSFormatter', () => {
   const formatter = new MBSFormatter(NORD_DE_GUERRE_SCHEME);
 
-  describe('format() — single-axis metric labels', () => {
+  describe('format(), single-axis metric labels', () => {
     it('formats meters to km for whole numbers', () => {
       expect(formatter.format(500000, 'x')).toBe('500 km');
     });
@@ -20,7 +20,7 @@ describe('MBSFormatter', () => {
     });
   });
 
-  describe('formatCellLabel() — grid square letter codes', () => {
+  describe('formatCellLabel(), grid square letter codes', () => {
     it('returns correct first letter using both easting and northing', () => {
       // Easting 350km, Northing 620km
       // firstCol = floor((350+100)/500) = 0, firstRow = floor(620/500) = 1
@@ -71,7 +71,7 @@ describe('MBSFormatter', () => {
     });
   });
 
-  describe('formatMBS() — full MBS notation', () => {
+  describe('formatMBS(), full MBS notation', () => {
     it('formats with correct grid square and digits', () => {
       // Easting 350km, Northing 150km → vZ
       // baseE = -100 + 0*500 + 4*100 = 300, baseN = 0 + 0*500 + 1*100 = 100
@@ -110,14 +110,14 @@ describe('MBSFormatter', () => {
     });
   });
 
-  describe('formatCoordinate() — cursor position display', () => {
+  describe('formatCoordinate(), cursor position display', () => {
     it('returns the full MBS reference as a single combined label', () => {
       const result = formatter.formatCoordinate(350000, 150000);
       expect(result).toEqual({ combined: 'vZ 500 500' });
     });
   });
 
-  describe('parse() — single-axis metric', () => {
+  describe('parse(), single-axis metric', () => {
     it('round-trips format output (km)', () => {
       for (const v of [0, 500000, 350500, 1000]) {
         expect(formatter.parse(formatter.format(v, 'x'), 'x')).toBeCloseTo(v, 6);
@@ -130,7 +130,7 @@ describe('MBSFormatter', () => {
     });
   });
 
-  describe('parseCoordinate() — compound MBS reference', () => {
+  describe('parseCoordinate(), compound MBS reference', () => {
     it('returns cell centre at 100 km precision for "vK"', () => {
       // 'v' at firstLetterGrid[0][0]; 'K' at secondLetterGrid[4][4] (FGHJK).
       // baseE_m = (-100 + 0*500 + 4*100) * 1000 = 300_000

@@ -7,7 +7,7 @@ import { lonLatToMgrs } from '../conversion.js';
  * (lat, lon) tuples to `mgrs.forward([lon, lat], 5)` and reformatting the
  * result into our spaced 1-m form (`"GZD SQ EEEEE NNNNN"`).
  *
- * The set is deliberately diverse — 19 famous landmarks across every
+ * The set is deliberately diverse, 19 famous landmarks across every
  * continent and both hemispheres, plus boundary-stress points: lat ≈ 0
  * (equator from both sides), lon ≈ ±180 (antimeridian), and the two
  * standard MGRS exceptions (Norway 32V widening at lat 58 lon 4.5, and
@@ -26,7 +26,7 @@ interface ReferencePoint {
 }
 
 const POINTS: ReferencePoint[] = [
-  // Famous landmarks — sortable by zone for grouping in failure output.
+  // Famous landmarks, sortable by zone for grouping in failure output.
   { name: 'Antimeridian west',         lat:   0.0000,    lon: -179.9900, expected: '1N AA 67135 00000' },
   { name: 'Honolulu (Wikipedia ref)',  lat:  21.4098418, lon: -157.9160808, expected: '4Q FJ 12345 67894' },
   { name: 'Equator at Quito',          lat:   0.0,       lon:  -78.45587, expected: '17N QA 83191 00000' },

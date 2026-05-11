@@ -1,4 +1,10 @@
-/** Geometric helpers for the Kriegsmarine grid: bounding boxes, screen-size, density. */
+/**
+ * Geometric helpers for the Kriegsmarine grid: bounding boxes, screen-size, density.
+ *
+ * The antimeridian-crossing handling and square-extent logic are ported from
+ * Jan Kockrow's cljs-navalgrid (https://github.com/Nylle/cljs-navalgrid) and
+ * his research at navalgrid.com. See the package README for the full credit.
+ */
 
 import type { Extent } from 'ol/extent';
 import type { Coordinate } from 'ol/coordinate';

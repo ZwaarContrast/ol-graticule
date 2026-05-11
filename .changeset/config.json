@@ -8,7 +8,8 @@
       "@zwaarcontrast/ol-graticule-projected",
       "@zwaarcontrast/ol-graticule-modified-british-system",
       "@zwaarcontrast/ol-graticule-rd",
-      "@zwaarcontrast/ol-graticule-mgrs"
+      "@zwaarcontrast/ol-graticule-mgrs",
+      "@zwaarcontrast/ol-graticule-luftwaffe-planquadrat"
     ]
   ],
   "linked": [],

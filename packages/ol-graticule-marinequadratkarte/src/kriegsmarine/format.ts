@@ -1,4 +1,10 @@
-/** Grid reference formatter for the Kriegsmarine Naval Grid (e.g. "BC 6175"). */
+/**
+ * Grid reference formatter for the Kriegsmarine Naval Grid (e.g. "BC 6175").
+ *
+ * The reference syntax and the within-cell subdivision it parses are ported
+ * from Jan Kockrow's cljs-navalgrid (https://github.com/Nylle/cljs-navalgrid)
+ * and his research at navalgrid.com. See the package README for the full credit.
+ */
 
 import Polygon from 'ol/geom/Polygon';
 

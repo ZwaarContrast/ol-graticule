@@ -37,7 +37,7 @@ map.addControl(new CursorPositionControl({ gridSystem }));
 
 What you'll see:
 
-- **Grid Zone Designators** at low zoom — the 6° × 8° UTM zones with their
+- **Grid Zone Designators** at low zoom, the 6° × 8° UTM zones with their
   letter band suffix (`32U`, `33T`, etc.).
 - **100 km squares** as you zoom in (`WL`, `XM`, …), with the column-letter
   set rotating per zone per the MGRS spec.
@@ -76,16 +76,16 @@ Precision is the number of digits per axis: `0` (GZD only) through `5`
 
 ### Grid system
 
-- `MgrsGridSystem`, `MgrsGridSystemOptions` — plug into `UniversalGraticule`
+- `MgrsGridSystem`, `MgrsGridSystemOptions`, plug into `UniversalGraticule`
   / `CursorPositionControl`.
-- `MgrsIntervals` — the spacing strategy used internally (re-export).
+- `MgrsIntervals`, the spacing strategy used internally (re-export).
 
 ### Coordinate conversion
 
-- `lonLatToMgrs(lonLat, precision)` — `[lon, lat]` → MGRS string.
-- `lonLatToMgrsParts(lonLat)` — structured parts (`{ zone, band, square, easting, northing }`).
-- `formatMgrs(ref, options?)` — pretty-print with spaces between groups.
-- `lonLatToUtm`, `utmToLonLat`, `lonLatToUps`, `upsToLonLat` — round-trip
+- `lonLatToMgrs(lonLat, precision)`, `[lon, lat]` → MGRS string.
+- `lonLatToMgrsParts(lonLat)`, structured parts (`{ zone, band, square, easting, northing }`).
+- `formatMgrs(ref, options?)`, pretty-print with spaces between groups.
+- `lonLatToUtm`, `utmToLonLat`, `lonLatToUps`, `upsToLonLat`, round-trip
   helpers between geographic and UTM/UPS coordinates.
 
 ### Zone / band / square helpers

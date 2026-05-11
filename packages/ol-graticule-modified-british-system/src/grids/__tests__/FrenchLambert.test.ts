@@ -17,21 +17,21 @@ import {
  */
 const samples = [
   {
-    name: 'Lambert I — vS 000 000 (SW corner of vS cell)',
+    name: 'Lambert I, vS 000 000 (SW corner of vS cell)',
     create: createFrenchLambert1GridSystem,
     crs: FRENCH_LAMBERT_1_CRS,
     lambert: [200_000, 100_000] as [number, number],
     expected: 'vS 000 000',
   },
   {
-    name: 'Lambert II — vS 000 000',
+    name: 'Lambert II, vS 000 000',
     create: createFrenchLambert2GridSystem,
     crs: FRENCH_LAMBERT_2_CRS,
     lambert: [200_000, 100_000] as [number, number],
     expected: 'vS 000 000',
   },
   {
-    name: 'Lambert III — aT 000 000 (in the northmost first-letter row)',
+    name: 'Lambert III, aT 000 000 (in the northmost first-letter row)',
     create: createFrenchLambert3GridSystem,
     crs: FRENCH_LAMBERT_3_CRS,
     lambert: [300_000, 100_000] as [number, number],
@@ -51,7 +51,7 @@ describe('French Lambert MBS factories', () => {
 
   /**
    * Primary-source projection checks. EPSG:27561/27562/27563 are the
-   * registered IGN NTF (Paris) Lambert Nord/Centre/Sud zones — our proj4
+   * registered IGN NTF (Paris) Lambert Nord/Centre/Sud zones, our proj4
    * strings ARE the EPSG canonical spec. Reference:
    * https://epsg.io/27561 / 27562 / 27563.
    *
@@ -93,14 +93,14 @@ describe('French Lambert MBS factories', () => {
       const [ours_x, ours_y] = proj4('EPSG:4326', zone.crs).forward(zone.probe);
       const [epsg_x, epsg_y] = proj4('EPSG:4326', zone.canonical).forward(zone.probe);
       // The k_0 values differ by ~1 × 10⁻⁹ between our IGN-authoritative
-      // value (0.999877340) and EPSG's printed value — this produces sub-mm
+      // value (0.999877340) and EPSG's printed value, this produces sub-mm
       // residual; allow 1 m headroom for any pm/digit-precision noise.
       expect(Math.abs(ours_x - epsg_x)).toBeLessThan(1);
       expect(Math.abs(ours_y - epsg_y)).toBeLessThan(1);
     });
   }
 
-  it('Lambert II — Lyon gets labelled as wX (first letter `w`, not `v`)', () => {
+  it('Lambert II, Lyon gets labelled as wX (first letter `w`, not `v`)', () => {
     // Lyon sits east of Paris meridian, in the second 500 km column → first
     // letter W. Sanity-check that the factory's CRS registration is live
     // and the formatter sees the expected Lambert easting.

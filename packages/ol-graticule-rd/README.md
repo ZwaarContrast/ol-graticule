@@ -3,11 +3,11 @@
 Dutch **Rijksdriehoekstelsel** (RD Amersfoort) grids for
 [`@zwaarcontrast/ol-graticule`](../ol-graticule):
 
-- **RD New** (EPSG:28992) — the current Dutch national grid.
-- **RD Old** (EPSG:28991) — the pre-1989 grid, same projection with
+- **RD New** (EPSG:28992), the current Dutch national grid.
+- **RD Old** (EPSG:28991), the pre-1989 grid, same projection with
   `x_0 = y_0 = 0`.
 
-The **RDNAPTRANS 2018** NTv2 datum-shift grid is bundled inline — sub-centimetre
+The **RDNAPTRANS 2018** NTv2 datum-shift grid is bundled inline, sub-centimetre
 accuracy with no asset to fetch and no bundler configuration required.
 
 **Live demo:** <https://zwaarcontrast.nl/ol-graticule/ol-graticule-rd/>
@@ -46,7 +46,7 @@ Both factories are synchronous and idempotent. They:
 - pre-configure the valid extent and the Netherlands area-of-use polygon.
 
 Options other than the baked-in ones (CRS, proj4, extent, clip polygon) are
-forwarded to `ProjectedGridSystem` — e.g. `createRDNewGridSystem({ targetScreenPx: 120 })`.
+forwarded to `ProjectedGridSystem`, e.g. `createRDNewGridSystem({ targetScreenPx: 120 })`.
 
 ### Reverse: parse a typed RD coordinate
 
@@ -66,7 +66,7 @@ try {
 
 Accepted forms: `"155000 463000"`, `"155000, 463000"`, optional trailing
 `m` or `km` (e.g. `"155 463 km"`). Validity against the NL clip polygon is
-**not** enforced — call `isValidCoordinate(coord)` on the result if you need
+**not** enforced, call `isValidCoordinate(coord)` on the result if you need
 to reject Amersfoort-relative locations outside the country.
 
 ## Exports
@@ -84,7 +84,7 @@ Constants:
 
 Low-level:
 
-- `registerRDNAPTRANS2018()` — manually register the bundled grid. Called
+- `registerRDNAPTRANS2018()`, manually register the bundled grid. Called
   for you by the factories; use it if you're constructing a
   `ProjectedGridSystem` by hand with `RD_NEW_PROJ4` / `RD_OLD_PROJ4`.
 
@@ -110,7 +110,7 @@ authoritative Dutch geospatial tooling.
 This package therefore:
 
 1. **Inlines the grid** as a base64 string inside the package's compiled JS
-   (~80 KB of source → ~60 KB gzipped on the wire — same order as the raw
+   (~80 KB of source → ~60 KB gzipped on the wire, same order as the raw
    `.gsb`). No `.gsb` asset shipped in `dist/`, no `import.meta.url` asset
    resolution, no bundler-specific plumbing.
 2. Embeds `+nadgrids=@rdtrans2018,@null` in the exported proj4 strings,

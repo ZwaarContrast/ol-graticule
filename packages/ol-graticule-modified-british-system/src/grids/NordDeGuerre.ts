@@ -1,3 +1,11 @@
+/**
+ * Letter scheme, projection parameters, and coverage polygon for this theatre
+ * are sourced from Thierry Arsicaud's Echo Delta site
+ * (https://www.echodelta.net/mbs/eng-welcome.php). The ATF-to-WGS84 Helmert
+ * shift is from Bill Sayers (see the towgs84 docblock below). See the package
+ * README for the full credit.
+ */
+
 import { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
 import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
 import type { ProjectedGridSystemOptions } from '@zwaarcontrast/ol-graticule-projected';
@@ -5,7 +13,7 @@ import { MBSFormatter } from '../formatters/MBSFormatter.js';
 import { NORD_DE_GUERRE_SCHEME } from '../formatters/schemes.js';
 import { MBSIntervals } from '../intervals/MBSIntervals.js';
 
-/** Nord de Guerre CRS (EPSG:27500) — French Lambert Conformal Conic, false E/N 500 000 / 300 000 m. */
+/** Nord de Guerre CRS (EPSG:27500), French Lambert Conformal Conic, false E/N 500 000 / 300 000 m. */
 export const NORD_DE_GUERRE_CRS = 'EPSG:27500';
 
 /**
@@ -16,7 +24,7 @@ export const NORD_DE_GUERRE_CRS = 'EPSG:27500';
  * in 1898 and never re-tied to a global frame, so EPSG/IGN publish no
  * transformation from EPSG:4901 (ATF Paris) to WGS84. PROJ
  * (`projinfo -s EPSG:27500 -t EPSG:4326`) reports only a "ballpark"
- * operation — i.e. zero translation, off by ~100 m across the Western
+ * operation, i.e. zero translation, off by ~100 m across the Western
  * Front.
  *
  * **Source.** Bill Sayers, *Transforming French WW1 Lambert Coordinates

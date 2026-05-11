@@ -13,11 +13,11 @@ let registered = false;
 /**
  * Register the bundled RDNAPTRANS 2018 NTv2 grid with proj4 under the name
  * `rdtrans2018`. Required for the RD New / RD Old proj4 definitions shipped
- * by this package to produce accurate coordinates — the `+towgs84` Helmert
+ * by this package to produce accurate coordinates, the `+towgs84` Helmert
  * fallback has ~1 m residual error, while RDNAPTRANS 2018 gives
  * sub-centimetre accuracy across the Netherlands.
  *
- * Synchronous — the grid is base64-inlined, no bundler config / network /
+ * Synchronous, the grid is base64-inlined, no bundler config / network /
  * asset file needed. First call decodes ~80 KB; subsequent calls are no-ops.
  * The RD factories call this automatically; call it yourself only when
  * constructing a `ProjectedGridSystem` with `RD_NEW_PROJ4`/`RD_OLD_PROJ4` by

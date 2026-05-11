@@ -33,6 +33,6 @@ if (badge) {
     gridSystem,
     host: badge,
     placeholder: '50°51′N 4°21′E',
-    hint: 'Try DMS, DD, or "lon lat" — hemisphere markers route axes.',
+    hint: 'Try DMS, DD, or "lon lat", hemisphere markers route axes.',
   });
 }

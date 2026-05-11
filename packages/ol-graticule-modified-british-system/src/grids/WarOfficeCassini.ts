@@ -1,3 +1,11 @@
+/**
+ * Letter scheme and coverage polygon are sourced from Thierry Arsicaud's
+ * Echo Delta site (https://www.echodelta.net/mbs/eng-welcome.php). The WWII
+ * Dunnose origin and false-easting/northing values come from Roger Hellyer's
+ * article in Sheetlines issue 55 (Charles Close Society, 2001). See the
+ * package README for the full credit.
+ */
+
 import { PolygonClippedGridSystem, extentFromPolygon } from '@zwaarcontrast/ol-graticule';
 import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
 import type { ProjectedGridSystemOptions } from '@zwaarcontrast/ol-graticule-projected';
@@ -6,7 +14,7 @@ import { WAR_OFFICE_CASSINI_SCHEME } from '../formatters/schemes.js';
 import { MBSIntervals } from '../intervals/MBSIntervals.js';
 
 /**
- * War Office Cassini Grid ("WOFO" / "Purple Grid") — WWII British Army
+ * War Office Cassini Grid ("WOFO" / "Purple Grid"), WWII British Army
  * grid, used on GSGS series sheets 1927–WWII. Cassini-Soldner with natural
  * origin at Dunnose (Isle of Wight, 50°37'03.748"N, 1°11'50.136"W), Airy
  * 1830, false origin 500 km W and 100 km S of Dunnose. Units: metres.

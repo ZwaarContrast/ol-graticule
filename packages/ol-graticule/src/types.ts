@@ -75,7 +75,7 @@ export interface GridSystem {
    * Throws {@link ParseError} when `text` cannot be interpreted. Compound-cell
    * references resolve to the cell centre at whatever precision the input
    * implies. Validity (CRS extent, clip polygon) is intentionally not checked
-   * here — use {@link isValidCoordinate} on the result if needed.
+   * here, use {@link isValidCoordinate} on the result if needed.
    */
   parseCoordinate?(
     text: string,

@@ -3,7 +3,7 @@ export type { ProjectedGridSystemOptions } from './grid-systems/ProjectedGridSys
 
 // Re-exported from core so existing imports from this package keep working.
 // `MetricIntervals` / `MetricFormatter` are proj4-agnostic and now live in
-// `@zwaarcontrast/ol-graticule` — new code should import them from there.
+// `@zwaarcontrast/ol-graticule`, new code should import them from there.
 export { MetricIntervals, MetricFormatter } from '@zwaarcontrast/ol-graticule';
 export type { MetricFormatterOptions } from '@zwaarcontrast/ol-graticule';
 

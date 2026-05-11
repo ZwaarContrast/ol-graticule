@@ -1,3 +1,10 @@
+/**
+ * Letter scheme, projection parameters, and coverage polygons for the three
+ * French Lambert theatres are sourced from Thierry Arsicaud's Echo Delta site
+ * (https://www.echodelta.net/mbs/eng-welcome.php). See the package README for
+ * the full credit.
+ */
+
 import { PolygonClippedGridSystem, extentFromPolygon } from '@zwaarcontrast/ol-graticule';
 import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
 import type { ProjectedGridSystemOptions } from '@zwaarcontrast/ol-graticule-projected';

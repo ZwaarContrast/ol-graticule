@@ -9,7 +9,7 @@ import { MgrsGridSystem } from '../MgrsGridSystem.js';
  * Pin the chosen interval to a known value, regardless of resolution.
  * `MgrsIntervals` derives its interval from `resolution * targetScreenPx`,
  * which is in view-CRS units (degrees when the view is `EPSG:4326`) but
- * compared against `MGRS_INTERVALS` (metres) — fine for the production
+ * compared against `MGRS_INTERVALS` (metres), fine for the production
  * Web-Mercator case but not directly usable in lat/lon test viewports.
  * For these tile tests we want exact control over the grid spacing so
  * the assertions can name specific UTM line values.
@@ -81,7 +81,7 @@ describe('MgrsGridSystem per-tile cache: stitching invariants', () => {
 
   it('cross-band: one UTM line crossing band U→V emits as one feature', () => {
     // Viewport spans band U (48–56°) and band V (56–64°) inside zone 31.
-    // The east-line at e=500 000 m runs through both — the cross-tile
+    // The east-line at e=500 000 m runs through both, the cross-tile
     // stitch must compose with the cross-band stitch into ONE feature.
     const grid = tileTestGrid(10_000);
     const features = grid.getFeatures([2, 53, 4, 60], 0.001, 'EPSG:4326');
@@ -108,7 +108,7 @@ describe('MgrsGridSystem per-tile cache: stitching invariants', () => {
     // Tiny viewport entirely inside tile (E=5, N=58) of zone 31U
     // (lon ≈ 3° → e ≈ 500 000 m, lat ≈ 53° → N ≈ 5 875 000 m, both
     // central in their tile). Lines at e=510 000, 520 000, 530 000
-    // are interior to tile E=5 — each must appear exactly once and
+    // are interior to tile E=5, each must appear exactly once and
     // only from that tile.
     const grid = tileTestGrid(10_000);
     const features = grid.getFeatures([3.05, 52.85, 3.55, 53.25], 0.001, 'EPSG:4326');
@@ -121,7 +121,7 @@ describe('MgrsGridSystem per-tile cache: stitching invariants', () => {
 
   it('non-overlapping zones: each zone gets its own e=500 000 line', () => {
     // Zones 30 (lon −6 to 0) and 31 (lon 0 to 6) both have a central-
-    // meridian line at e=500 000 m, but in DIFFERENT projections — each
+    // meridian line at e=500 000 m, but in DIFFERENT projections, each
     // must emit separately, keyed by `gridZoneKey`. Confirms the
     // stitch is per-zone, not cross-zone.
     const grid = tileTestGrid(10_000);
@@ -159,7 +159,7 @@ describe('MgrsGridSystem per-tile cache: stitching invariants', () => {
     // Frame A and frame B overlap in lat. Frame A puts tiles (5, 55..58)
     // in cache; frame B should hit those for the overlap region and
     // compute (5, 59) on miss. The east-line at e=500 000 in frame B
-    // must still emit as ONE stitched feature — proves the cache
+    // must still emit as ONE stitched feature, proves the cache
     // doesn't fragment results when subsets of a UTM line are pulled
     // from cache vs. recomputed.
     const grid = tileTestGrid(10_000);
@@ -179,7 +179,7 @@ describe('MgrsGridSystem per-tile cache: tile-edge clip behavior', () => {
     //
     // Viewport lat 48.5–49.5° keeps `iterateVisibleGzds` inside band U
     // only (band T lives below lat 48), so the stitched line at
-    // e=500 000 m comes from band U's tile (5, 53) alone — the line
+    // e=500 000 m comes from band U's tile (5, 53) alone, the line
     // must NOT extend below lat 48° because the per-band clip cuts at
     // the band south edge.
     const grid = tileTestGrid(10_000);
@@ -207,7 +207,7 @@ describe('MgrsGridSystem per-tile cache: UPS pole-crossing seam handling', () =>
     // pole portion in one tile and its north-of-pole portion in
     // another. After the pole-clamp at lat=89.9999°, the south tile's
     // last vertex is at (lon ≈ 0°, lat=89.9999°) and the north tile's
-    // first vertex is at (lon ≈ 180°, lat=89.9999°) — same lat, lon
+    // first vertex is at (lon ≈ 180°, lat=89.9999°), same lat, lon
     // 180° apart.
     //
     // Without seam-aware stitching, the two tiles would join into one
@@ -235,13 +235,13 @@ describe('MgrsGridSystem per-tile cache: UPS pole-crossing seam handling', () =>
     // We just need to assert that the stitch did NOT produce a single
     // feature whose polyline has an interior horizontal jump across
     // the world. Concretely: every emitted feature's coords must stay
-    // within a sane lon range — no segment whose lon span exceeds 180°.
+    // within a sane lon range, no segment whose lon span exceeds 180°.
     for (const f of zMatches) {
       const coords = (f.getGeometry() as LineString).getCoordinates();
       for (let i = 1; i < coords.length; i++) {
         const dLon = Math.abs(coords[i]![0]! - coords[i-1]![0]!);
         // Adjacent vertices in any single feature must not jump >180°
-        // in lon — that's only possible if a phantom cross-world
+        // in lon, that's only possible if a phantom cross-world
         // segment got injected at the seam.
         expect(dLon).toBeLessThan(180 + 1e-6);
       }

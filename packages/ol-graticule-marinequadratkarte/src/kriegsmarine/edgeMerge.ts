@@ -1,4 +1,10 @@
-/** Edge classification and interval merging for Kriegsmarine cells. */
+/**
+ * Edge classification and interval merging for Kriegsmarine cells.
+ *
+ * The cell adjacency and edge-deduplication logic follows Jan Kockrow's
+ * cljs-navalgrid (https://github.com/Nylle/cljs-navalgrid) and his research
+ * at navalgrid.com. See the package README for the full credit.
+ */
 
 import type { LatLon, RectSquare, PolySquare } from './types.js';
 import { rectCrossesAntimeridian } from './geo.js';

@@ -238,7 +238,7 @@ describe('UniversalGraticule', () => {
       });
 
       // Bypasses postrender lifecycle so we can test the rendering logic in
-      // isolation — push labels through `collectEdgeLabels_` (the scratch-buffer
+      // isolation, push labels through `collectEdgeLabels_` (the scratch-buffer
       // populator) and call `drawLabels_` with the populated counts, which is
       // exactly what `handlePostrender_` does in production.
       const inst = graticule as unknown as {
@@ -318,7 +318,7 @@ describe('UniversalGraticule', () => {
       const calls = drawCalls(drawFeature);
       const textInstances = new Set(calls.map((c) => c.style.getText()));
       // Without distinct Text instances, OL's renderer can end up rendering
-      // whichever axis's text was applied last for all labels — which is
+      // whichever axis's text was applied last for all labels, which is
       // exactly how Y labels silently disappeared during review.
       expect(textInstances.size).toBe(calls.length);
     });

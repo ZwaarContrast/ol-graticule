@@ -2,7 +2,7 @@ import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
 import { buildRDProj4, createRDGridSystem, type RDGridSystemOptions } from './shared.js';
 
 /**
- * RD New (Rijksdriehoekstelsel) — EPSG:28992. The current Dutch national grid.
+ * RD New (Rijksdriehoekstelsel), EPSG:28992. The current Dutch national grid.
  * Origin: Amersfoort, with false easting 155 000 m and false northing 463 000 m.
  */
 export const RD_NEW_CRS = 'EPSG:28992';
@@ -37,10 +37,10 @@ export type RDNewGridSystemOptions = RDGridSystemOptions;
  *
  * Registers the RDNAPTRANS 2018 NTv2 grid (bundled inline in this package)
  * before constructing the system, so every coordinate it produces uses the
- * grid — sub-centimetre accuracy across NL. Without the grid, the
+ * grid, sub-centimetre accuracy across NL. Without the grid, the
  * `+towgs84` Helmert fallback has ~1 m residual error.
  *
- * Registers the RD New CRS with proj4/OL on first call — idempotent across
+ * Registers the RD New CRS with proj4/OL on first call, idempotent across
  * calls.
  */
 export function createRDNewGridSystem(

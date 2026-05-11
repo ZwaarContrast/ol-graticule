@@ -89,11 +89,11 @@ export class MBSFormatter implements LabelFormatter {
   /**
    * Lenient parse of an MBS reference back to view-projection metres at the
    * cell centre. Accepts:
-   *   - `"vK"`, `"vK6175"`, `"vK 617 517"`, `"VK90449926"` — case-insensitive
+   *   - `"vK"`, `"vK6175"`, `"vK 617 517"`, `"VK90449926"`, case-insensitive
    *     two-letter prefix + 0/2/4/6/8/10 digits, with optional whitespace.
    *     Returns the centre of the cell at the precision implied by the digit
    *     count (100 km, 10 km, 1 km, 100 m, 10 m, 1 m respectively).
-   *   - `"309.02 296.80"` / `"309.02, 296.80"` — bare numeric pairs in km.
+   *   - `"309.02 296.80"` / `"309.02, 296.80"`, bare numeric pairs in km.
    *     Add `"km"` or `"m"` suffix to disambiguate.
    */
   parseCoordinate(text: string): [number, number] {

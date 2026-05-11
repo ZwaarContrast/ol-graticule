@@ -48,7 +48,7 @@ describe('iterateVisibleGzds', () => {
     const cells = gzdsIn([-180, 84, 180, 90]);
     expect(cells).toContain('Y');
     expect(cells).toContain('Z');
-    // Should not include any UTM zones — viewport is purely above 84.
+    // Should not include any UTM zones, viewport is purely above 84.
     for (const c of cells) expect(c.length).toBe(1);
   });
 

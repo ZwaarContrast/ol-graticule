@@ -38,7 +38,7 @@ describe('Kriegsmarine lookup', () => {
     });
   });
 
-  describe('findById — large regular', () => {
+  describe('findById, large regular', () => {
     it('finds BC with correct bounds', () => {
       const sq = findById('BC');
       expect(sq).toBeDefined();
@@ -69,7 +69,7 @@ describe('Kriegsmarine lookup', () => {
     });
   });
 
-  describe('findById — polygonal', () => {
+  describe('findById, polygonal', () => {
     it('finds AD as a polygonal square', () => {
       const sq = findById('AD');
       expect(sq).toBeDefined();
@@ -100,7 +100,7 @@ describe('Kriegsmarine lookup', () => {
     });
   });
 
-  describe('findById — subdivision', () => {
+  describe('findById, subdivision', () => {
     it('finds BC6 (1st-level sub-square)', () => {
       const sq = findById('BC6');
       expect(sq).toBeDefined();
@@ -125,7 +125,7 @@ describe('Kriegsmarine lookup', () => {
       expect(isRectSquare(sq!)).toBe(true);
     });
 
-    it('sub-squares nest correctly — BC6 contains BC61', () => {
+    it('sub-squares nest correctly, BC6 contains BC61', () => {
       const bc6 = findById('BC6');
       const bc61 = findById('BC61');
       expect(isRectSquare(bc6!)).toBe(true);
@@ -154,7 +154,7 @@ describe('Kriegsmarine lookup', () => {
     });
   });
 
-  describe('findById — partial squares', () => {
+  describe('findById, partial squares', () => {
     it('finds OF (partial large square with sub [[1],[4],[7]])', () => {
       const sq = findById('OF');
       expect(sq).toBeDefined();
@@ -170,7 +170,7 @@ describe('Kriegsmarine lookup', () => {
     });
   });
 
-  describe('findById — irregular squares', () => {
+  describe('findById, irregular squares', () => {
     it('finds DK (irregular large)', () => {
       const sq = findById('DK');
       expect(sq).toBeDefined();
@@ -196,7 +196,7 @@ describe('Kriegsmarine lookup', () => {
     });
   });
 
-  describe('findById — two-by-five squares', () => {
+  describe('findById, two-by-five squares', () => {
     it('finds ÄA1 (two-by-five parent)', () => {
       const sq = findById('ÄA1');
       expect(sq).toBeDefined();
@@ -278,7 +278,7 @@ describe('Kriegsmarine lookup', () => {
     });
   });
 
-  describe('findById — anti-meridian crossing squares', () => {
+  describe('findById, anti-meridian crossing squares', () => {
     it('finds ND (crosses anti-meridian)', () => {
       // ND group: nw [66.2, 170.6], se [58.1, -173.2]
       const sq = findById('ND');
@@ -298,7 +298,7 @@ describe('Kriegsmarine lookup', () => {
     });
   });
 
-  describe('findById — edge cases', () => {
+  describe('findById, edge cases', () => {
     it('returns undefined for nonexistent square', () => {
       expect(findById('ZZ')).toBeUndefined();
       expect(findById('XX99')).toBeUndefined();

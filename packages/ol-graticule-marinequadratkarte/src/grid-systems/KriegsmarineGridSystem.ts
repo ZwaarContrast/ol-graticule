@@ -158,9 +158,9 @@ export class KriegsmarineGridSystem implements GridSystem {
 
   formatCoordinate(coordinate: [number, number], viewProjection: ProjectionLike): FormattedCoordinate {
     const [lon, lat] = transform(coordinate, viewProjection, 'EPSG:4326');
-    if (lon === undefined || lat === undefined) return { combined: '—' };
+    if (lon === undefined || lat === undefined) return { combined: '-' };
     const ref = coordinateToGridRef([lat, lon], this.maxDepth_);
-    return { combined: ref ? formatGridRef(ref) : '—' };
+    return { combined: ref ? formatGridRef(ref) : '-' };
   }
 
   parseCoordinate(text: string, viewProjection: ProjectionLike): [number, number] {

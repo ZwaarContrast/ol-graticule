@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Luftwaffe Planquadrat (GNMV / JMN, WWII grids) · ol-graticule</title>
+    <meta name="description" content="Live demo of the WWII Luftwaffe Planquadrat map reference grids for OpenLayers: Gradnetzmeldeverfahren (GNMV) and Jägermeldenetz (JMN)." />
+    <meta name="author" content="Zwaar Contrast" />
+    <link rel="canonical" href="https://zwaarcontrast.nl/ol-graticule/ol-graticule-luftwaffe-planquadrat/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ol-graticule" />
+    <meta property="og:title" content="Luftwaffe Planquadrat (GNMV / JMN)" />
+    <meta property="og:description" content="WWII Luftwaffe map reference grids for OpenLayers, with progressive subdivision down to the Arbeitstrapez." />
+    <meta property="og:url" content="https://zwaarcontrast.nl/ol-graticule/ol-graticule-luftwaffe-planquadrat/" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Luftwaffe Planquadrat" />
+    <meta name="twitter:description" content="WWII Luftwaffe map reference grids for OpenLayers." />
+    <link rel="stylesheet" href="../shared.css" />
+    <style>
+      .controls {
+        margin-top: 8px;
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .controls button {
+        font: 600 11px ui-monospace, "SF Mono", monospace;
+        padding: 5px 10px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.55);
+        color: var(--paper);
+        cursor: pointer;
+      }
+      .controls button.active {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge__back {
+        margin-top: 10px !important;
+      }
+      #system-controls {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div class="badge">
+      <h1>Luftwaffe Planquadrat</h1>
+      <p><code>@zwaarcontrast/ol-graticule-luftwaffe-planquadrat</code></p>
+      <p>Two WWII Luftwaffe map reference grids: <strong>Gradnetzmeldeverfahren (GNMV)</strong> and <strong>Jägermeldenetz (JMN)</strong>. Zoom in to see ZZG → Großtrapez → Mitteltrapez → Kleintrapez → Meldetrapez → Arbeitstrapez.</p>
+      <p>Reference rules from <a href="https://www.prwg.co.uk/Halifax_JB837/Luftwaffe_Map_Reference.asp" target="_blank" rel="noopener">prwg.co.uk's Halifax JB837 page</a> and <a href="https://aircrewremembered.com/luftwaffe-grid-reference-system.html" target="_blank" rel="noopener">aircrewremembered.com</a>.</p>
+      <p class="badge__back"><a href="../">← All demos</a></p>
+      <div class="controls" id="system-controls">
+        <button data-system="gnmv" class="active">GNMV</button>
+        <button data-system="jmn">JMN</button>
+      </div>
+    </div>
+    <!-- divider styled in <style>; "All demos" sits above it. -->
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

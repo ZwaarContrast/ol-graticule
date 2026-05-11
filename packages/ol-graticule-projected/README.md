@@ -1,8 +1,8 @@
 # @zwaarcontrast/ol-graticule-projected
 
 Generic proj4-backed `GridSystem` for [`@zwaarcontrast/ol-graticule`](../ol-graticule).
-Use it to render a graticule in any CRS — UTM zones, state planes, national
-grids — on top of any OL view projection.
+Use it to render a graticule in any CRS, UTM zones, state planes, national
+grids, on top of any OL view projection.
 
 **Live demo:** <https://zwaarcontrast.nl/ol-graticule/ol-graticule-projected/>
 
@@ -33,7 +33,7 @@ map.addLayer(new UniversalGraticule({ gridSystem, style: { edgeLabel: true } }))
 `MetricIntervals` + `MetricFormatter` are auto-selected because the CRS uses
 metres, so labels read `"500 km"`, `"20 km"`, etc.
 
-### US State Plane — California Zone III (feet)
+### US State Plane, California Zone III (feet)
 
 ```ts
 const gridSystem = new ProjectedGridSystem({
@@ -57,7 +57,7 @@ import { registerCRS } from '@zwaarcontrast/ol-graticule-projected';
 
 registerCRS('EPSG:32633', '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs');
 
-// Later — no proj4Def needed, the CRS is already in proj4/OL's registry.
+// Later, no proj4Def needed, the CRS is already in proj4/OL's registry.
 new ProjectedGridSystem({ crs: 'EPSG:32633' });
 ```
 
@@ -68,10 +68,10 @@ convenience shortcut that calls it for you.
 
 | Option | Type | Default | What it does |
 |---|---|---|---|
-| `crs` | `string` | — (required) | EPSG code or other proj4-known name. |
-| `proj4Def` | `string` | — | proj4 definition. Registered via `registerCRS` if provided. Omit if already registered. |
+| `crs` | `string` |, (required) | EPSG code or other proj4-known name. |
+| `proj4Def` | `string` |, | proj4 definition. Registered via `registerCRS` if provided. Omit if already registered. |
 | `extent` | `[minX, minY, maxX, maxY]` | projection's built-in extent | Axis-aligned validity bounds in CRS coordinates. Lines outside are clipped. |
-| `clipPolygon` | `[x, y][]` | — | Irregular boundary polygon in CRS coordinates (for non-rectangular coverage). Overrides `extent` for drawing. |
+| `clipPolygon` | `[x, y][]` |, | Irregular boundary polygon in CRS coordinates (for non-rectangular coverage). Overrides `extent` for drawing. |
 | `intervals` | `IntervalStrategy` | auto from CRS units | Spacing strategy. Degrees → `DegreeIntervals`, metres → `MetricIntervals`. |
 | `formatter` | `LabelFormatter` | auto from CRS units | Label formatter. Degrees → `DegreeFormatter`, metres → `MetricFormatter`. |
 | `targetScreenPx` | `number` | `100` | Desired minimum spacing (px) between major lines. Drives interval selection. |
@@ -106,11 +106,11 @@ to your view projection.
 
 - Use `extent` when the CRS has a rectangular validity region (UTM zones,
   state planes with square AoUs). Cheaper and sufficient most of the time.
-- Use `clipPolygon` when the coverage is irregularly shaped — e.g. the
+- Use `clipPolygon` when the coverage is irregularly shaped, e.g. the
   Netherlands outline for RD, the Nord de Guerre WWI coverage polygon. Lines
   are clipped to the polygon and cells outside it don't draw.
 
-Both can coexist — the grid system intersects them.
+Both can coexist, the grid system intersects them.
 
 ## Loading NTv2 datum-shift grids
 
@@ -135,9 +135,9 @@ up yourself.
 ## Exports
 
 - `ProjectedGridSystem`, `ProjectedGridSystemOptions`
-- `registerCRS(code, proj4Def)` — idempotent proj4 + OL registration.
-- `loadNadgrid(name, url)` — fetch + register an NTv2 `.gsb` file.
-- `MetricIntervals`, `MetricFormatter` — re-exported from core for convenience.
+- `registerCRS(code, proj4Def)`, idempotent proj4 + OL registration.
+- `loadNadgrid(name, url)`, fetch + register an NTv2 `.gsb` file.
+- `MetricIntervals`, `MetricFormatter`, re-exported from core for convenience.
 
 ## License
 

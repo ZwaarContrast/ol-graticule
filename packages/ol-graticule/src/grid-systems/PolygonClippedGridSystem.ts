@@ -201,7 +201,7 @@ export class PolygonClippedGridSystem implements GridSystem {
       return this.source_.formatCoordinate(coordinate, viewProjection);
     }
     const sample = this.source_.formatCoordinate(coordinate, viewProjection);
-    return isCombinedFormatted(sample) ? { combined: '—' } : { x: '—', y: '—' };
+    return isCombinedFormatted(sample) ? { combined: '-' } : { x: '-', y: '-' };
   }
 
   parseCoordinate(text: string, viewProjection: ProjectionLike): [number, number] {

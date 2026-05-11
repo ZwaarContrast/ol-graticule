@@ -120,7 +120,7 @@ describe('clipPolylineToPolygon', () => {
     ];
     const index = new PolygonEdgeIndex(u);
     // A segment from left-arm interior to right-arm interior passes through
-    // the mouth's cut-out — even number of crossings, both endpoints inside.
+    // the mouth's cut-out, even number of crossings, both endpoints inside.
     const result = clipPolylineToPolygon(
       [[1, 6], [9, 6]],
       u,

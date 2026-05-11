@@ -189,9 +189,9 @@ export class MgrsGridSystem implements GridSystem {
   ): FormattedCoordinate {
     const toLonLat = getTransform(viewProjection, 'EPSG:4326');
     const [lon, lat] = toLonLat(coordinate, undefined, 2);
-    if (lon === undefined || lat === undefined) return { combined: '—' };
+    if (lon === undefined || lat === undefined) return { combined: '-' };
     const parts = lonLatToMgrsParts(lon, lat);
-    if (!parts) return { combined: '—' };
+    if (!parts) return { combined: '-' };
     return { combined: formatMgrs(parts, this.cursorPrecision_) };
   }
 
@@ -530,7 +530,7 @@ export class MgrsGridSystem implements GridSystem {
     return built;
   }
 
-  /** Transforms for a GZD's projected CRS — UTM by zone, UPS by hemisphere. */
+  /** Transforms for a GZD's projected CRS, UTM by zone, UPS by hemisphere. */
   private transformsFor_(gzd: Gzd): ProjectedTransforms {
     if (gzd.zone === 0) {
       const north = gzd.band === 'Y' || gzd.band === 'Z';

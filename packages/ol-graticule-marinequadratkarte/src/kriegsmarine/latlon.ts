@@ -2,7 +2,7 @@
  * Longitude/latitude helpers for the Kriegsmarine grid.
  *
  * `smallestLonDiff` adapted from Chris Veness, "Latitude/longitude spherical
- * geodesy formulae" — https://www.movable-type.co.uk/scripts/latlong.html
+ * geodesy formulae", https://www.movable-type.co.uk/scripts/latlong.html
  * (© 2002-2022 Chris Veness, MIT).
  */
 

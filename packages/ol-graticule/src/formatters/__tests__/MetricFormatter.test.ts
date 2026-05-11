@@ -158,7 +158,7 @@ describe('MetricFormatter', () => {
 
     it('round-trips formatCoordinate-style output (rounded values)', () => {
       const f = new MetricFormatter();
-      // format() rounds to 1 decimal — pick values that survive that.
+      // format() rounds to 1 decimal, pick values that survive that.
       for (const [x, y] of [[0, 0], [155000, 463000], [-1500, 5000]] as [number, number][]) {
         const text = `${f.format(x)} ${f.format(y)}`;
         const [px, py] = f.parseCoordinate(text);

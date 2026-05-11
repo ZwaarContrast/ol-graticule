@@ -64,7 +64,7 @@ describe('British Cassini MBS factory', () => {
    * The corresponding lat/lon is the inverse-Cassini-Delamere of (e_ft,
    * n_ft) on the Airy 1830 ellipsoid, computed once and pinned here.
    * Projecting that lat/lon through the factory must reproduce Hellyer's
-   * tabulated corner to the metre — this catches any drift in the proj4
+   * tabulated corner to the metre, this catches any drift in the proj4
    * string (origin lat/lon, ellipsoid, false offsets, units).
    *
    * If a future change to {@link BRITISH_CASSINI_PROJ4} silently shifts
@@ -82,7 +82,7 @@ describe('British Cassini MBS factory', () => {
       expectedX: number;
       expectedY: number;
     }> = [
-      // OS Popular Edition E&W Sheet 44 — Northwich & Macclesfield (1923).
+      // OS Popular Edition E&W Sheet 44, Northwich & Macclesfield (1923).
       // https://maps.nls.uk/view/239259997
       // Hellyer feet:   W: -3 690   E: +138 870   N: +48 940   S: -46 100
       {
@@ -108,7 +108,7 @@ describe('British Cassini MBS factory', () => {
     ];
 
     for (const a of anchors) {
-      it(`${a.sheet} ${a.corner} — Hellyer Delamere ft → factory metres`, () => {
+      it(`${a.sheet} ${a.corner}, Hellyer Delamere ft → factory metres`, () => {
         // Side-effect: register the CRS with proj4/OL.
         createBritishCassiniGridSystem();
         const [x, y] = proj4(AIRY_LL, BRITISH_CASSINI_CRS).forward([a.lon, a.lat]);
@@ -123,12 +123,12 @@ describe('British Cassini MBS factory', () => {
    * a known latitude lands at the same Delamere N where the PRINTED
    * face of Pop. Ed. Sheet 44 (1923) draws that latitude.
    *
-   * NOTE — these rows (A, D, G) are NOT cells the factory emits. The
+   * NOTE, these rows (A, D, G) are NOT cells the factory emits. The
    * factory's cell scheme is the MBS 100 km lattice ("vE", "wQ", ...).
    * The rows A-J belong to the **on-face 2-mile lettered grid** that
    * the OS overprinted on Pop. Ed. Sheet 44 (and on every Pop. Ed.
    * Scotland sheet, plus E&W sheets 35-47). They share the underlying
-   * Cassini-Delamere projection — that's why we can use them as
+   * Cassini-Delamere projection, that's why we can use them as
    * primary-source anchors for the projection itself.
    *
    * How the test works:
@@ -146,7 +146,7 @@ describe('British Cassini MBS factory', () => {
    *
    * If the factory's lat_0 or ellipsoid drifts (e.g. swap Airy 1830
    * for OSGB36's WGS84-aligned), the projected N for `lat 53°20'`
-   * shifts and lands in row B or row C instead of row A — test fails.
+   * shifts and lands in row B or row C instead of row A, test fails.
    *
    * Anchors below were read off the 1300×4400 px left-edge IIIF crop
    * (folder 23925, id 239259997).

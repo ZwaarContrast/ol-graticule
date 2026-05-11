@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@zwaarcontrast/ol-graticule": "*",
+    "@zwaarcontrast/ol-graticule-luftwaffe-planquadrat": "*",
     "@zwaarcontrast/ol-graticule-marinequadratkarte": "*",
     "@zwaarcontrast/ol-graticule-mgrs": "*",
     "@zwaarcontrast/ol-graticule-modified-british-system": "*",

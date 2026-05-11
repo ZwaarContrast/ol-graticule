@@ -6,7 +6,7 @@ import {
 } from '../ItalianNorthern';
 
 describe('Italian Northern MBS factory', () => {
-  // Cities inside the hand-drawn AOI — Rome is too far south, Vienna too
+  // Cities inside the hand-drawn AOI, Rome is too far south, Vienna too
   // far east-north, so they're outside the current clip polygon.
   const cities: [string, [number, number]][] = [
     ['Milan', [9.1900, 45.4642]],

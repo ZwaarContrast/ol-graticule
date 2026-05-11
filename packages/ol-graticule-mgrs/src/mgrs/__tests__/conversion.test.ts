@@ -8,7 +8,7 @@ import {
 } from '../conversion.js';
 
 describe('lonLatToMgrsParts', () => {
-  // Reference: White House (38.8977, -77.0365) — well-known MGRS 18S UJ.
+  // Reference: White House (38.8977, -77.0365), well-known MGRS 18S UJ.
   // Validated against the proj4js/mgrs implementation and NGA's online tool.
   it('converts the White House to 18S UJ', () => {
     const parts = lonLatToMgrsParts(-77.0365, 38.8977);
@@ -17,12 +17,12 @@ describe('lonLatToMgrsParts', () => {
     expect(parts!.band).toBe('S');
     expect(parts!.square).toBe('UJ');
     // Easting/northing within the 100 km square at 1 m precision are in
-    // the low five digits — the exact value depends on the WGS84 projection
+    // the low five digits, the exact value depends on the WGS84 projection
     // and is locked in by formatMgrs at 1 m precision below.
   });
 
   it('converts the Eiffel Tower to 31U DQ', () => {
-    // (48.8584 N, 2.2945 E) — standard zone 31, band U.
+    // (48.8584 N, 2.2945 E), standard zone 31, band U.
     const parts = lonLatToMgrsParts(2.2945, 48.8584);
     expect(parts).toBeDefined();
     expect(parts!.zone).toBe(31);
@@ -31,7 +31,7 @@ describe('lonLatToMgrsParts', () => {
   });
 
   it('converts a southern-hemisphere point (Sydney Opera House) to 56H LH', () => {
-    // -33.8568 S, 151.2153 E — zone 56 (151..157), band H.
+    // -33.8568 S, 151.2153 E, zone 56 (151..157), band H.
     const parts = lonLatToMgrsParts(151.2153, -33.8568);
     expect(parts).toBeDefined();
     expect(parts!.zone).toBe(56);
@@ -42,7 +42,7 @@ describe('lonLatToMgrsParts', () => {
   it('returns undefined only for non-finite inputs (UPS now covers the poles)', () => {
     expect(lonLatToMgrsParts(NaN, 0)).toBeUndefined();
     expect(lonLatToMgrsParts(0, NaN)).toBeUndefined();
-    // Points that USED to be out of coverage now resolve via UPS — verified
+    // Points that USED to be out of coverage now resolve via UPS, verified
     // separately in upsConversion.test.ts.
     expect(lonLatToMgrsParts(0, 85)).toBeDefined();
     expect(lonLatToMgrsParts(0, -85)).toBeDefined();

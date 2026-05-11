@@ -34,7 +34,7 @@ export type RDGridSystemOptions = Omit<
  *
  * The `+towgs84` values are EPSG:4833's rotations converted from microradians
  * to arc-seconds and sign-flipped from Coordinate Frame to Position Vector
- * convention — which is what proj4 expects.
+ * convention, which is what proj4 expects.
  */
 export function buildRDProj4(x0: number, y0: number): string {
   return (

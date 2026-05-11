@@ -54,7 +54,7 @@ describe('snapRingToCellGrid', () => {
     // ring, so the snap produces two disjoint staircase rings.
     const dumbbell: [number, number][] = [
       [0, 0], [20, 0], [20, 20], [0, 20],        // left blob cells (0,0)–(1,1)
-      [0, 12], [60, 12], [60, 8], [0, 8],        // thin neck y ∈ [8, 12] — below any cell midpoint
+      [0, 12], [60, 12], [60, 8], [0, 8],        // thin neck y ∈ [8, 12], below any cell midpoint
       [60, 0], [80, 0], [80, 20], [60, 20],      // right blob cells (6,0)–(7,1)
     ];
     // The polygon above isn't simple; feed a simpler two-region shape instead:
@@ -71,8 +71,8 @@ describe('snapRingToCellGrid', () => {
     //   V .        falls outside the source ring)
     // Source ring traces the L-shape of two diagonally-touching 1-cell blobs.
     const diagonal: [number, number][] = [
-      // Bottom-left cell [10..20] × [0..10] — midpoint (15, 5).
-      // Top-right cell [0..10] × [10..20] — midpoint (5, 15).
+      // Bottom-left cell [10..20] × [0..10], midpoint (15, 5).
+      // Top-right cell [0..10] × [10..20], midpoint (5, 15).
       // Source ring wraps both with a narrow link via the shared corner.
       [10, 0], [20, 0], [20, 10], [10.01, 10], [10.01, 20], [0, 20], [0, 10], [10, 10],
     ];

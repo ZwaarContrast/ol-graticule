@@ -42,10 +42,10 @@ export interface ProjectedGridSystemOptions {
    * {@link registerCRS} for you (idempotent).
    *
    * Prefer calling `registerCRS(code, proj4Def)` once at application startup
-   * — passing it here is a convenience shortcut that still does the same
+   *, passing it here is a convenience shortcut that still does the same
    * registration exactly once per unique `(code, def)` pair.
    *
-   * If omitted, the CRS must already be registered with OL — either built in
+   * If omitted, the CRS must already be registered with OL, either built in
    * (EPSG:4326, EPSG:3857) or registered by the host app before the first
    * render.
    */
@@ -66,7 +66,7 @@ export interface ProjectedGridSystemOptions {
    * Grid lines are clipped to this extent to prevent distorted coordinates
    * outside the CRS's defined bounds.
    *
-   * Stored *on this grid-system instance only* — unlike the earlier design,
+   * Stored *on this grid-system instance only*, unlike the earlier design,
    * we no longer mutate the shared OL projection, so two `ProjectedGridSystem`
    * instances using the same CRS can declare different effective extents.
    *
@@ -93,7 +93,7 @@ interface RenderContext {
 
 // Skip minor lines that land on a major line. Projected CRS intervals can
 // include awkward fractions that drift in floating-point when stepped through
-// — we need a generous threshold.
+//, we need a generous threshold.
 const MAJOR_SKIP_EPSILON_RATIO = 0.5;
 
 export class ProjectedGridSystem implements GridSystem {
@@ -248,7 +248,7 @@ export class ProjectedGridSystem implements GridSystem {
     if (!isFinite(cx) || !isFinite(cy)) return false;
 
     // proj4 can throw on numerically pathological inputs (points at infinity,
-    // undefined on exotic projections). Treat those as "not valid" — the
+    // undefined on exotic projections). Treat those as "not valid", the
     // alternative is to propagate the error up to pointermove handlers.
     let x: number;
     let y: number;
@@ -274,10 +274,10 @@ export class ProjectedGridSystem implements GridSystem {
 
   formatCoordinate(coordinate: [number, number], viewProjection: ProjectionLike): FormattedCoordinate {
     if (!this.isValidCoordinate(coordinate, viewProjection)) {
-      return { x: '—', y: '—' };
+      return { x: '-', y: '-' };
     }
     const [tx, ty] = transform(coordinate, viewProjection, this.crs_);
-    if (tx === undefined || ty === undefined) return { x: '—', y: '—' };
+    if (tx === undefined || ty === undefined) return { x: '-', y: '-' };
     if (this.formatter_.formatCoordinate) {
       return this.formatter_.formatCoordinate(tx, ty);
     }

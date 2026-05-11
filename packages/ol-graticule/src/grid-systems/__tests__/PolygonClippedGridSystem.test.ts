@@ -218,7 +218,7 @@ describe('PolygonClippedGridSystem', () => {
     it('keeps labels when zoomed in fully inside the polygon (ring outside viewport)', () => {
       // Big polygon, tiny visible extent fully contained inside it. The
       // ring is entirely outside the viewport, so no ring edge crosses
-      // any grid line within the visible perpendicular range — yet every
+      // any grid line within the visible perpendicular range, yet every
       // grid line passes through the polygon along its visible portion.
       // Midpoint-inside-polygon fast path catches these.
       const big: [number, number][] = [
@@ -233,14 +233,14 @@ describe('PolygonClippedGridSystem', () => {
         source,
         clipPolygon: { rings: [big], crs: 'EPSG:3857' },
       });
-      // Tiny viewport at origin — ring sits 990 units away on every side.
+      // Tiny viewport at origin, ring sits 990 units away on every side.
       const labels = clipped.getLabels([-10, -10, 10, 10], 1, 'EPSG:3857');
       expect(labels.map((l) => l.text).sort()).toEqual(['x', 'y']);
     });
 
     it('drops a label whose grid line never enters the polygon (raw mode)', () => {
       // Sanity check: the new polygon-CRS test must still reject labels
-      // whose grid line genuinely misses the polygon — otherwise the fix
+      // whose grid line genuinely misses the polygon, otherwise the fix
       // would let everything through.
       const inner: GridLabel[] = [
         { point: new Point([50, 0]), text: 'far-x', axis: 'x' },
@@ -310,7 +310,7 @@ describe('PolygonClippedGridSystem', () => {
       expect(clipped.isValidCoordinate!([5, 5], 'EPSG:3857')).toBe(false);
     });
 
-    it('formatCoordinate returns "—" outside the polygon, delegates inside', () => {
+    it('formatCoordinate returns "-" outside the polygon, delegates inside', () => {
       const source = makeSystem([], {
         formatter: (c) => ({ x: `x=${c[0]}`, y: `y=${c[1]}` }),
       });
@@ -319,7 +319,7 @@ describe('PolygonClippedGridSystem', () => {
         clipPolygon: { rings: [square], crs: 'EPSG:3857' },
       });
       expect(clipped.formatCoordinate([5, 5], 'EPSG:3857')).toEqual({ x: 'x=5', y: 'y=5' });
-      expect(clipped.formatCoordinate([50, 50], 'EPSG:3857')).toEqual({ x: '—', y: '—' });
+      expect(clipped.formatCoordinate([50, 50], 'EPSG:3857')).toEqual({ x: '-', y: '-' });
     });
 
     it('formatCoordinate preserves the combined-label shape when the inner grid uses one', () => {
@@ -330,7 +330,7 @@ describe('PolygonClippedGridSystem', () => {
         source,
         clipPolygon: { rings: [square], crs: 'EPSG:3857' },
       });
-      expect(clipped.formatCoordinate([50, 50], 'EPSG:3857')).toEqual({ combined: '—' });
+      expect(clipped.formatCoordinate([50, 50], 'EPSG:3857')).toEqual({ combined: '-' });
     });
   });
 
@@ -361,7 +361,7 @@ describe('PolygonClippedGridSystem', () => {
       // Should clip to the cell-aligned bounds [0, 15] on the x-axis, not
       // to the source ring's raw bounds [1, 17]. The boundary is inflated
       // outward by `interval × 1e-3` (= 0.005 here) to stabilise PIP at
-      // grid-line-vs-ring-edge coincidences — see PolygonClippedGridSystem.
+      // grid-line-vs-ring-edge coincidences, see PolygonClippedGridSystem.
       expect(Math.abs(coords[0]![0]! - 0)).toBeLessThanOrEqual(0.01);
       expect(Math.abs(coords[coords.length - 1]![0]! - 15)).toBeLessThanOrEqual(0.01);
     });
@@ -384,7 +384,7 @@ describe('PolygonClippedGridSystem', () => {
       expect(coords[coords.length - 1]![0]).toBe(17);
     });
 
-    it('suppresses the boundary feature in snap mode — grid lines already form the outline', () => {
+    it('suppresses the boundary feature in snap mode, grid lines already form the outline', () => {
       // Every snap-ring edge coincides with a cell-boundary grid line, so
       // rendering a separate boundary feature on top would paint a duplicate
       // staircase over those grid lines. The wrapper therefore skips the
@@ -415,7 +415,7 @@ describe('PolygonClippedGridSystem', () => {
       });
       clipped.getFeatures([-20, -20, 40, 40], 1, 'EPSG:3857');
       callCounts.push(invocations);
-      // Second call at the same interval should hit the cache — no new
+      // Second call at the same interval should hit the cache, no new
       // snap-ring work, though the callback still fires (it's cheap).
       clipped.getFeatures([-10, -10, 30, 30], 1, 'EPSG:3857');
       callCounts.push(invocations);
@@ -430,7 +430,7 @@ describe('PolygonClippedGridSystem', () => {
 
   describe('cross-CRS clipping', () => {
     it('projects the ring on viewProjection change and caches it', () => {
-      // 1° × 1° square around [5E, 51N] — small enough that Web Mercator
+      // 1° × 1° square around [5E, 51N], small enough that Web Mercator
       // distortion is negligible at this latitude.
       const ringLonLat: [number, number][] = [
         [5, 51], [6, 51], [6, 52], [5, 52],

@@ -1,5 +1,5 @@
 /**
- * "Field Atlas" shared palette — mirrors the CSS custom properties in
+ * "Field Atlas" shared palette, mirrors the CSS custom properties in
  * shared.css so the graticule picks up the same terracotta accent that
  * the page chrome uses.
  *
@@ -20,14 +20,14 @@ export const palette = {
   accentSolid: '#c2410c',
 } as const;
 
-/** Terracotta dashed graticule line — matches `--accent` in shared.css. */
+/** Terracotta dashed graticule line, matches `--accent` in shared.css. */
 export const gridLine = new Stroke({
   color: palette.accent,
   width: 1.5,
   lineDash: [6, 4],
 });
 
-/** Cream text with an ink halo — readable on any OSM tile. */
+/** Cream text with an ink halo, readable on any OSM tile. */
 export const edgeLabelText = new Text({
   font: '600 10px system-ui, -apple-system, sans-serif',
   fill: new Fill({ color: palette.paper }),
@@ -35,7 +35,7 @@ export const edgeLabelText = new Text({
 });
 
 /**
- * Cell labels for MBS / Kriegsmarine — pale orange letters with a
+ * Cell labels for MBS / Kriegsmarine, pale orange letters with a
  * terracotta halo. Matches the accent palette: letters carry the brand
  * color, the halo picks up the same orange as the grid lines.
  * Peak opacity bumped above the default (0.45) because light orange

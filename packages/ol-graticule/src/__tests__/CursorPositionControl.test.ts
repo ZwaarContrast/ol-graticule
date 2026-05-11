@@ -21,7 +21,7 @@ function makeCombinedGridSystem(combined = 'BF 6175'): GridSystem {
   };
 }
 
-/** Access private/protected fields for assertions — tests are the one legitimate caller. */
+/** Access private/protected fields for assertions, tests are the one legitimate caller. */
 type Internals = {
   element: HTMLElement;
   xIndicator_: HTMLDivElement;
@@ -139,7 +139,7 @@ describe('CursorPositionControl', () => {
     });
   });
 
-  describe('setGridSystem(null) — deactivation', () => {
+  describe('setGridSystem(null), deactivation', () => {
     it('allows null at construction and starts hidden + detached', () => {
       const control = new CursorPositionControl();
       expect(control.getGridSystem()).toBeNull();

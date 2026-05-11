@@ -1,3 +1,10 @@
+/**
+ * Letter scheme, projection parameters, and coverage polygon for this theatre
+ * are sourced from Thierry Arsicaud's Echo Delta site
+ * (https://www.echodelta.net/mbs/eng-welcome.php). See the package README for
+ * the full credit.
+ */
+
 import { PolygonClippedGridSystem, extentFromPolygon } from '@zwaarcontrast/ol-graticule';
 import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
 import type { ProjectedGridSystemOptions } from '@zwaarcontrast/ol-graticule-projected';
@@ -6,7 +13,7 @@ import { ITALIAN_SOUTHERN_SCHEME } from '../formatters/schemes.js';
 import { MBSIntervals } from '../intervals/MBSIntervals.js';
 
 /**
- * Italian Southern Grid — Lambert Conformal Conic with standard parallels
+ * Italian Southern Grid, Lambert Conformal Conic with standard parallels
  * 37° and 42°, central meridian 14°E, lat_0=39°30', Bessel 1841. Letter
  * arrangement reuses British Cassini (see {@link ITALIAN_SOUTHERN_SCHEME}).
  * No EPSG code; registered as `MBS:ITALIAN_SOUTHERN`.

@@ -1,4 +1,19 @@
-/** Kriegsmarine Naval Grid data; coordinates are [latitude, longitude]. */
+/**
+ * Kriegsmarine Naval Grid data; coordinates are [latitude, longitude].
+ *
+ * This file is the heart of the Marinequadratkarte implementation: the cell
+ * IDs, the corner coordinates, the irregular polygon shapes around Britain
+ * and Iceland, and the antimeridian-crossing layout in the Pacific. Every
+ * value here is reconstructed from Jan Kockrow's (GitHub: Nylle) original
+ * research at navalgrid.com (https://www.navalgrid.com/) and his
+ * cljs-navalgrid project (https://github.com/Nylle/cljs-navalgrid).
+ *
+ * Used with Jan's explicit written permission (email correspondence,
+ * 2026-05-11). Reconstructing the Marinequadratkarte from primary archival
+ * sources is an enormous amount of patient work, and none of this would
+ * exist without it. If you build on this file, please visit navalgrid.com
+ * and acknowledge Jan's work. See the package README for the full credit.
+ */
 
 import type { SquareGroup, PolygonalDef } from './types.js';
 

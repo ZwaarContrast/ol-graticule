@@ -60,19 +60,19 @@ const theatres: Record<string, Theatre> = {
     fitCrs: NORD_DE_GUERRE_CRS,
   },
   fl1: {
-    label: 'French Lambert I — North',
+    label: 'French Lambert I, North',
     build: createFrenchLambert1GridSystem,
     fitExtent: FRENCH_LAMBERT_1_BBOX_WGS84,
     fitCrs: 'EPSG:4326',
   },
   fl2: {
-    label: 'French Lambert II — Centre',
+    label: 'French Lambert II, Centre',
     build: createFrenchLambert2GridSystem,
     fitExtent: FRENCH_LAMBERT_2_BBOX_WGS84,
     fitCrs: 'EPSG:4326',
   },
   fl3: {
-    label: 'French Lambert III — South',
+    label: 'French Lambert III, South',
     build: createFrenchLambert3GridSystem,
     fitExtent: FRENCH_LAMBERT_3_BBOX_WGS84,
     fitCrs: 'EPSG:4326',

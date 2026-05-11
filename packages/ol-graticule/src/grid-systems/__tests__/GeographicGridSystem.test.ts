@@ -108,7 +108,7 @@ describe('GeographicGridSystem', () => {
     it('normalizes x-label text across wrapped world copies', () => {
       // Extent spanning three world copies in 4326 space (-540°..540°).
       // Without normalization the DegreeFormatter would emit "400°W", "420°W",
-      // "200°E", etc. — every x label must land in [-180, 180] instead.
+      // "200°E", etc., every x label must land in [-180, 180] instead.
       const system = new GeographicGridSystem();
       const labels = system.getLabels([-540, 40, 540, 60], 30, 'EPSG:4326');
       const xLabels = labels.filter((l) => l.axis === 'x');

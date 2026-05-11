@@ -29,7 +29,7 @@ const map = new Map({
         edgeLabel: edgeLabelText,
         cellLabel: cellLabelHandler,
       },
-      // The MGRS grid is dense at low zoom levels — there can be
+      // The MGRS grid is dense at low zoom levels, there can be
       // 60 UTM zones × ~10 visible row letters × 2 axes = 1200+
       // line features in a worldwide view, plus the 4 UPS zones'
       // 100 km grids near the poles. Bump the safety cap so the

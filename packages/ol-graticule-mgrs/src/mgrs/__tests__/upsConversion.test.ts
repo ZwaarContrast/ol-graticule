@@ -10,7 +10,7 @@ import { lonLatToMgrs } from '../conversion.js';
  * check on the column/row offset arithmetic.
  *
  * GZD format note: UPS GZDs are a single letter (Y/Z/A/B), no zone
- * number — `formatMgrs` outputs them without a numeric prefix.
+ * number, `formatMgrs` outputs them without a numeric prefix.
  */
 
 interface UpsPoint {

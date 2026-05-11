@@ -7,7 +7,7 @@ export interface RectSquare {
   id: string;
   nw: LatLon;
   se: LatLon;
-  /** Partial square layout — which sub-positions exist. */
+  /** Partial square layout, which sub-positions exist. */
   sub?: number[][] | undefined;
 }
 

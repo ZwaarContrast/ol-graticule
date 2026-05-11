@@ -56,12 +56,12 @@ describe('KriegsmarineGridSystem', () => {
         }
       }
 
-      // AH, AJ, AD are polygonal — they should contribute at least one edge.
+      // AH, AJ, AD are polygonal, they should contribute at least one edge.
       expect(contributingIds.has('AH')).toBe(true);
       expect(contributingIds.has('AJ')).toBe(true);
       expect(contributingIds.has('AD')).toBe(true);
 
-      // AH has 6 vertices — it contributes 6 edges (each a separate feature,
+      // AH has 6 vertices, it contributes 6 edges (each a separate feature,
       // modulo dedup with neighbours).
       const ahFeatures = features.filter((f) =>
         (f.get('gridSquares') as string[]).includes('AH'),
@@ -69,7 +69,7 @@ describe('KriegsmarineGridSystem', () => {
       expect(ahFeatures.length).toBeGreaterThan(0);
       expect(ahFeatures.length).toBeLessThanOrEqual(6);
 
-      // Each feature is a single LineString segment — not a closed ring.
+      // Each feature is a single LineString segment, not a closed ring.
       const geom = ahFeatures[0]!.getGeometry();
       expect(geom).toBeInstanceOf(LineString);
       if (!(geom instanceof LineString)) throw new Error('unreachable: asserted above');
@@ -79,7 +79,7 @@ describe('KriegsmarineGridSystem', () => {
       expect(ahCoords.length).toBeLessThanOrEqual(21);
 
       // BA is a rect (4 edges). With default dedup its interior edges
-      // merge with adjacent rects (BB to the east, CA below, etc.) —
+      // merge with adjacent rects (BB to the east, CA below, etc.),
       // the number of features carrying BA in their `gridSquares` is
       // between 1 and 4.
       const baFeatures = features.filter((f) =>
@@ -90,7 +90,7 @@ describe('KriegsmarineGridSystem', () => {
 
       // Shared-edge dedup: total feature count should be meaningfully
       // smaller than the naive "4 edges per rect + N edges per poly"
-      // bound. This is the whole point of the pass — loose sanity check
+      // bound. This is the whole point of the pass, loose sanity check
       // that we aren't accidentally disabling it.
       const naiveEdgeCount = features.length * 2; // crude upper estimate
       const contributorCount = features.reduce(
@@ -103,9 +103,9 @@ describe('KriegsmarineGridSystem', () => {
 
     it('returns empty for an extent with no grid squares', () => {
       const gs = new KriegsmarineGridSystem({ maxDepth: 0 });
-      // Extreme south pole — no grid coverage expected
+      // Extreme south pole, no grid coverage expected
       const features = gs.getFeatures([0, -90, 1, -89], 0.01, 'EPSG:4326');
-      // May or may not be empty depending on grid coverage — just don't crash
+      // May or may not be empty depending on grid coverage, just don't crash
       expect(Array.isArray(features)).toBe(true);
     });
   });
@@ -138,7 +138,7 @@ describe('KriegsmarineGridSystem', () => {
       const result = gs.formatCoordinate([-66, 47], 'EPSG:4326');
       expect(result).toHaveProperty('combined');
       if ('combined' in result) {
-        expect(result.combined).not.toBe('—');
+        expect(result.combined).not.toBe('-');
         expect(typeof result.combined).toBe('string');
       }
     });
@@ -170,7 +170,7 @@ describe('KriegsmarineGridSystem', () => {
       const wrappedWest: [number, number] = [real[0]! - 2 * HALF_SIZE, real[1]!];
 
       const baseline = gs.formatCoordinate(real, 'EPSG:3857');
-      expect('combined' in baseline && baseline.combined !== '—').toBe(true);
+      expect('combined' in baseline && baseline.combined !== '-').toBe(true);
       expect(gs.formatCoordinate(wrappedEast, 'EPSG:3857')).toEqual(baseline);
       expect(gs.formatCoordinate(wrappedWest, 'EPSG:3857')).toEqual(baseline);
     });
@@ -187,7 +187,7 @@ describe('KriegsmarineGridSystem', () => {
     it('round-trips formatCoordinate ↔ parseCoordinate for a known location', () => {
       const gs = new KriegsmarineGridSystem();
       const formatted = gs.formatCoordinate([0, 7000000], 'EPSG:3857');
-      if (!('combined' in formatted) || formatted.combined === '—') {
+      if (!('combined' in formatted) || formatted.combined === '-') {
         throw new Error('expected a non-empty combined ref');
       }
       const [x, y] = gs.parseCoordinate(formatted.combined, 'EPSG:3857');

@@ -31,7 +31,7 @@ npm install @zwaarcontrast/ol-graticule @zwaarcontrast/ol-graticule-marinequadra
 ```
 
 Peers: `ol ^10`, `@zwaarcontrast/ol-graticule`. **No proj4
-dependency** — all transforms go through OL's built-in 4326 ↔ 3857.
+dependency**, all transforms go through OL's built-in 4326 ↔ 3857.
 
 ## Usage
 
@@ -68,7 +68,7 @@ import {
 const ref = coordinateToGridRef([54.5, 5.2]);        // -> "AN3828"
 formatGridRef(ref!);                                  // -> "AN 3828"
 
-// Cap the resolution — handy for text like "ship operating in AN".
+// Cap the resolution, handy for text like "ship operating in AN".
 coordinateToGridRef([54.5, 5.2], 0);                  // -> "AN"
 ```
 
@@ -104,12 +104,11 @@ ones).
 
 ## Credits
 
-### Jan Kockrow — navalgrid.com
+### Jan Kockrow, navalgrid.com
 
 The grid data, the subdivision logic, the irregular-polygon handling
 around Britain/Iceland, and the anti-meridian-crossing logic in the
-Pacific — essentially everything specific to the Marinequadratkarte —
-is ported from **Jan Kockrow**'s
+Pacific, essentially everything specific to the Marinequadratkarte, is ported from **Jan Kockrow**'s
 **[navalgrid.com](https://www.navalgrid.com/)** and his
 [cljs-navalgrid](https://github.com/Nylle/cljs-navalgrid) implementation.
 
@@ -119,7 +118,7 @@ re-implementation of Jan's research, integrated into the ol-graticule
 ecosystem. If you find this package useful, please go visit
 <https://www.navalgrid.com/> and acknowledge his work.
 
-### Chris Veness — spherical geodesy formulae
+### Chris Veness, spherical geodesy formulae
 
 The shortest-longitude-difference helper in `src/kriegsmarine/latlon.ts`
 (`smallestLonDiff`) is adapted from
@@ -128,4 +127,4 @@ The shortest-longitude-difference helper in `src/kriegsmarine/latlon.ts`
 
 ## License
 
-TBD — see [LICENSE.TODO.md](./LICENSE.TODO.md).
+TBD, see [LICENSE.TODO.md](./LICENSE.TODO.md).

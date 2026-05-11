@@ -8,7 +8,7 @@ import {
 import { WAR_OFFICE_CASSINI_SCHEME } from '../../formatters/schemes';
 
 describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
-  it("places cell wQ's SW corner at WOFO (500 km, 100 km) — Hellyer's London reference", () => {
+  it("places cell wQ's SW corner at WOFO (500 km, 100 km), Hellyer's London reference", () => {
     // Per Hellyer, Sheetlines 55 (2001), the 100 × 100 km square labelled
     // "Q" (in the `w` first-letter square) has its SW corner 500 km E and
     // 100 km N of the false origin. Since the false origin is WOFO (0, 0),
@@ -39,7 +39,7 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
 
   it('differs from the Delamere variant for the same real-world lat/lon', () => {
     // Sanity: a point in London should get a different full MBS reference
-    // under WOFO than under Delamere — the two grids are offset by ~1.5°.
+    // under WOFO than under Delamere, the two grids are offset by ~1.5°.
     // We don't assert specific labels, only inequality.
     const wofo = createWarOfficeCassiniGridSystem();
     const lonLat: [number, number] = [-0.1276, 51.5074];
@@ -54,11 +54,11 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
   /**
    * Primary-source projection check. Each anchor is a corner cartouche
    * read directly off a printed GSGS 2748 sheet at the National Library
-   * of Scotland (https://maps.nls.uk/os/20k-gb/) — both the WOFO grid
+   * of Scotland (https://maps.nls.uk/os/20k-gb/), both the WOFO grid
    * coordinates AND the lat/lon were pre-printed at every sheet corner.
    *
    * The cartouche lat/lon is on the period-correct British datum (Airy
-   * 1830, pre-OSGB36 — the surveys are 1923/1929). Our proj4 has no
+   * 1830, pre-OSGB36, the surveys are 1923/1929). Our proj4 has no
    * +towgs84, so feeding the lat/lon directly through the Airy ellipsoid
    * `+proj=longlat` exercises the pure Cassini-Soldner geometry without
    * any datum-shift round-trip.
@@ -82,7 +82,7 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
       expectedE: number;
       expectedN: number;
     }> = [
-      // GSGS 2748, Sheet XIII.S (Hampshire) — IIIF id 19546/195462174
+      // GSGS 2748, Sheet XIII.S (Hampshire), IIIF id 19546/195462174
       // https://maps.nls.uk/view/195462174 (Edition trenches/survey ~1929)
       {
         sheet: 'XIII.S Hampshire', url: 'https://maps.nls.uk/view/195462174', corner: 'NW',
@@ -104,7 +104,7 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
         lat: dms(50, 58, 37.61, 1), lon: dms(0, 59, 1.18, -1),
         expectedE: 515_000, expectedN: 140_000,
       },
-      // GSGS 2748, Dundee/Tayside — IIIF id 19546/195462213
+      // GSGS 2748, Dundee/Tayside, IIIF id 19546/195462213
       // https://maps.nls.uk/view/195462213 (Survey 1923)
       {
         sheet: 'Dundee/Tayside', url: 'https://maps.nls.uk/view/195462213', corner: 'NW',
@@ -121,7 +121,7 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
         lat: dms(56, 26, 59.67, 1), lon: dms(2, 39, 25.17, -1),
         expectedE: 410_000, expectedN: 750_000,
       },
-      // GSGS 2748, Stobs (Special Sheet) — IIIF id 19546/195462231
+      // GSGS 2748, Stobs (Special Sheet), IIIF id 19546/195462231
       // https://maps.nls.uk/view/195462231 (Published 1923, artillery training)
       {
         sheet: 'Stobs', url: 'https://maps.nls.uk/view/195462231', corner: 'NW',
@@ -143,7 +143,7 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
         lat: dms(55, 19, 37.00, 1), lon: dms(2, 39, 45.76, -1),
         expectedE: 407_000, expectedN: 625_000,
       },
-      // GSGS 2748, Catterick (Special Sheet) — IIIF id 19546/195462180
+      // GSGS 2748, Catterick (Special Sheet), IIIF id 19546/195462180
       // https://maps.nls.uk/view/195462180 (Published 1927, artillery training).
       // SE corner legend explicitly describes the British System letter scheme:
       // "Points are described by their Co-ordinates in kilometres, in the
@@ -161,7 +161,7 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
     ];
 
     for (const a of anchors) {
-      it(`${a.sheet} ${a.corner} corner — ${a.url}`, () => {
+      it(`${a.sheet} ${a.corner} corner, ${a.url}`, () => {
         // Side-effect: register the CRS with proj4/OL.
         createWarOfficeCassiniGridSystem();
         const [e, n] = proj4(AIRY_LL, WAR_OFFICE_CASSINI_CRS).forward([a.lon, a.lat]);
@@ -179,7 +179,7 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
    * The article fixes two facts that determine every letter in the WOFO
    * MBS scheme:
    *
-   * 1. The 25-letter alphabet (Illustration 4, p. 11 — RAF Edition Sheet 1
+   * 1. The 25-letter alphabet (Illustration 4, p. 11, RAF Edition Sheet 1
    *    SE corner, reprinted 1932). A–Z with **I omitted** (J takes its
    *    natural slot), laid out in a 5×5 with **A B C D E on the top
    *    (north) row**:
@@ -197,7 +197,7 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
    *
    * Together these two facts uniquely fix every cell. The tests below
    * spot-check that our factory's letter assignments agree with the
-   * structure Hellyer specifies — alphabet vertices (corner letters of
+   * structure Hellyer specifies, alphabet vertices (corner letters of
    * the 5×5), the Q anchor itself, and a cross-block check that puts
    * London under "wQ" as the article explicitly states.
    */
@@ -210,7 +210,7 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
      * `A B C D E`) corresponds to array index 4 here.
      *
      * This test asserts the alphabet by construction, independent of
-     * any projection or clip polygon — so it locks in the structure
+     * any projection or clip polygon, so it locks in the structure
      * even for cells outside the Britain AOI.
      */
     it('25-letter alphabet (A–Z minus I), A B C D E on north row', () => {
@@ -221,7 +221,7 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
         'QRSTU',
         'LMNOP',
         'FGHJK', // I omitted; J takes the slot
-        'ABCDE', // N row (array index 4) — Hellyer's top row
+        'ABCDE', // N row (array index 4), Hellyer's top row
       ]);
       // First-letter (500 km) grid uses the SAME alphabet layout.
       expect(WAR_OFFICE_CASSINI_SCHEME.firstLetterGrid).toEqual([
@@ -245,18 +245,18 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
     };
 
     /**
-     * Cell Q's anchor — the article's explicit Hellyer fact:
+     * Cell Q's anchor, the article's explicit Hellyer fact:
      *   "the 100 by 100 km square which has its south-west corner
      *    5 (hundred kilometres) east and 1 (hundred kilometres) north
      *    of the false origin converts to square Q. This square contains
-     *    London."  — Hellyer, Sheetlines 55, p. 4 ¶1.
+     *    London." , Hellyer, Sheetlines 55, p. 4 ¶1.
      */
-    it('Q at WOFO SW (500 000, 100 000) — Hellyer p.4: "square Q contains London"', () => {
+    it('Q at WOFO SW (500 000, 100 000), Hellyer p.4: "square Q contains London"', () => {
       expect(probe(500_000, 100_000)).toBe('wQ');
     });
 
     /**
-     * Hellyer states "this square contains London" — meaning Q. Project
+     * Hellyer states "this square contains London", meaning Q. Project
      * a south-London point comfortably inside Q (not at its north edge:
      * central London / St Paul's lat ≈ 51.51°N puts WOFO N ≈ 200 km,
      * right on the Q/L boundary). Croydon (51.375°N) sits well inside.
@@ -268,10 +268,10 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
     });
 
     /**
-     * Two more diagonal corners of the 5×5 alphabet within block w —
+     * Two more diagonal corners of the 5×5 alphabet within block w,
      * V (SW) and A (NW). Both are inside the Britain clip polygon, so
      * they exercise the wired alphabet end-to-end. (Z and E corners
-     * are outside the AOI — covered by the in-memory structure test.)
+     * are outside the AOI, covered by the in-memory structure test.)
      */
     it('V at WOFO SW of block w (500 000, 0) and A at NW (500 000, 400 000)', () => {
       expect(probe(500_000, 0)).toBe('wV');
@@ -280,7 +280,7 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
 
     /**
      * First-letter scheme cross-block check. The 500 km block immediately
-     * north of w (which has SW = 500 000, 500 000) is r — second letter
+     * north of w (which has SW = 500 000, 500 000) is r, second letter
      * in the row Q,R,S,T,U. So the cell at WOFO (500 000, 600 000)
      * (Q within the r block) must label as rQ.
      */
@@ -291,7 +291,7 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
 
   /**
    * GSGS 3906 sheet-corner anchors (1:25 000, 1940-43). These sheets
-   * print **WOFO grid coordinates only** at every corner — no lat/lon —
+   * print **WOFO grid coordinates only** at every corner, no lat/lon,
    * plus a marginal legend explicitly stating the grid convention:
    *
    *   "Unit: metre. Square: 1 000 metres. Reference to nearest 100 [m].
@@ -300,7 +300,7 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
    * (60 miles ≈ 96 km ≈ the WOFO 100 km letter-cell size.)
    *
    * Because the cartouches don't print lat/lon, these anchors don't
-   * exercise the projection independently — that's already covered by
+   * exercise the projection independently, that's already covered by
    * the GSGS 2748 lat/lon ↔ grid pairs above. What they DO cover is the
    * letter-cell mapping in the **q first-letter block** (Scotland north
    * of the 500 km parallel), which is otherwise only checked at the
@@ -319,7 +319,7 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
       n: number;
       expected: string;
     }> = [
-      // Sheet 11/90 S.E. & N.E. — North Uist (Outer Hebrides, Loch Olavat).
+      // Sheet 11/90 S.E. & N.E., North Uist (Outer Hebrides, Loch Olavat).
       // IIIF id 18966/189661153.
       // https://maps.nls.uk/view/189661153
       {
@@ -334,7 +334,7 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
         sheet: '11/90 S.E. & N.E.', url: 'https://maps.nls.uk/view/189661153', corner: 'SW',
         e: 125_000, n: 900_000, expected: 'qB 250 000',
       },
-      // Sheet 17/66 S.E. — Islay (Inner Hebrides, Port Ellen).
+      // Sheet 17/66 S.E., Islay (Inner Hebrides, Port Ellen).
       // IIIF id 18966/189661237.
       // https://maps.nls.uk/view/189661237
       {
@@ -342,20 +342,20 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
         e: 185_000, n: 670_000, expected: 'qR 850 700',
       },
       // SE corner sits exactly on the qR/qS letter-cell boundary at E=200 km.
-      // Factory's floor() puts boundary points in the eastward/northward cell —
+      // Factory's floor() puts boundary points in the eastward/northward cell,
       // i.e. the cell whose SW corner is the boundary point. Hence qS, not qR.
       {
         sheet: '17/66 S.E.', url: 'https://maps.nls.uk/view/189661237', corner: 'SE',
         e: 200_000, n: 660_000, expected: 'qS 000 600',
       },
-      // Sheet 17/94 N.E. — Northern Scotland (~58.3°N).
+      // Sheet 17/94 N.E., Northern Scotland (~58.3°N).
       // IIIF id 18966/189661360.
       // https://maps.nls.uk/view/189661360
       {
         sheet: '17/94 N.E.', url: 'https://maps.nls.uk/view/189661360', corner: 'NW',
         e: 185_000, n: 960_000, expected: 'qB 850 600',
       },
-      // Sheet 29/66 S.E. — central Scotland.
+      // Sheet 29/66 S.E., central Scotland.
       // IIIF id 18966/189662194.
       // https://maps.nls.uk/view/189662194
       {
@@ -365,7 +365,7 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
     ];
 
     for (const a of anchors) {
-      it(`${a.sheet} ${a.corner} — ${a.url}`, () => {
+      it(`${a.sheet} ${a.corner}, ${a.url}`, () => {
         const grid = createWarOfficeCassiniGridSystem();
         const formatted = grid.formatCoordinate([a.e, a.n], WAR_OFFICE_CASSINI_CRS);
         if (!('combined' in formatted)) throw new Error('expected combined label');

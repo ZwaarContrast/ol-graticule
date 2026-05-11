@@ -101,7 +101,7 @@ describe('ProjectedGridSystem', () => {
   });
 
   describe('foot-based CRS', () => {
-    // EPSG:2227 — California zone 3 (NAD83, US survey feet).
+    // EPSG:2227, California zone 3 (NAD83, US survey feet).
     // One of the most common foot-based projections.
     const californiaUsFtProj4 =
       '+proj=lcc +lat_1=38.43333333333333 +lat_2=37.06666666666667 ' +
@@ -264,7 +264,7 @@ describe('ProjectedGridSystem', () => {
   });
 
   describe('extent clipping', () => {
-    // EPSG:28992 (Amersfoort / RD New) — Dutch national grid
+    // EPSG:28992 (Amersfoort / RD New), Dutch national grid
     const rdNewProj4 = '+proj=sterea +lat_0=52.1561605555556 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,1.9342,-1.6677,9.1019,4.0725 +units=m +no_defs +type=crs';
     // Valid extent for RD New in projected coordinates
     const rdNewExtent: Extent = [-7000, 289000, 300000, 629000];
@@ -310,7 +310,7 @@ describe('ProjectedGridSystem', () => {
         extent: rdNewExtent,
       });
 
-      // Web Mercator extent over Australia — entirely outside RD's valid area
+      // Web Mercator extent over Australia, entirely outside RD's valid area
       const australiaExtent: Extent = [12000000, -5000000, 17000000, -1000000];
       const features = system.getFeatures(australiaExtent, 1000, 'EPSG:3857');
       expect(features.length).toBe(0);
@@ -391,7 +391,7 @@ describe('ProjectedGridSystem', () => {
       const [x, y] = system.parseCoordinate('500000 5000000', 'EPSG:3857');
       expect(Number.isFinite(x)).toBe(true);
       expect(Number.isFinite(y)).toBe(true);
-      // UTM 33N (500000, 5000000) — central meridian 15°E, ~45.13°N.
+      // UTM 33N (500000, 5000000), central meridian 15°E, ~45.13°N.
       // 3857 longitude is exact (proj scaling), latitude depends on UTM↔WGS84.
       expect(x).toBeCloseTo(1669792, -2);
       expect(y).toBeGreaterThan(5_500_000);

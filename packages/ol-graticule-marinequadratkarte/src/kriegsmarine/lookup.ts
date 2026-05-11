@@ -1,4 +1,12 @@
-/** Lookup functions for finding Kriegsmarine grid squares by ID; uses pre-built indexes for O(1) lookups. */
+/**
+ * Lookup functions for finding Kriegsmarine grid squares by ID; uses pre-built
+ * indexes for O(1) lookups.
+ *
+ * The grid layout this indexes over comes from Jan Kockrow's reconstruction
+ * at navalgrid.com (https://www.navalgrid.com/) and cljs-navalgrid
+ * (https://github.com/Nylle/cljs-navalgrid). See the package README for the
+ * full credit.
+ */
 
 import type { RectSquare, PolySquare, Square, SquareGroup, PolygonalDef } from './types.js';
 import { largeRegularSquares, largePartialSquares, irregularSquares, polygonalSquares, twoByFiveSquares, partialSquares } from './data.js';

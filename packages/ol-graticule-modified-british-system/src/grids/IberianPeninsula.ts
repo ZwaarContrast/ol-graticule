@@ -1,3 +1,10 @@
+/**
+ * Letter scheme, projection parameters, and coverage polygon for this theatre
+ * are sourced from Thierry Arsicaud's Echo Delta site
+ * (https://www.echodelta.net/mbs/eng-welcome.php). See the package README for
+ * the full credit.
+ */
+
 import { PolygonClippedGridSystem, extentFromPolygon } from '@zwaarcontrast/ol-graticule';
 import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
 import type { ProjectedGridSystemOptions } from '@zwaarcontrast/ol-graticule-projected';
@@ -6,7 +13,7 @@ import { IBERIAN_PENINSULA_SCHEME } from '../formatters/schemes.js';
 import { MBSIntervals } from '../intervals/MBSIntervals.js';
 
 /**
- * Iberian Peninsula MBS theatre — tangent Lambert Conformal Conic at
+ * Iberian Peninsula MBS theatre, tangent Lambert Conformal Conic at
  * lat_0=40°N on the International 1924 (Hayford) ellipsoid, central
  * meridian at the Madrid Royal Observatory (3°41'14.55"W = -3.6872055555°),
  * false easting 600 000 m, false northing 530 000 m. Letter family:

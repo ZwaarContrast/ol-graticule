@@ -1,28 +1,23 @@
-# LICENSE status: TODO
-
-This package is **not yet licensed for public distribution**.
+# LICENSE status: permission granted, upstream license question open
 
 The grid data and subdivision logic in `src/kriegsmarine/` are ported from
-[cljs-navalgrid](https://github.com/Nylle/cljs-navalgrid) by Jan (GitHub
-user [Nylle](https://github.com/Nylle)). The upstream project has no
-`LICENSE` file and no declared license in its `package.json` or README,
-which means under default copyright the code is "all rights reserved" and
-cannot be redistributed.
+[cljs-navalgrid](https://github.com/Nylle/cljs-navalgrid) by Jan Kockrow
+(GitHub user [Nylle](https://github.com/Nylle)). Jan's upstream project
+has no `LICENSE` file at the time of writing.
 
-Before publishing this package to npm:
+## Permission grant (2026-05-11)
 
-1. Contact Jan (GitHub: Nylle) to request a permissive license (MIT/Apache-2.0)
-   or written permission to redistribute the port.
-2. Alternatively, re-derive the grid data (square IDs, corner coordinates,
-   subdivision schemes, polygonal squares) from primary historical sources
-   (original Kriegsmarine `Marinequadratkarte` charts and handbooks) so no
-   code is derived from cljs-navalgrid.
-3. Document the outcome here and replace this file with a proper `LICENSE`
-   once the provenance is clean.
+Jan replied to a permission request by email on 2026-05-11 and gave
+explicit consent for this package to use his data. He asked for citation
+in `src/kriegsmarine/data.ts`; that citation is in place at the top of
+the file.
 
-Until then: the package is functional for internal use but must not be
-published to the public npm registry or linked from the other published
-packages in this monorepo.
+## Open question
+
+Whether Jan intends to attach an explicit license to cljs-navalgrid
+itself is still open. Until that question resolves, the package remains
+`"private": true` in its `package.json`, sits in the changesets `ignore`
+list, and is listed as not-yet-published in the root README.
 
 ## Third-party notices (already settled)
 
@@ -31,7 +26,7 @@ the following third-party code is already under a permissive licence and
 its attribution must be carried into the final `LICENSE` / `NOTICE` when
 this package is eventually published.
 
-### Shortest-longitude-difference — Chris Veness (MIT)
+### Shortest-longitude-difference, Chris Veness (MIT)
 
 `src/kriegsmarine/latlon.ts` contains a `smallestLonDiff` helper
 (antimeridian-aware shortest longitude difference, used by the Kriegsmarine
