@@ -1,5 +1,14 @@
 # @zwaarcontrast/ol-graticule-mgrs
 
+## 2.1.2
+
+### Patch Changes
+
+- 7feec96: Docs: every package now ships with a 1200 × 675 preview image at the
+  top of its README (and as `og:image` / `twitter:image` on its demo page,
+  so npm and Twitter / Open Graph cards render a proper visual). Image
+  URLs are absolute GitHub raw URLs so they resolve on npmjs.com.
+
 ## 2.1.1
 
 ## 2.1.0

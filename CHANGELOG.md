@@ -1,5 +1,61 @@
 # Changelog
 
+## 2.1.2
+
+### @zwaarcontrast/ol-graticule
+
+### Patch Changes
+
+- 7feec96: Docs: every package now ships with a 1200 × 675 preview image at the
+  top of its README (and as `og:image` / `twitter:image` on its demo page,
+  so npm and Twitter / Open Graph cards render a proper visual). Image
+  URLs are absolute GitHub raw URLs so they resolve on npmjs.com.
+
+### @zwaarcontrast/ol-graticule-luftwaffe-planquadrat
+
+### Patch Changes
+
+- 7feec96: Docs: every package now ships with a 1200 × 675 preview image at the
+  top of its README (and as `og:image` / `twitter:image` on its demo page,
+  so npm and Twitter / Open Graph cards render a proper visual). Image
+  URLs are absolute GitHub raw URLs so they resolve on npmjs.com.
+
+### @zwaarcontrast/ol-graticule-mgrs
+
+### Patch Changes
+
+- 7feec96: Docs: every package now ships with a 1200 × 675 preview image at the
+  top of its README (and as `og:image` / `twitter:image` on its demo page,
+  so npm and Twitter / Open Graph cards render a proper visual). Image
+  URLs are absolute GitHub raw URLs so they resolve on npmjs.com.
+
+### @zwaarcontrast/ol-graticule-modified-british-system
+
+### Patch Changes
+
+- 7feec96: Docs: every package now ships with a 1200 × 675 preview image at the
+  top of its README (and as `og:image` / `twitter:image` on its demo page,
+  so npm and Twitter / Open Graph cards render a proper visual). Image
+  URLs are absolute GitHub raw URLs so they resolve on npmjs.com.
+
+### @zwaarcontrast/ol-graticule-projected
+
+### Patch Changes
+
+- 7feec96: Docs: every package now ships with a 1200 × 675 preview image at the
+  top of its README (and as `og:image` / `twitter:image` on its demo page,
+  so npm and Twitter / Open Graph cards render a proper visual). Image
+  URLs are absolute GitHub raw URLs so they resolve on npmjs.com.
+
+### @zwaarcontrast/ol-graticule-rd
+
+### Patch Changes
+
+- 7feec96: Docs: every package now ships with a 1200 × 675 preview image at the
+  top of its README (and as `og:image` / `twitter:image` on its demo page,
+  so npm and Twitter / Open Graph cards render a proper visual). Image
+  URLs are absolute GitHub raw URLs so they resolve on npmjs.com.
+
 ## 2.1.1
 
 ### @zwaarcontrast/ol-graticule-luftwaffe-planquadrat
