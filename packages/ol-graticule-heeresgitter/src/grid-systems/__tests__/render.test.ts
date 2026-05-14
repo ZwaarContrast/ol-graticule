@@ -84,6 +84,26 @@ describe('DhgGridSystem render smoke', () => {
     expect(labels).toHaveLength(0);
   });
 
+  it('emits Y-axis labels only from the zone at the viewport\'s left edge', () => {
+    // Viewport spans lon ~20°E to ~32°E at lat ~47°N..50°N — covers zones 4, 5, 6
+    // (CMs 21, 27, 33). Without the filter, every active zone emitted its own
+    // copy of every northing label, stacked at the viewport's left margin.
+    const wideExtent: [number, number, number, number] = [
+      2_226_390, 5_944_000, 3_562_224, 6_447_000,
+    ];
+    const grid = new DhgGridSystem();
+    const yLabels = grid
+      .getLabels(wideExtent, ZOOM12_RES, 'EPSG:3857')
+      .filter((l) => l.axis === 'y');
+    expect(yLabels.length).toBeGreaterThan(0);
+
+    const counts = new Map<string, number>();
+    for (const l of yLabels) {
+      counts.set(l.text, (counts.get(l.text) ?? 0) + 1);
+    }
+    expect(Math.max(...counts.values())).toBe(1);
+  });
+
   it('overlap mode draws features from at least one zone', () => {
     // Centre this on the 30°E boundary so both zone 5 and zone 6 should render.
     const boundaryExtent: [number, number, number, number] = [

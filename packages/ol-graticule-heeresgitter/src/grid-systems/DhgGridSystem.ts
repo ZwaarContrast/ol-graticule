@@ -139,14 +139,25 @@ export class DhgGridSystem implements GridSystem {
   ): GridLabel[] {
     const detailed = resolution <= this.maxRenderResolution_;
     const labels: GridLabel[] = [];
+    const active = this.activeZones_(extent, viewProjection);
     if (detailed) {
-      for (const kennziffer of this.activeZones_(extent, viewProjection)) {
+      let yAxisOwner: number | undefined;
+      let westCm = Infinity;
+      for (const k of active) {
+        const cm = zoneByKennziffer(k).cm;
+        if (cm < westCm) {
+          westCm = cm;
+          yAxisOwner = k;
+        }
+      }
+      for (const kennziffer of active) {
         for (const l of this.delegateFor_(kennziffer).getLabels(extent, resolution, viewProjection)) {
+          if (l.axis === 'y' && kennziffer !== yAxisOwner) continue;
           labels.push(l);
         }
       }
     } else if (resolution <= this.overviewLabelMaxResolution_) {
-      for (const kennziffer of this.activeZones_(extent, viewProjection)) {
+      for (const kennziffer of active) {
         const label = this.buildOverviewLabel_(kennziffer, extent, viewProjection);
         if (label) labels.push(label);
       }
