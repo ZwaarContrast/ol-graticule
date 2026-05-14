@@ -3,6 +3,7 @@
   "references": [
     { "path": "./packages/ol-graticule" },
     { "path": "./packages/ol-graticule-projected" },
+    { "path": "./packages/ol-graticule-heeresgitter" },
     { "path": "./packages/ol-graticule-luftwaffe-planquadrat" },
     { "path": "./packages/ol-graticule-marinequadratkarte" },
     { "path": "./packages/ol-graticule-mgrs" },

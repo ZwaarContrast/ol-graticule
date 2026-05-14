@@ -8,7 +8,7 @@ import Overlay from 'ol/Overlay';
 import { ParseError } from '@zwaarcontrast/ol-graticule';
 import type { GridSystem } from '@zwaarcontrast/ol-graticule';
 
-export interface CoordinateInputOptions {
+interface CoordinateInputOptions {
   map: Map;
   gridSystem: GridSystem;
   /** Host element the widget is appended to (typically the demo's `.badge`). */

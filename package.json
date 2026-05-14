@@ -38,7 +38,6 @@
     "@changesets/cli": "^2.31.0",
     "@eslint/js": "^9.17.0",
     "@types/proj4": "^2.5.5",
-    "@zwaarcontrast/ol-graticule-mgrs": "*",
     "@typescript-eslint/eslint-plugin": "^8.18.2",
     "@typescript-eslint/parser": "^8.18.2",
     "@vitest/coverage-v8": "^4.0.17",
@@ -46,9 +45,7 @@
     "eslint-config-prettier": "^9.1.0",
     "happy-dom": "^20.9.0",
     "knip": "^5.0.0",
-    "ol": "^10.0.0",
     "prettier": "^3.4.2",
-    "proj4": "^2.12.0",
     "typescript": "^5.7.2",
     "vitest": "^4.0.17"
   }

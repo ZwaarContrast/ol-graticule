@@ -40,6 +40,10 @@ export default defineConfig({
           __dirname,
           'ol-graticule-luftwaffe-planquadrat/index.html',
         ),
+        'ol-graticule-heeresgitter': resolve(
+          __dirname,
+          'ol-graticule-heeresgitter/index.html',
+        ),
       },
     },
   },

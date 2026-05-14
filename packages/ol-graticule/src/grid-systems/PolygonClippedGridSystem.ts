@@ -1,5 +1,6 @@
 import Feature from 'ol/Feature';
 import LineString from 'ol/geom/LineString';
+import Point from 'ol/geom/Point';
 import { get as getProjection, getTransform, transform } from 'ol/proj';
 import type { Extent } from 'ol/extent';
 import type { Geometry } from 'ol/geom';
@@ -14,6 +15,7 @@ import { isCombinedFormatted } from '../types.js';
 import { pointInRing, pointInRings } from '../clipping/pointInRing.js';
 import { PolygonEdgeIndex } from '../clipping/PolygonEdgeIndex.js';
 import { clipPolylineToPolygon, createClipScratch, type ClipScratch } from '../clipping/clipPolylineToPolygon.js';
+import { clipPolygonToConvex, polygonCentroid } from '../clipping/clipPolygonToConvex.js';
 import { densifyRing, projectRing } from '../clipping/densifyRing.js';
 import { snapRingToCellGrid } from '../clipping/snapRingToCellGrid.js';
 import { transformExtentSampled } from '../util/geo.js';
@@ -176,10 +178,34 @@ export class PolygonClippedGridSystem implements GridSystem {
     const labels = this.source_.getCellLabels(extent, resolution, viewProjection);
     const view = this.viewState_(viewProjection, resolution);
     const rings = view.projectedRings;
-    return labels.filter((label) => {
-      const [x, y] = label.point.getCoordinates();
-      return pointInRings(x!, y!, rings);
-    });
+    const clipRing = rings[0];
+    const out: GridCellLabel[] = [];
+    for (const label of labels) {
+      const [cx, cy] = label.point.getCoordinates();
+      if (cx === undefined || cy === undefined) continue;
+      const cellRing = label.cellRing;
+      if (!cellRing || cellRing.length < 3 || !clipRing) {
+        if (pointInRings(cx, cy, rings)) out.push(label);
+        continue;
+      }
+      const allInside = ringFullyInside_(cellRing, rings);
+      if (allInside) {
+        out.push(label);
+        continue;
+      }
+      const clipped = clipPolygonToConvex(cellRing, clipRing);
+      if (clipped.length < 3) continue;
+      const centre = polygonCentroid(clipped);
+      if (!centre) continue;
+      const replaced: GridCellLabel = {
+        point: new Point([centre[0], centre[1]]),
+        text: label.text,
+        cellSizePx: clippedCellSizePx_(cellRing, clipped, label.cellSizePx),
+      };
+      if (label.cellRing) replaced.cellRing = label.cellRing;
+      out.push(replaced);
+    }
+    return out;
   }
 
   isValidCoordinate(
@@ -284,6 +310,42 @@ function projectionCacheKey_(projection: ProjectionLike): string {
 
 function extentOverlaps_(a: Extent, b: Extent): boolean {
   return !(a[2] < b[0] || a[0] > b[2] || a[3] < b[1] || a[1] > b[3]);
+}
+
+function ringFullyInside_(
+  ring: ReadonlyArray<readonly [number, number]>,
+  clipRings: ReadonlyArray<ReadonlyArray<readonly [number, number]>>,
+): boolean {
+  for (let i = 0; i < ring.length; i++) {
+    const p = ring[i]!;
+    if (!pointInRings(p[0], p[1], clipRings)) return false;
+  }
+  return true;
+}
+
+function clippedCellSizePx_(
+  original: ReadonlyArray<readonly [number, number]>,
+  clipped: ReadonlyArray<readonly [number, number]>,
+  originalSizePx: number,
+): number {
+  const orig = ringMinExtent_(original);
+  const clip = ringMinExtent_(clipped);
+  if (orig <= 0) return originalSizePx;
+  return originalSizePx * (clip / orig);
+}
+
+function ringMinExtent_(ring: ReadonlyArray<readonly [number, number]>): number {
+  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+  for (let i = 0; i < ring.length; i++) {
+    const p = ring[i]!;
+    if (p[0] < minX) minX = p[0];
+    if (p[0] > maxX) maxX = p[0];
+    if (p[1] < minY) minY = p[1];
+    if (p[1] > maxY) maxY = p[1];
+  }
+  const w = maxX - minX;
+  const h = maxY - minY;
+  return w < h ? w : h;
 }
 
 function projectRingList_(

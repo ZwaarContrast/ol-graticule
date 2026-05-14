@@ -279,6 +279,78 @@ describe('PolygonClippedGridSystem', () => {
       });
       expect(clipped.getCellLabels!([-10, -10, 100, 100], 1, 'EPSG:3857')).toEqual([]);
     });
+
+    it('recentres labels on the centroid of the visible portion when cellRing is provided', () => {
+      const cellRing: [number, number][] = [
+        [4, 4], [14, 4], [14, 6], [4, 6],
+      ];
+      const inner: GridCellLabel[] = [
+        { point: new Point([9, 5]), text: 'split', cellSizePx: 100, cellRing },
+      ];
+      const source = makeSystem([], { cellLabels: inner });
+      const clipped = new PolygonClippedGridSystem({
+        source,
+        clipPolygon: { rings: [square], crs: 'EPSG:3857' },
+      });
+      const out = clipped.getCellLabels!([-10, -10, 100, 100], 1, 'EPSG:3857');
+      expect(out).toHaveLength(1);
+      const [x, y] = out[0]!.point.getCoordinates();
+      // Visible portion of the 4..14 × 4..6 cell is 4..10 × 4..6, centred at (7, 5).
+      expect(x).toBeCloseTo(7, 6);
+      expect(y).toBeCloseTo(5, 6);
+    });
+
+    it('drops cell labels whose cellRing falls entirely outside the clip polygon', () => {
+      const cellRing: [number, number][] = [
+        [20, 20], [30, 20], [30, 30], [20, 30],
+      ];
+      const inner: GridCellLabel[] = [
+        { point: new Point([25, 25]), text: 'outside', cellSizePx: 100, cellRing },
+      ];
+      const source = makeSystem([], { cellLabels: inner });
+      const clipped = new PolygonClippedGridSystem({
+        source,
+        clipPolygon: { rings: [square], crs: 'EPSG:3857' },
+      });
+      expect(clipped.getCellLabels!([-10, -10, 100, 100], 1, 'EPSG:3857')).toEqual([]);
+    });
+
+    it('scales cellSizePx by the visible portion so labels in narrow slivers fade out', () => {
+      // 10x10 cell, 90% clipped away (visible: 1x10) → cellSizePx scales by 0.1.
+      const cellRing: [number, number][] = [
+        [9, 0], [19, 0], [19, 10], [9, 10],
+      ];
+      const inner: GridCellLabel[] = [
+        { point: new Point([14, 5]), text: 'narrow', cellSizePx: 80, cellRing },
+      ];
+      const source = makeSystem([], { cellLabels: inner });
+      const clipped = new PolygonClippedGridSystem({
+        source,
+        clipPolygon: { rings: [square], crs: 'EPSG:3857' },
+      });
+      const out = clipped.getCellLabels!([-10, -10, 100, 100], 1, 'EPSG:3857');
+      expect(out).toHaveLength(1);
+      expect(out[0]!.cellSizePx).toBeCloseTo(8, 6);
+    });
+
+    it('keeps the original centre when the cell is fully inside the clip polygon', () => {
+      const cellRing: [number, number][] = [
+        [2, 2], [4, 2], [4, 4], [2, 4],
+      ];
+      const inner: GridCellLabel[] = [
+        { point: new Point([3, 3]), text: 'inside', cellSizePx: 100, cellRing },
+      ];
+      const source = makeSystem([], { cellLabels: inner });
+      const clipped = new PolygonClippedGridSystem({
+        source,
+        clipPolygon: { rings: [square], crs: 'EPSG:3857' },
+      });
+      const out = clipped.getCellLabels!([-10, -10, 100, 100], 1, 'EPSG:3857');
+      expect(out).toHaveLength(1);
+      const [x, y] = out[0]!.point.getCoordinates();
+      expect(x).toBe(3);
+      expect(y).toBe(3);
+    });
   });
 
   describe('isValidCoordinate / formatCoordinate', () => {

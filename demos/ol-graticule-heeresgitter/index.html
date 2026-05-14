@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Deutsches Heeresgitter + Heeresmeldenetz (WWII Wehrmacht grids) · ol-graticule</title>
+    <meta name="description" content="Live demo of the WWII Wehrmacht map reference grids for OpenLayers: Deutsches Heeresgitter (DHG, 6° Gauß-Krüger on Bessel) and the orange Heeresmeldenetz letter-cell overprint." />
+    <meta name="author" content="Zwaar Contrast" />
+    <link rel="canonical" href="https://zwaarcontrast.nl/ol-graticule/ol-graticule-heeresgitter/" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ol-graticule" />
+    <meta property="og:title" content="Deutsches Heeresgitter + Heeresmeldenetz (WWII Wehrmacht grids)" />
+    <meta property="og:description" content="WWII Wehrmacht map reference grids for OpenLayers: DHG (6° Gauß-Krüger on Bessel 1841) and the orange Heeresmeldenetz letter-cell overprint." />
+    <meta property="og:url" content="https://zwaarcontrast.nl/ol-graticule/ol-graticule-heeresgitter/" />
+    <meta property="og:image" content="https://github.com/ZwaarContrast/ol-graticule/raw/main/packages/ol-graticule-heeresgitter/images/preview.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="675" />
+    <meta property="og:image:alt" content="DHG kilometre grid with orange Heeresmeldenetz Kleinquadrat + Meldetrapez cells over Katwijk, Noordwijk, Leiden and the North Sea" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Deutsches Heeresgitter + Heeresmeldenetz" />
+    <meta name="twitter:description" content="WWII Wehrmacht map reference grids for OpenLayers." />
+    <meta name="twitter:image" content="https://github.com/ZwaarContrast/ol-graticule/raw/main/packages/ol-graticule-heeresgitter/images/preview.jpg" />
+    <meta name="twitter:image:alt" content="DHG kilometre grid with orange Heeresmeldenetz Kleinquadrat + Meldetrapez cells over Katwijk, Noordwijk, Leiden and the North Sea" />
+    <link rel="stylesheet" href="../shared.css" />
+    <style>
+      .controls {
+        margin-top: 8px;
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .controls button {
+        font: 600 11px ui-monospace, "SF Mono", monospace;
+        padding: 5px 10px;
+        border-radius: 6px;
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.55);
+        color: var(--paper);
+        cursor: pointer;
+      }
+      .controls button.active {
+        background: var(--accent);
+        border-color: var(--accent);
+      }
+      .badge__back {
+        margin-top: 10px !important;
+      }
+      .layer-controls {
+        margin-top: 10px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border);
+      }
+      .controls label.toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font: 600 11px ui-monospace, "SF Mono", monospace;
+        color: var(--paper);
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div class="badge">
+      <h1>Deutsches Heeresgitter</h1>
+      <p><a href="https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-heeresgitter"><code>@zwaarcontrast/ol-graticule-heeresgitter</code></a></p>
+      <p>WWII Wehrmacht grids: <strong>Deutsches Heeresgitter</strong> (6° Gauß-Krüger on the Bessel 1841 ellipsoid, with Kennziffer-prefixed eastings) and the orange <strong>Heeresmeldenetz</strong> letter-cell overprint (6 km Kleinquadrate → 2 km Meldetrapeze → 1 km Arbeitstrapeze, alphabet without <code>I</code>).</p>
+      <p>Sources: <em>Planheft Schweiz</em> (OKH g 23/1, 16 March 1944), <em>Capturing the Complex Histories of German WWII Captured Maps</em> (Powell &amp; Mühr, 2020), and <em>Geodetic grids in authoritative maps – new findings about the origin of the UTM Grid</em> (Buchroithner &amp; Pfahlbusch, 2016).</p>
+      <p class="badge__back"><a href="../">← All demos</a></p>
+      <div class="controls layer-controls">
+        <label class="toggle"><input type="checkbox" id="toggle-hmn" checked /> Heeresmeldenetz</label>
+      </div>
+    </div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>

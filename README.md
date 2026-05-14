@@ -19,6 +19,7 @@ demo per package.
 | [`@zwaarcontrast/ol-graticule-rd`](./packages/ol-graticule-rd) | Dutch RD Amersfoort grids (EPSG:28991 Old, EPSG:28992 New). Netherlands coverage polygon baked in. |
 | [`@zwaarcontrast/ol-graticule-mgrs`](./packages/ol-graticule-mgrs) | Military Grid Reference System (MGRS / NATO grid) over UTM, with Norway and Svalbard exceptions. |
 | [`@zwaarcontrast/ol-graticule-luftwaffe-planquadrat`](./packages/ol-graticule-luftwaffe-planquadrat) | WWII Luftwaffe Planquadrat reference grids: Gradnetzmeldeverfahren (GNMV) and Jägermeldenetz (JMN). |
+| [`@zwaarcontrast/ol-graticule-heeresgitter`](./packages/ol-graticule-heeresgitter) | WWII Wehrmacht map reference grids: Deutsches Heeresgitter (DHG, Bessel + 6° Gauß-Krüger) and Heeresmeldenetz (HMN) letter cells. |
 | `@zwaarcontrast/ol-graticule-marinequadratkarte` | WWII Kriegsmarine naval grid. *Not yet published*, see [the package's LICENSE.TODO.md](./packages/ol-graticule-marinequadratkarte/LICENSE.TODO.md). |
 
 Each add-on package depends on `@zwaarcontrast/ol-graticule`; install only
@@ -35,6 +36,7 @@ what you need.
 | Dutch RD grid | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-rd` (+ `@zwaarcontrast/ol-graticule-projected` + `proj4`) |
 | MGRS / NATO grid | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-mgrs` (+ `@zwaarcontrast/ol-graticule-projected` + `proj4`) |
 | Luftwaffe GNMV / JMN | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-luftwaffe-planquadrat` |
+| Wehrmacht DHG / HMN | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-heeresgitter` (+ `@zwaarcontrast/ol-graticule-projected` + `proj4`) |
 
 `ol` is a peer dependency of every package (>=9 <11).
 
@@ -106,7 +108,7 @@ Demos deploy to GitHub Pages automatically from `main` via
 `.github/workflows/demos.yml`.
 
 This repo uses npm workspaces and [changesets](https://github.com/changesets/changesets)
-for versioning. The four published packages (everything except
+for versioning. The published packages (everything except
 `ol-graticule-marinequadratkarte`, see its [LICENSE.TODO.md](./packages/ol-graticule-marinequadratkarte/LICENSE.TODO.md))
 bump in lockstep (`fixed` group) so their versions always match. The
 Kriegsmarine package is in the changesets `ignore` list and is marked

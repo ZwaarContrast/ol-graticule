@@ -98,6 +98,14 @@ export interface GridCellLabel {
   text: string;
   /** The cell size in view projection units (used for fade calculation) */
   cellSizePx: number;
+  /**
+   * The cell footprint as an open ring in the view's projection coordinates.
+   * When provided, {@link PolygonClippedGridSystem} recentres the label on the
+   * centroid of the visible (clipped) portion of the cell, so cells split by a
+   * clip boundary still read correctly. Optional; renderers that omit it fall
+   * back to a point-in-polygon visibility filter on the centre.
+   */
+  cellRing?: ReadonlyArray<readonly [number, number]>;
 }
 
 /** Formats a raw coordinate value into a display string. */
