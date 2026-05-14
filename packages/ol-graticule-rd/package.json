@@ -1,6 +1,6 @@
 {
   "name": "@zwaarcontrast/ol-graticule-rd",
-  "version": "2.1.2",
+  "version": "2.1.3",
   "type": "module",
   "description": "Dutch RD grids, RD New (EPSG:28992) and RD Old (EPSG:28991), with the bundled RDNAPTRANS2018 datum-shift grid, for ol-graticule.",
   "license": "MIT",
