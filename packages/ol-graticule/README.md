@@ -169,6 +169,8 @@ These packages plug their own `GridSystem` into `UniversalGraticule`:
 | [`@zwaarcontrast/ol-graticule-rd`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-rd) | Dutch RD Amersfoort (EPSG:28992 / 28991) with bundled RDNAPTRANS 2018 datum-shift grid. |
 | [`@zwaarcontrast/ol-graticule-mgrs`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-mgrs) | Military Grid Reference System (MGRS / NATO grid) over UTM, with Norway/Svalbard exceptions. |
 | [`@zwaarcontrast/ol-graticule-modified-british-system`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-modified-british-system) | Modified British System letter-cell artillery grids for ten WWII theatres (Nord de Guerre, French Lambert I/II/III, British/Irish Cassini, War Office Cassini, Scandinavian Zone 3, Italian Northern/Southern, Iberian Peninsula). |
+| [`@zwaarcontrast/ol-graticule-luftwaffe-planquadrat`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-luftwaffe-planquadrat) | WWII Luftwaffe Planquadrat reference grids: Gradnetzmeldeverfahren (GNMV, pre/post-1943) and Jägermeldenetz (JMN) fighter reporting network. |
+| [`@zwaarcontrast/ol-graticule-heeresgitter`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-heeresgitter) | WWII Wehrmacht map reference grids: Deutsches Heeresgitter (DHG, 6° Gauß-Krüger on Bessel 1841) and the Heeresmeldenetz (HMN) letter-cell reporting overprint. |
 | `@zwaarcontrast/ol-graticule-marinequadratkarte` | WWII Kriegsmarine naval grid (not yet published, see [repo](https://github.com/zwaarcontrast/ol-graticule)). |
 
 ### Reverse: parse a label back to a coordinate
