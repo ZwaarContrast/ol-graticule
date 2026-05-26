@@ -1,6 +1,6 @@
 {
   "name": "@zwaarcontrast/ol-graticule-luftwaffe-planquadrat",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "type": "module",
   "description": "WWII Luftwaffe Planquadrat map reference grids: Gradnetzmeldeverfahren (GNMV) and Jägermeldenetz (JMN), for ol-graticule.",
   "license": "MIT",
