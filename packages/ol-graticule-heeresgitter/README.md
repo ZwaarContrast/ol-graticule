@@ -3,21 +3,27 @@
 WWII Wehrmacht map reference grids for
 [`@zwaarcontrast/ol-graticule`](../ol-graticule).
 
-Renders the two superimposed grids printed on the *Deutsche Heereskarte*
-sheet series from 1942 onwards:
+Renders three grids that appear on wartime German map sheets:
 
 - **Deutsches Heeresgitter (DHG)**, the black metric kilometre grid used
   for artillery and navigation. Gauß-Krüger transverse Mercator on the
   Bessel 1841 ellipsoid, 6° strips numbered by *Kennziffer*, scale factor
   1.0 on the central meridian, false easting 500 000 m.
-- **Heeresmeldenetz (HMN)**, the orange letter-cell overprint used for
-  verbal position reporting up the chain of command. 150 km
-  *Großquadrate* subdivided into 6 km *Kleinquadrate* (letter pairs
-  `AA`..`ZZ` with `I` skipped), 2 km *Meldetrapeze* (`1`..`9`), 1 km
-  *Arbeitstrapeze* (`a`..`d`), and an optional 100 m tenths suffix.
+- **Heeresmeldenetz (planar)**, the orange letter-cell overprint printed
+  on the standardised *Deutsche Heereskarte* sheet series from 1942
+  onwards. 150 km *Großquadrate* anchored to the DHG km lattice,
+  subdivided into 6 km *Kleinquadrate* (letter pairs `AA`..`ZZ` with `I`
+  skipped), 2 km *Meldetrapeze* (`1`..`9`), 1 km *Arbeitstrapeze*
+  (`a`..`d`), and an optional 100 m tenths suffix.
+- **Heeresmeldenetz (geographic)**, the lat/lon-bounded variant whose
+  sheets self-identify with a `Heeresmeldenetz (geogr.)` header. Same
+  hierarchy and alphabet, but Großtrapeze and cells are bounded by
+  graticule lines (`2°30' lon × 1°40' lat` and `6' lon × 4' lat`
+  respectively) instead of metres, anchored at `(0°40'N, 0°E)`.
 
-Both grids share the DHG projection, so HMN cells snap to the kilometre
-lattice.
+The DHG and the planar HMN share a projection, so planar HMN cells snap
+to the kilometre lattice. The geographic HMN is projection-agnostic and
+renders directly on any view CRS.
 
 ![DHG kilometre grid with orange Heeresmeldenetz Kleinquadrat + Meldetrapez cells over Katwijk, Noordwijk, Leiden and the North Sea](https://github.com/ZwaarContrast/ol-graticule/raw/main/packages/ol-graticule-heeresgitter/images/preview.jpg)
 
@@ -149,10 +155,23 @@ Heereskarte series inherits, with a fixed offset:
 
 ### HMN hierarchy
 
-Two historical variants of the HMN existed: a geographic one (Luftwaffe
-favoured, with named *Großtrapeze*) and a planar one (Heer favoured,
-keyed off DHG metres). This package implements the planar variant,
-which is what's printed on the *Deutsche Heereskarte* sheets:
+Two historical variants of the HMN existed: a **planar** one (keyed off
+DHG metres) and a **geographic** one (with named *Großtrapeze* bounded
+by lat/lon graticule lines). **This package implements both** as
+separate grid systems:
+
+| Variant   | Class                       | Cells          | Cell anchor                             |
+|-----------|-----------------------------|----------------|------------------------------------------|
+| Planar    | `HmnGridSystem`             | 6 km × 6 km    | DHG zone CM × integer 150 km Northing    |
+| Geographic| `GeographicHmnGridSystem`   | 6' lon × 4' lat | 0°40′N × 0°E (latticed by 2°30′ × 1°40′) |
+
+The planar variant is what's printed on the standardised *Deutsche
+Heereskarte* sheets (Kolosjoki, Hadres, Owrutsch). The geographic
+variant identifies itself with a `Heeresmeldenetz (geogr.)` sheet header;
+see the *Geographic HMN* section below for a worked Romfo example.
+
+The remainder of this section describes the planar variant. The
+geographic variant is described under *Geographic HMN* further down.
 
 | Level | Size | Labelling | Origin |
 |---|---|---|---|
@@ -404,11 +423,106 @@ per region (typically 50–150 m residuals at the border between two
 triangulations). The package uses a single global Helmert (Potsdam
 datum) and lets you override per call via the `datumShift` option.
 
+## Geographic HMN (`GeographicHmnGridSystem`)
+
+The lat/lon-bounded variant of the Heeresmeldenetz. Cells are degree-
+bounded so they don't depend on a projection; the grid is defined
+purely in `(lat, lon)` space and renders directly on any view
+projection without going through DHG.
+
+### Spec
+
+Per Buchroithner & Pfahlbusch (2015), citing
+*RdLuObdL ChAusbW VorschLmAbtRLM/LIn12 76/40*:
+
+| Level         | Size                  | Labelling            | Origin               |
+|---------------|-----------------------|----------------------|----------------------|
+| Großtrapez    | 2°30′ lon × 1°40′ lat | name of settlement   | (0°40′N, 0°E), stepping ±2°30′ / ±1°40′ |
+| **Kleintrapez** | **6′ lon × 4′ lat** | **letter pair `AA`..`ZZ` (25 letters, no `I`)** | NW corner of Großtrapez |
+| Meldetrapez   | 2′ lon × 1′20″ lat    | `1`..`9` (3 × 3, NW→SE row-major) | NW corner of Kleintrapez |
+| Arbeitstrapez | 1′ lon × 40″ lat      | `a`..`d` (2 × 2, NW→SE row-major) | NW corner of Meldetrapez |
+| (tenths)      | 6″ lon × 4″ lat       | 2 digits, east + north | SW corner of Arbeitstrapez |
+
+Cell labelling within a Großtrapez follows the same column-letter +
+row-letter rule as the planar variant: first letter = column (W→E),
+second letter = row (N→S).
+
+The anchor `0°40′N` is empirical. The cited paper prints `1°N (!)`, but
+that number fits no observed sheet. Every primary source we've checked
+(the Bildplankarte *E27O Romfo*, an Atlantikwall sector overprint on
+the Dutch coast) only fits an anchor 20′ south of the printed value,
+suggesting a transcription error in the source.
+
+### Primary-source example: Romfo Bildplankarte
+
+The cleanest published primary source for the geographic HMN is the
+`E27O Romfo (Nordteil)` *Bildplankarte*. The sheet header literally
+reads **`Heeresmeldenetz (geogr.)`**, removing any ambiguity about which
+variant the orange overprint encodes.
+
+![E27O Romfo (Nordteil) Bildplankarte 1:50 000, header reading "Heeresmeldenetz (geogr.) / Norwegen 1:50000 / OPDAL / E27O Romfo (Nordteil)", with the orange letter-pair grid NV through SX printed across the sheet and a face-of-sheet subdivision diagram showing the Meldetrapeze 1..9 and Arbeitstrapeze a..d](images/romfo-geogr-hmn.jpg)
+
+What the sheet tells us:
+
+- **Header**: `Heeresmeldenetz (geogr.)` self-identifies this as the
+  geographic variant (cells bounded by lat/lon, not by Bessel metres).
+- **Großtrapez code**: `E27O`, the explicit identifier for the
+  Großtrapez. `Romfo` is the named settlement inside it.
+- **Visible Kleintrapeze**: `NV`, `OV`, `PV`, `QV`, `RV`, `SV` across the
+  top row; `NW`..`SW` middle; `NX`..`SX` bottom (six columns × three
+  rows of cells visible on the sheet).
+- **Face-of-sheet subdivision diagram** (inside `PW`): the 3 × 3 grid of
+  Meldetrapeze numbered 1..9 from the NW corner, with Meldetrapez 1
+  further split into Arbeitstrapeze a / b / c / d. This is exactly the
+  hierarchy the encoder produces.
+
+### Working through `E27O Romfo` step by step
+
+Romfo town centre is at approximately **62°36′N, 9°30′E**. Run that
+through the encoder:
+
+```ts
+import { encodeHmnGeo, decomposeHmnGeo } from '@zwaarcontrast/ol-graticule-heeresgitter';
+
+const ref = encodeHmnGeo([62 + 36/60, 9 + 30/60], { depth: 2 });
+ref.canonical;     // -> "VW"
+ref.grosstrapez;   // -> { gx: 3, gy: 37 }
+```
+
+Reproducing that by hand against the spec:
+
+1. **Großtrapez selection.** From the anchor `(0°40′N, 0°E)` stepping by
+   `(2°30′ lon × 1°40′ lat)`:
+   - `gx = floor((9°30′ − 0°) / 2°30′) = 3` → NW lon = `3 × 2°30′ = 7°30′E`
+   - `gy = floor((62°36′ − 0°40′) / 1°40′) = 37` → NW lat = `0°40′ + 38 × 1°40′ = 64°00′N`
+2. **Cell within the Großtrapez** (cells are 6′ lon × 4′ lat, columns
+   ascend W→E, rows ascend N→S):
+   - column offset = `9°30′ − 7°30′ = 120′`; `floor(120 / 6) = 20` → letter index 20 → **`V`**
+   - row offset = `64°00′ − 62°36′ = 84′`; `floor(84 / 4) = 21` → letter index 21 → **`W`**
+
+So Romfo town centre lands in cell `VW`, just east of the printed
+`NV..SX` block. That fits, because 1:50 000 sheets are typically named
+after the most prominent settlement near (not necessarily inside) the
+printed area.
+
+### Another worked example: Den Haag
+
+```ts
+// Den Haag city centre (S'-Gravenhage, 52°04'46"N 4°18'30"E):
+encodeHmnGeo([52.07944, 4.30833], { depth: 2 }).canonical; // -> "TD"
+encodeHmnGeo([52.07944, 4.30833]).canonical;               // -> "TD 7c 03"
+```
+
+Cross-checked against a wartime Atlantikwall sector overprint on a
+captured Dutch *Topografische kaart*: Den Haag reads `TD` and the
+neighbouring Scheveningen reads `SD`, both inside Großtrapez
+`(gx=1, gy=30)` with NW corner `(52°20′N, 2°30′E)`.
+
 ## What this package doesn't implement
 
-- **Geographic HMN with named Großtrapeze** (Luftwaffe variant). Not
-  printed on the Heereskarte sheets we have. The Luftwaffe used the
-  *Gradnetzmeldeverfahren* (GNMV); for that, see
+- **Luftwaffe `Gradnetzmeldeverfahren` (GNMV)** with `Zusatzzahlgebiete`
+  (10° × 10° add-on number areas, 1° Großtrapeze, 30′ Mittel, etc.).
+  Different grid; for that, see
   [`@zwaarcontrast/ol-graticule-luftwaffe-planquadrat`](../ol-graticule-luftwaffe-planquadrat).
 - **UTM-REF / Deutscher Heeresblattschnitt**, the 1944 prototype that
   later became MGRS. Covered by
@@ -432,9 +546,16 @@ If you reuse the images, please cite Berkeley.
   scale factor 1.0, false easting 500 000 m, Kennziffer numbering, strip
   overlap, world-coverage rectangle).
 - **Buchroithner & Pfahlbusch**, *Geodetic grids in authoritative maps:
-  new findings about the origin of the UTM Grid*, Cartography & GIS
-  (2016): HMN hierarchy and the UTM-REF lineage that eventually became
-  MGRS.
+  new findings about the origin of the UTM Grid*, Cartography &
+  Geographic Information Science (2016),
+  [DOI 10.1080/15230406.2015.1128851][buchroithner-doi]
+  ([open-access PDF via Austria-Forum][buchroithner-pdf]): the explicit
+  spec for both HMN variants (planar and geographic), citing
+  *RdLuObdL ChAusbW VorschLmAbtRLM/LIn12 76/40*, and the UTM-REF
+  lineage that eventually became MGRS. Note: the geographic-variant
+  anchor latitude printed in the paper (`1°N (!)`) does not match any
+  observed primary source; see *Geographic HMN* above for the
+  empirical correction.
 - **Powell & Mühr**, *Capturing the Complex Histories of German World
   War II Captured Maps* (UC Berkeley Library): provenance and
   cataloguing context for the captured-map collection.
@@ -442,7 +563,12 @@ If you reuse the images, please cite Berkeley.
   1:50 000* R-36-X-West-7 Kolosjoki (October 1943); *Alpen- und
   Donau-Reichsgaue 1:50 000* Blatt 4558 Ost Hadres; *Osteuropa 1:300 000*
   V52/W50 Owrutsch-Tscherkassy; *Osteuropa 1:300 000* Zusammendruck
-  II/49–III/47 Embenskij Post – Osero Koschkar-Ata.
+  II/49–III/47 Embenskij Post – Osero Koschkar-Ata; *Norwegen 1:50 000*
+  Bildplankarte `E27O Romfo (Nordteil)` (the only sheet I've seen
+  carrying an explicit `Heeresmeldenetz (geogr.)` header).
+
+[buchroithner-doi]: https://doi.org/10.1080/15230406.2015.1128851
+[buchroithner-pdf]: https://austria-forum.org/attach/Geography/Cross-country_information/Buchroithner.pdf
 
 ## License
 

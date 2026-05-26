@@ -5,6 +5,7 @@
 import { forward, forwardInZone, inverse } from '../dhg/projection.js';
 import { FALSE_EASTING } from '../dhg/zones.js';
 import type { DatumShift, DhgCoord, LatLon } from '../dhg/types.js';
+import { clampTenth } from './canonical.js';
 import {
   ARBEITSTRAPEZ_M,
   GROSSQUADRAT_M,
@@ -194,6 +195,3 @@ function swCornerForDepth(b: HmnBreakdown, depth: number): SwCorner {
   };
 }
 
-function clampTenth(n: number): number {
-  return n < 0 ? 0 : n > 9 ? 9 : n;
-}

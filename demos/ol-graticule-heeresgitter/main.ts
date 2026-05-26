@@ -19,11 +19,14 @@ import {
 import {
   DhgGridSystem,
   HmnGridSystem,
+  GeographicHmnGridSystem,
   decodeDhg,
   parseDhg,
   parseHmn,
+  parseHmnGeo,
 } from '@zwaarcontrast/ol-graticule-heeresgitter';
 import { cursorStyle } from '../shared';
+import { tryNominatimFallback } from '../nominatim';
 
 // DHG: fine black grid, matching the printed kilometre grid on the sheets.
 const dhgLine = new Stroke({
@@ -44,7 +47,8 @@ const dhgEdgeText = new Text({
 });
 const dhgEdgeLabelHandler = createDefaultEdgeLabelHandler(dhgEdgeText);
 
-// HMN: chunky orange, matching the overprint colour on the wartime sheets.
+// HMN (planar): chunky orange, matching the overprint colour on the
+// standardised Deutsche Heereskarte sheets.
 const hmnLine = new Stroke({
   color: 'rgba(234, 88, 12, 0.55)',
   width: 1.5,
@@ -58,8 +62,15 @@ const hmnCellLabelHandler = createDefaultCellLabelHandler({
   fadeStops: [10, 35, 800, 1200],
 });
 
+// HMN (geographic): same overprint palette as the planar variant. Both
+// are "Heeresmeldenetz" and should read the same to the eye. Modes are
+// mutually exclusive via the dropdown so there's no on-screen ambiguity.
+const hmnGeoLine = hmnLine;
+const hmnGeoCellLabelHandler = hmnCellLabelHandler;
+
 const dhg = new DhgGridSystem();
 const hmn = new HmnGridSystem({ maxDepth: 4 });
+const hmnGeo = new GeographicHmnGridSystem({ maxDepth: 4 });
 
 const dhgLayer = new UniversalGraticule({
   gridSystem: dhg,
@@ -82,12 +93,23 @@ const hmnLayer = new UniversalGraticule({
   maxLines: 1600,
 });
 
-// Cursor reads the HMN reference — that's the "feature" label users hunt for.
+const hmnGeoLayer = new UniversalGraticule({
+  gridSystem: hmnGeo,
+  style: {
+    line: { major: hmnGeoLine, boundary: hmnGeoLine },
+    cellLabel: hmnGeoCellLabelHandler,
+  },
+  maxLines: 1600,
+});
+hmnGeoLayer.setVisible(false);
+
+// Cursor reads whichever overlay is active. If both HMN variants are on,
+// planar wins (it's the canonical one for the *Deutsche Heereskarte*).
 const cursorControl = new CursorPositionControl({ gridSystem: hmn, style: cursorStyle });
 
 const map = new Map({
   target: 'map',
-  layers: [new TileLayer({ source: new OSM() }), dhgLayer, hmnLayer],
+  layers: [new TileLayer({ source: new OSM() }), dhgLayer, hmnLayer, hmnGeoLayer],
   controls: [cursorControl],
   view: new View({
     center: fromLonLat([16.17, 48.75]), // Hadres
@@ -101,25 +123,60 @@ declare global {
     __heeresgitter?: {
       map: Map;
       hmn: HmnGridSystem;
+      hmnGeo: GeographicHmnGridSystem;
       dhg: DhgGridSystem;
     };
   }
 }
-window.__heeresgitter = { map, hmn, dhg };
+window.__heeresgitter = { map, hmn, hmnGeo, dhg };
 
-// --- Layer toggles -----------------------------------------------------------
+// --- Grid mode dropdown ------------------------------------------------------
+//
+// Three mutually-exclusive modes. The planar HMN sits on top of the DHG km
+// lattice (that's how it's printed on real Heereskarte sheets), so the
+// "planar HMN" mode shows both layers. The geographic HMN is anchored to
+// the lat/lon graticule and doesn't depend on DHG at all, so it's shown
+// alone.
 
-const hmnToggle = document.getElementById('toggle-hmn') as HTMLInputElement | null;
+type GridMode = 'dhg' | 'hmn' | 'hmn-geo';
 
-function syncCursor(): void {
-  cursorControl.setGridSystem(hmnToggle?.checked ? hmn : dhg);
+function isGridMode(value: string): value is GridMode {
+  return value === 'dhg' || value === 'hmn' || value === 'hmn-geo';
 }
 
-hmnToggle?.addEventListener('change', () => {
-  hmnLayer.setVisible(hmnToggle.checked);
-  syncCursor();
-});
-syncCursor();
+const modeSelectEl = document.getElementById('mode');
+const modeSelect = modeSelectEl instanceof HTMLSelectElement ? modeSelectEl : null;
+
+function currentMode(): GridMode {
+  if (modeSelect && isGridMode(modeSelect.value)) return modeSelect.value;
+  return 'hmn';
+}
+
+function applyMode(mode: GridMode): void {
+  switch (mode) {
+    case 'dhg':
+      dhgLayer.setVisible(true);
+      hmnLayer.setVisible(false);
+      hmnGeoLayer.setVisible(false);
+      cursorControl.setGridSystem(dhg);
+      break;
+    case 'hmn':
+      dhgLayer.setVisible(true);
+      hmnLayer.setVisible(true);
+      hmnGeoLayer.setVisible(false);
+      cursorControl.setGridSystem(hmn);
+      break;
+    case 'hmn-geo':
+      dhgLayer.setVisible(false);
+      hmnLayer.setVisible(false);
+      hmnGeoLayer.setVisible(true);
+      cursorControl.setGridSystem(hmnGeo);
+      break;
+  }
+}
+
+modeSelect?.addEventListener('change', () => applyMode(currentMode()));
+applyMode(currentMode());
 
 // --- Coordinate input --------------------------------------------------------
 
@@ -138,7 +195,7 @@ function createInputUi(): void {
   field.spellcheck = false;
   field.autocomplete = 'off';
   field.autocapitalize = 'off';
-  field.placeholder = 'PE 1b 52  or  5 600 5760';
+  field.placeholder = 'PE 1b 52  /  TD 7c 03  /  5 600 5760  /  Hadres';
   field.className = 'coord-input__field';
   const button = document.createElement('button');
   button.type = 'button';
@@ -149,8 +206,9 @@ function createInputUi(): void {
   status.className = 'coord-input__status';
   status.setAttribute('aria-live', 'polite');
   status.textContent =
-    'Type a Heeresmeldenetz reference ("PE 1b 52", "JQ 4d 24") ' +
-    'or a Heeresgitter Rechtswert/Hochwert ("5 600 5760", "6 383 7716").';
+    'Type a Heeresmeldenetz reference (planar "PE 1b 52", geographic "TD 7c 03"), ' +
+    'a Heeresgitter Rechtswert/Hochwert ("5 600 5760"), ' +
+    'or a place name ("Hadres", "Den Haag"), which falls back to OSM Nominatim.';
   wrap.append(row, status);
   badge.append(wrap);
 
@@ -164,18 +222,72 @@ function createInputUi(): void {
     status.classList.toggle('coord-input__status--error', isError);
   }
 
-  function resolve(text: string, viewCentre: [number, number]): { lat: number; lon: number; summary: string } {
-    if (/^\s*[A-Za-z]/.test(text)) {
-      const ref = parseHmn(text, { near: viewCentre });
-      if (!ref) throw new ParseError(text, 'not a recognised HMN reference');
-      const [lat, lon] = ref.center;
+  // The planar and geographic HMN share the same canonical text format
+  // ("XX nA dd"), so a typed string alone is ambiguous. Resolve in this
+  // priority: explicit prefix → currently-active mode → planar.
+  function resolveHmnText(
+    text: string,
+    viewCentre: [number, number],
+  ): { lat: number; lon: number; summary: string } | undefined {
+    const trimmed = text.trim();
+    const geoPrefix = /^(geo|geog|geographic)[\s:]+/i;
+    const planarPrefix = /^(plan|planar|heer)[\s:]+/i;
+
+    let preferGeo = currentMode() === 'hmn-geo';
+    let body = trimmed;
+    if (geoPrefix.test(trimmed)) {
+      preferGeo = true;
+      body = trimmed.replace(geoPrefix, '');
+    } else if (planarPrefix.test(trimmed)) {
+      preferGeo = false;
+      body = trimmed.replace(planarPrefix, '');
+    }
+
+    if (preferGeo) {
+      const ref = parseHmnGeo(body, { near: viewCentre });
+      if (ref) {
+        const [lat, lon] = ref.center;
+        return {
+          lat,
+          lon,
+          summary:
+            `${ref.canonical} (geographic) → ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E ` +
+            `(Großtrapez ${ref.grosstrapez.gx},${ref.grosstrapez.gy})`,
+        };
+      }
+    }
+    const planar = parseHmn(body, { near: viewCentre });
+    if (planar) {
+      const [lat, lon] = planar.center;
       return {
         lat,
         lon,
         summary:
-          `${ref.canonical} → ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E ` +
-          `(Großquadrat z${ref.grossquadrat.kennziffer}/${ref.grossquadrat.gx},${ref.grossquadrat.gy})`,
+          `${planar.canonical} (planar) → ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E ` +
+          `(Großquadrat z${planar.grossquadrat.kennziffer}/${planar.grossquadrat.gx},${planar.grossquadrat.gy})`,
       };
+    }
+    if (!preferGeo) {
+      const ref = parseHmnGeo(body, { near: viewCentre });
+      if (ref) {
+        const [lat, lon] = ref.center;
+        return {
+          lat,
+          lon,
+          summary:
+            `${ref.canonical} (geographic) → ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E ` +
+            `(Großtrapez ${ref.grosstrapez.gx},${ref.grosstrapez.gy})`,
+        };
+      }
+    }
+    return undefined;
+  }
+
+  function resolve(text: string, viewCentre: [number, number]): { lat: number; lon: number; summary: string } {
+    if (/^\s*(?:geo|geog|geographic|plan|planar|heer)[\s:]/i.test(text) || /^\s*[A-Za-z]/.test(text)) {
+      const ref = resolveHmnText(text, viewCentre);
+      if (!ref) throw new ParseError(text, 'not a recognised HMN reference');
+      return ref;
     }
     const parsed = parseDhg(text);
     if (!parsed) throw new ParseError(text, 'not a recognised HMN or DHG reference');
@@ -190,30 +302,44 @@ function createInputUi(): void {
     };
   }
 
-  function go(): void {
+  async function go(): Promise<void> {
     const text = field.value.trim();
     if (!text) return;
+    const projection = map.getView().getProjection();
+    const viewCentre = map.getView().getCenter();
+    if (!viewCentre) {
+      setStatus('view has no centre', true);
+      return;
+    }
+    const [centreLon, centreLat] = transform(viewCentre, projection, 'EPSG:4326');
+
+    let parserReason: string | undefined;
     try {
-      const viewCentre = map.getView().getCenter();
-      if (!viewCentre) throw new Error('view has no centre');
-      const [lon, lat] = transform(viewCentre, map.getView().getProjection(), 'EPSG:4326');
-      const result = resolve(text, [lat ?? 0, lon ?? 0]);
-      const projected = transform([result.lon, result.lat], 'EPSG:4326', map.getView().getProjection());
+      const result = resolve(text, [centreLat ?? 0, centreLon ?? 0]);
+      const projected = transform([result.lon, result.lat], 'EPSG:4326', projection);
       overlay.setPosition(projected);
       map.getView().animate({ center: projected, duration: 400 });
       setStatus(result.summary, false);
+      return;
     } catch (err) {
-      if (err instanceof ParseError) setStatus(err.reason, true);
-      else if (err instanceof Error) setStatus(err.message, true);
-      else setStatus('parse failed', true);
+      parserReason = err instanceof ParseError ? err.reason
+        : err instanceof Error ? err.message
+        : 'parse failed';
     }
+
+    // Fall back to OSM Nominatim for place-name lookups ("Leiden", "Hadres").
+    await tryNominatimFallback(text, parserReason ?? 'parse failed', (hit) => {
+      const projected = transform([hit.lon, hit.lat], 'EPSG:4326', projection);
+      overlay.setPosition(projected);
+      map.getView().animate({ center: projected, duration: 400 });
+    }, setStatus);
   }
 
-  button.addEventListener('click', go);
+  button.addEventListener('click', () => { void go(); });
   field.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
       event.preventDefault();
-      go();
+      void go();
     }
   });
 }

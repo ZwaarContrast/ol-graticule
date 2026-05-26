@@ -5,8 +5,11 @@
 
 import type Map from 'ol/Map';
 import Overlay from 'ol/Overlay';
+import { transform } from 'ol/proj';
 import { ParseError } from '@zwaarcontrast/ol-graticule';
 import type { GridSystem } from '@zwaarcontrast/ol-graticule';
+
+import { tryNominatimFallback } from './nominatim';
 
 interface CoordinateInputOptions {
   map: Map;
@@ -78,30 +81,34 @@ export function createCoordinateInput(
     status.classList.toggle('coord-input__status--error', isError);
   }
 
-  function go(): void {
+  async function go(): Promise<void> {
     const text = input.value.trim();
     if (text.length === 0) return;
+    const projection = map.getView().getProjection();
     try {
-      const coord = parse(text, map.getView().getProjection());
+      const coord = parse(text, projection);
       overlay.setPosition(coord);
       map.getView().animate({ center: coord, duration: 400 });
       setStatus(hint ?? '', false);
+      return;
     } catch (err) {
-      if (err instanceof ParseError) {
-        setStatus(err.reason, true);
-      } else if (err instanceof Error) {
-        setStatus(err.message, true);
-      } else {
-        setStatus('parse failed', true);
-      }
+      const parserReason =
+        err instanceof ParseError ? err.reason :
+        err instanceof Error ? err.message :
+        'parse failed';
+      await tryNominatimFallback(text, parserReason, (hit) => {
+        const coord = transform([hit.lon, hit.lat], 'EPSG:4326', projection);
+        overlay.setPosition(coord);
+        map.getView().animate({ center: coord, duration: 400 });
+      }, setStatus);
     }
   }
 
-  button.addEventListener('click', go);
+  button.addEventListener('click', () => { void go(); });
   input.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
       event.preventDefault();
-      go();
+      void go();
     }
   });
 

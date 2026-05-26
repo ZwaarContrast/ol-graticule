@@ -17,6 +17,7 @@ import {
 } from '@zwaarcontrast/ol-graticule-luftwaffe-planquadrat';
 import type { LuftwaffeSystem } from '@zwaarcontrast/ol-graticule-luftwaffe-planquadrat';
 import { gridLine, cursorStyle } from '../shared';
+import { tryNominatimFallback } from '../nominatim';
 
 const snapCellLabelHandler = createDefaultCellLabelHandler({
   fontWeight: 700,
@@ -125,31 +126,40 @@ function createInputUi(): InputUi {
     status.classList.toggle('coord-input__status--error', isError);
   }
 
-  function go(): void {
+  async function go(): Promise<void> {
     const text = field.value.trim();
     if (text.length === 0) return;
+    const projection = map.getView().getProjection();
+    let parserReason: string | undefined;
     try {
       const result = parseRef(text);
       if (result.system !== activeSystem) {
         setActiveSystem(result.system);
       }
       const [lat, lon] = result.decoded.center;
-      const coord = transform([lon, lat], 'EPSG:4326', map.getView().getProjection());
+      const coord = transform([lon, lat], 'EPSG:4326', projection);
       overlay.setPosition(coord);
       map.getView().animate({ center: coord, duration: 400 });
       setStatus(defaultHint, false);
+      return;
     } catch (err) {
-      if (err instanceof ParseError) setStatus(err.reason, true);
-      else if (err instanceof Error) setStatus(err.message, true);
-      else setStatus('parse failed', true);
+      parserReason = err instanceof ParseError ? err.reason
+        : err instanceof Error ? err.message
+        : 'parse failed';
     }
+    // Fall back to OSM Nominatim for place-name lookups.
+    await tryNominatimFallback(text, parserReason ?? 'parse failed', (hit) => {
+      const coord = transform([hit.lon, hit.lat], 'EPSG:4326', projection);
+      overlay.setPosition(coord);
+      map.getView().animate({ center: coord, duration: 400 });
+    }, setStatus);
   }
 
-  button.addEventListener('click', go);
+  button.addEventListener('click', () => { void go(); });
   field.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
       event.preventDefault();
-      go();
+      void go();
     }
   });
 

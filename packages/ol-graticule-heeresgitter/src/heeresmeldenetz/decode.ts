@@ -8,6 +8,7 @@
 import { forward, inverse } from '../dhg/projection.js';
 import { FALSE_EASTING } from '../dhg/zones.js';
 import type { DatumShift, LatLon } from '../dhg/types.js';
+import { canonicalizeHmnLabel, parseHmnTokens } from './canonical.js';
 import {
   ARBEITSTRAPEZ_M,
   GROSSQUADRAT_M,
@@ -15,14 +16,10 @@ import {
   MELDETRAPEZ_M,
   TENTH_M,
 } from './levels.js';
-import { letterToIndex } from './letters.js';
 import type {
-  Arbeitstrapez,
   DecodedHmnRef,
   Grossquadrat,
 } from './types.js';
-
-const PATTERN = /^\s*([A-HJ-Z])([A-HJ-Z])\s*(?:([1-9])(?:\s*([a-d])(?:\s*(\d{2}))?)?)?\s*$/i;
 
 export interface ParseHmnOptions {
   /**
@@ -43,32 +40,9 @@ export interface ParseHmnOptions {
 
 /** Parse an HMN reference. Returns `undefined` if the text or options are invalid. */
 export function parseHmn(text: string, options: ParseHmnOptions): DecodedHmnRef | undefined {
-  const matched = text.match(PATTERN);
-  if (!matched) return undefined;
-  const col = matched[1];
-  const row = matched[2];
-  const meldeStr = matched[3];
-  const arbeitStr = matched[4];
-  const tenthsStr = matched[5];
-  if (!col || !row) return undefined;
-
-  const kx = letterToIndex(col);
-  const ky = letterToIndex(row);
-  if (kx < 0 || ky < 0) return undefined;
-
-  const meldetrapez = meldeStr ? Number(meldeStr) : undefined;
-  const arbeitstrapez = arbeitStr
-    ? (arbeitStr.toLowerCase() as Arbeitstrapez)
-    : undefined;
-  const tenths: [number, number] | undefined = tenthsStr
-    ? [Number(tenthsStr[0]), Number(tenthsStr[1])]
-    : undefined;
-
-  let depth: 2 | 3 | 4 | 5;
-  if (tenths) depth = 5;
-  else if (arbeitstrapez) depth = 4;
-  else if (meldetrapez !== undefined) depth = 3;
-  else depth = 2;
+  const tokens = parseHmnTokens(text);
+  if (!tokens) return undefined;
+  const { col, row, kx, ky, meldetrapez, arbeitstrapez, tenths, depth } = tokens;
 
   const grossquadrat = options.grossquadrat ?? grossquadratFor(options.near, options.datumShift);
   if (!grossquadrat) return undefined;
@@ -119,8 +93,8 @@ export function parseHmn(text: string, options: ParseHmnOptions): DecodedHmnRef 
     northing: cellNwN - cellSize / 2,
   }, shift);
 
-  const klein = col.toUpperCase() + row.toUpperCase();
-  const canonical = canonicalize(klein, meldetrapez, arbeitstrapez, tenths);
+  const klein = col + row;
+  const canonical = canonicalizeHmnLabel(klein, meldetrapez, arbeitstrapez, tenths);
 
   const ref: DecodedHmnRef = {
     canonical,
@@ -135,22 +109,6 @@ export function parseHmn(text: string, options: ParseHmnOptions): DecodedHmnRef 
   if (tenths !== undefined) ref.tenths = tenths;
   if (options.sheetNumber !== undefined) ref.sheetNumber = options.sheetNumber;
   return ref;
-}
-
-function canonicalize(
-  klein: string,
-  melde: number | undefined,
-  arbeit: Arbeitstrapez | undefined,
-  tenths: [number, number] | undefined,
-): string {
-  let out = klein;
-  if (melde === undefined) return out;
-  out += ' ' + melde;
-  if (arbeit === undefined) return out;
-  out += arbeit;
-  if (tenths === undefined) return out;
-  out += ' ' + tenths[0] + tenths[1];
-  return out;
 }
 
 function grossquadratFor(
