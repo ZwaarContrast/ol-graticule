@@ -1,5 +1,16 @@
 # @zwaarcontrast/ol-graticule-heeresgitter
 
+## 2.3.1
+
+### Patch Changes
+
+- c97c7c4: Fix broken Romfo image on the npm package page. The Geographic HMN
+  section of the README used a relative path (`images/romfo-geogr-hmn.jpg`)
+  which works on GitHub but not on npm's package page (npm doesn't resolve
+  relative links to the source repo). Switched to the same absolute
+  `https://github.com/ZwaarContrast/ol-graticule/raw/main/...` URL pattern
+  the rest of the README's images use.
+
 ## 2.3.0
 
 ### Minor Changes

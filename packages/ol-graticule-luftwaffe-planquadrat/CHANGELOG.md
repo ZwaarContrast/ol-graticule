@@ -1,5 +1,7 @@
 # @zwaarcontrast/ol-graticule-luftwaffe-planquadrat
 
+## 2.3.1
+
 ## 2.3.0
 
 ## 2.2.0
