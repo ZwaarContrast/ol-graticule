@@ -1,6 +1,6 @@
 {
   "name": "@zwaarcontrast/ol-graticule-heeresgitter",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "type": "module",
   "description": "WWII Wehrmacht map reference grids for ol-graticule: Deutsches Heeresgitter (DHG, Bessel + 6° Gauß-Krüger) and both Heeresmeldenetz letter-cell variants: planar (6 km, DHG-metric) and geographic (6' × 4' lat/lon).",
   "license": "MIT",
