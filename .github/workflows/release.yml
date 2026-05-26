@@ -11,6 +11,11 @@ jobs:
   release:
     name: Release
     runs-on: ubuntu-latest
+    # Gates the OIDC token claim that npm trusted-publisher entries require
+    # (`environment: prd`). Reviewers / branch policies can be layered on
+    # in repo Settings → Environments → prd if you want manual approvals
+    # before a publish proceeds.
+    environment: prd
     # The changesets action needs to open/update PRs, push version commits,
     # and (when publishing) request an OIDC token for npm provenance.
     permissions:
