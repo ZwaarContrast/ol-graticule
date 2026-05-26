@@ -460,7 +460,7 @@ The cleanest published primary source for the geographic HMN is the
 reads **`Heeresmeldenetz (geogr.)`**, removing any ambiguity about which
 variant the orange overprint encodes.
 
-![E27O Romfo (Nordteil) Bildplankarte 1:50 000, header reading "Heeresmeldenetz (geogr.) / Norwegen 1:50000 / OPDAL / E27O Romfo (Nordteil)", with the orange letter-pair grid NV through SX printed across the sheet and a face-of-sheet subdivision diagram showing the Meldetrapeze 1..9 and Arbeitstrapeze a..d](images/romfo-geogr-hmn.jpg)
+![E27O Romfo (Nordteil) Bildplankarte 1:50 000, header reading "Heeresmeldenetz (geogr.) / Norwegen 1:50000 / OPDAL / E27O Romfo (Nordteil)", with the orange letter-pair grid NV through SX printed across the sheet and a face-of-sheet subdivision diagram showing the Meldetrapeze 1..9 and Arbeitstrapeze a..d](https://github.com/ZwaarContrast/ol-graticule/raw/main/packages/ol-graticule-heeresgitter/images/romfo-geogr-hmn.jpg)
 
 What the sheet tells us:
 
