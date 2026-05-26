@@ -33,9 +33,12 @@ jobs:
         with:
           node-version: 20
           cache: npm
-          # Makes setup-node write an .npmrc that picks up NODE_AUTH_TOKEN
-          # during `npm publish` (which `changeset publish` shells out to).
-          registry-url: 'https://registry.npmjs.org'
+          # Deliberately NO `registry-url` here. Setting it makes setup-node
+          # write an `.npmrc` with `_authToken=${NODE_AUTH_TOKEN}`, which the
+          # npm CLI then treats as "auth is configured" — and silently skips
+          # the OIDC trusted-publisher exchange, falling back to (empty)
+          # token-based publishing. Letting npm see no auth lets it detect
+          # the GitHub OIDC environment and use trusted publishing instead.
 
       - run: npm ci
 
@@ -60,7 +63,9 @@ jobs:
           title: 'chore: version packages'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # No `NODE_AUTH_TOKEN`. Authentication runs through npm trusted
+          # publishing (OIDC) — see the trusted-publisher entries on npm
+          # for each `@zwaarcontrast/ol-graticule*` package.
           # Sign published tarballs via GitHub OIDC so consumers can verify
           # they came from this repo + workflow. Requires `id-token: write`
           # above. Drop this env var if you'd rather not publish provenance.
