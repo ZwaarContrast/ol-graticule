@@ -28,10 +28,16 @@ jobs:
           # Changesets walks the full history to figure out what's unreleased.
           fetch-depth: 0
 
+      # Node 24 ships npm 11.x, which is the minimum that supports npm
+      # trusted publishing (the OIDC token exchange backing our `prd`
+      # trusted-publisher entries). Consumer-facing test coverage for the
+      # `engines.node: ">=20.0.0"` minimum lives in `ci.yml`; this workflow
+      # only builds + publishes, so the build-time Node version is
+      # independent of what consumers run.
       - name: Set up Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: 20
+          node-version: 24
           cache: npm
           # Deliberately NO `registry-url` here. Setting it makes setup-node
           # write an `.npmrc` with `_authToken=${NODE_AUTH_TOKEN}`, which the
