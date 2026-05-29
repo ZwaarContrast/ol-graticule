@@ -64,9 +64,18 @@ export class DegreeFormatter implements LabelFormatter {
   private formatDDM(value: number, axis: 'x' | 'y'): string {
     const hemisphere = this.getHemisphere(value, axis);
     const abs = Math.abs(value);
-    const degrees = Math.floor(abs);
-    const minutes = (abs - degrees) * 60;
-    return `${degrees}°${formatDecimal(minutes, 2)}′${hemisphere}`;
+    let degrees = Math.floor(abs);
+    let minutes = (abs - degrees) * 60;
+
+    // Use toFixed(2) for speed; formatDecimal's trailing-zero stripping is
+    // expensive and less idiomatic for DDM than fixed precision.
+    let minutesStr = minutes.toFixed(2);
+    if (minutesStr === '60.00') {
+      minutesStr = '00.00';
+      degrees += 1;
+    }
+
+    return `${degrees}°${minutesStr}′${hemisphere}`;
   }
 
   private getHemisphere(value: number, axis: 'x' | 'y'): string {

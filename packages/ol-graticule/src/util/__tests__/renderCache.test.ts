@@ -22,6 +22,26 @@ describe('RenderCache', () => {
     expect(compute).toHaveBeenCalledTimes(2);
   });
 
+  it('hits cache when extent drifts by less than one pixel', () => {
+    const cache = new RenderCache<number>();
+    const compute = vi.fn().mockReturnValue(7);
+    const resolution = 10;
+    cache.get(extentA, resolution, 'EPSG:3857', compute);
+    const subPixel: Extent = [0.5, -0.5, 100.1, 99.9];
+    expect(cache.get(subPixel, resolution, 'EPSG:3857', compute)).toBe(7);
+    expect(compute).toHaveBeenCalledTimes(1);
+  });
+
+  it('misses cache when any extent coord drifts by a full pixel', () => {
+    const cache = new RenderCache<number>();
+    const compute = vi.fn().mockReturnValueOnce(1).mockReturnValueOnce(2);
+    const resolution = 10;
+    cache.get(extentA, resolution, 'EPSG:3857', compute);
+    const driftedX: Extent = [10, 0, 110, 100];
+    cache.get(driftedX, resolution, 'EPSG:3857', compute);
+    expect(compute).toHaveBeenCalledTimes(2);
+  });
+
   it('invalidates when resolution changes', () => {
     const cache = new RenderCache<number>();
     const compute = vi.fn().mockReturnValueOnce(1).mockReturnValueOnce(2);

@@ -10,7 +10,7 @@ import Polygon from 'ol/geom/Polygon';
 
 import { BoundedCache, ParseError, normalizeLon } from '@zwaarcontrast/ol-graticule';
 
-import { findById, getAllLargeSquares } from './lookup.js';
+import { findById, getLargeSquaresNearLat } from './lookup.js';
 import type { RectSquare, LatLon, Square } from './types.js';
 import { isPolySquare } from './types.js';
 import { rectCrossesAntimeridian, lonSpanDeg, squareExtent } from './geo.js';
@@ -70,7 +70,7 @@ export function childRefCandidates(parentRef: string): string[] {
 export function coordinateToGridRef(point: LatLon, maxDepth: number = 4): string | undefined {
   const [lat, lon] = point;
   const normalized: LatLon = [lat, normalizeLon(lon)];
-  const largeSquares = getAllLargeSquares();
+  const largeSquares = getLargeSquaresNearLat(lat);
 
   let containingId: string | undefined;
   for (const sq of largeSquares) {
@@ -122,7 +122,7 @@ export function formatGridRef(ref: string): string {
 export function parseGridRef(text: string): string {
   const condensed = text.replace(/\s+/g, '');
   if (condensed.length === 0) throw new ParseError(text, 'empty input');
-  const m = condensed.match(/^([a-zA-Z])([a-zA-Z])(\d{0,8})$/);
+  const m = condensed.match(/^([a-zA-ZÄÖÜäöü])([a-zA-ZÄÖÜäöü])(\d{0,8})$/);
   if (!m) throw new ParseError(text, 'expected two letters followed by 0–8 digits');
   return m[1]!.toUpperCase() + m[2]!.toUpperCase() + m[3]!;
 }

@@ -23,29 +23,6 @@
     <meta name="twitter:image:alt" content="DHG kilometre grid with orange Heeresmeldenetz Kleinquadrat + Meldetrapez cells over Katwijk, Noordwijk, Leiden and the North Sea" />
     <link rel="stylesheet" href="../shared.css" />
     <style>
-      .controls {
-        margin-top: 8px;
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-        align-items: center;
-      }
-      .controls button {
-        font: 600 11px ui-monospace, "SF Mono", monospace;
-        padding: 5px 10px;
-        border-radius: 6px;
-        border: 1px solid var(--border);
-        background: rgba(15, 23, 42, 0.55);
-        color: var(--paper);
-        cursor: pointer;
-      }
-      .controls button.active {
-        background: var(--accent);
-        border-color: var(--accent);
-      }
-      .badge__back {
-        margin-top: 10px !important;
-      }
       .layer-controls {
         margin-top: 10px;
         padding-top: 10px;
@@ -82,9 +59,7 @@
     <div class="badge">
       <h1>Deutsches Heeresgitter</h1>
       <p><a href="https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-heeresgitter"><code>@zwaarcontrast/ol-graticule-heeresgitter</code></a></p>
-      <p>WWII Wehrmacht grids: <strong>Deutsches Heeresgitter</strong> (6° Gauß-Krüger on the Bessel 1841 ellipsoid, with Kennziffer-prefixed eastings) and the orange <strong>Heeresmeldenetz</strong> letter-cell overprint in both variants: <em>planar</em> (6 km Kleinquadrate, anchored to the DHG km lattice) and <em>geographic</em> (6′ × 4′ Kleintrapeze anchored to 0°40′N × 0°E). Both variants use the same alphabet without <code>I</code>.</p>
-      <p>Sources: <em>Planheft Schweiz</em> (OKH g 23/1, 16 March 1944), <em>Capturing the Complex Histories of German WWII Captured Maps</em> (Powell &amp; Mühr, 2020), and <a href="https://austria-forum.org/attach/Geography/Cross-country_information/Buchroithner.pdf"><em>Geodetic grids in authoritative maps: new findings about the origin of the UTM Grid</em></a> (Buchroithner &amp; Pfahlbusch, 2016), which gives the explicit spec for the geographic HMN variant.</p>
-      <p class="badge__back"><a href="../">← All demos</a></p>
+      <p>WWII Wehrmacht grids: the <strong>Heeresgitter</strong> Gauß-Krüger lattice and the orange <strong>Heeresmeldenetz</strong> letter-cell overprint, in both planar (6 km) and geographic (6′ × 4′) variants. <a href="../">← All demos</a></p>
       <div class="controls layer-controls">
         <label class="mode">
           Grid:

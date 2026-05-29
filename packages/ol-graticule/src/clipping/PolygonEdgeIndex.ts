@@ -99,6 +99,39 @@ export class PolygonEdgeIndex {
     out.y2 = this.edgeBuf_[base + 3]!;
   }
 
+  /** Even-odd ray-casting point-in-ring test using the bucket index. */
+  pointInRing(x: number, y: number): boolean {
+    if (x < this.extent_[0] || x > this.extent_[2] ||
+        y < this.extent_[1] || y > this.extent_[3]) {
+      return false;
+    }
+    this.currentGen_++;
+    const gen = this.currentGen_;
+    const buf = this.edgeBuf_;
+    const visited = this.visitedGen_;
+    let inside = false;
+    const cxMin = this.clampCellX_(x);
+    const cxMax = this.cells_ - 1;
+    const cy = this.clampCellY_(y);
+    for (let cx = cxMin; cx <= cxMax; cx++) {
+      const bucket = this.buckets_[cx * this.cells_ + cy]!;
+      for (let k = 0; k < bucket.length; k++) {
+        const edgeId = bucket[k]!;
+        if (visited[edgeId] === gen) continue;
+        visited[edgeId] = gen;
+        const base = edgeId * 4;
+        const xi = buf[base]!;
+        const yi = buf[base + 1]!;
+        const xj = buf[base + 2]!;
+        const yj = buf[base + 3]!;
+        if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+          inside = !inside;
+        }
+      }
+    }
+    return inside;
+  }
+
   /** Write deduplicated candidate edge IDs overlapping the AABB into `out`. */
   queryBBox(
     minX: number,

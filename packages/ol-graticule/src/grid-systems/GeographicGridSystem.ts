@@ -18,6 +18,7 @@ import {
   type FlatLineSpec,
 } from '../util/gridlines.js';
 import { ProjectionScratch } from '../util/projectionScratch.js';
+import { TransformCache, transformBatchCached } from '../util/transformCache.js';
 import { normalizeLon } from '../util/geo.js';
 import { ParseError } from '../util/ParseError.js';
 import { parsePairViaFormatter } from '../util/parseCoordinatePair.js';
@@ -55,12 +56,13 @@ export class GeographicGridSystem implements GridSystem {
 
   private readonly ctxCache_ = new RenderCache<RenderContext>();
   private readonly projScratch_ = new ProjectionScratch();
+  private readonly transformCache_ = new TransformCache();
 
   constructor(options?: GeographicGridSystemOptions) {
     const targetScreenPx = options?.targetScreenPx ?? 100;
     this.intervals_ = options?.intervals ?? new DegreeIntervals(targetScreenPx);
     this.formatter_ = options?.formatter ?? new DegreeFormatter();
-    this.densificationPoints_ = options?.densificationPoints ?? 50;
+    this.densificationPoints_ = options?.densificationPoints ?? 20;
   }
 
   getFeatures(extent: Extent, resolution: number, viewProjection: ProjectionLike): Feature<Geometry>[] {
@@ -80,22 +82,36 @@ export class GeographicGridSystem implements GridSystem {
     const [tMinX, , , tMaxY] = target;
     const labels: GridLabel[] = [];
 
-    for (let x = startX; x <= endX; x += interval) {
+    const xCount = Math.max(0, Math.floor((endX - startX) / interval) + 1);
+    const yCount = Math.max(0, Math.floor((endY - startY) / interval) + 1);
+    if (xCount === 0 && yCount === 0) return labels;
+
+    const flat: number[] = new Array((xCount + yCount) * 2);
+    for (let i = 0; i < xCount; i++) {
+      flat[i * 2] = startX + i * interval;
+      flat[i * 2 + 1] = tMaxY;
+    }
+    const yBase = xCount * 2;
+    for (let i = 0; i < yCount; i++) {
+      flat[yBase + i * 2] = tMinX;
+      flat[yBase + i * 2 + 1] = startY + i * interval;
+    }
+    transformBatchCached(flat, flat, 2, transformFn, this.transformCache_);
+
+    for (let i = 0; i < xCount; i++) {
       labels.push({
-        point: new Point(transformFn([x, tMaxY], undefined, 2)),
-        text: this.formatter_.format(normalizeLon(x), 'x'),
+        point: new Point([flat[i * 2]!, flat[i * 2 + 1]!]),
+        text: this.formatter_.format(normalizeLon(startX + i * interval), 'x'),
         axis: 'x',
       });
     }
-
-    for (let y = startY; y <= endY; y += interval) {
+    for (let i = 0; i < yCount; i++) {
       labels.push({
-        point: new Point(transformFn([tMinX, y], undefined, 2)),
-        text: this.formatter_.format(y, 'y'),
+        point: new Point([flat[yBase + i * 2]!, flat[yBase + i * 2 + 1]!]),
+        text: this.formatter_.format(startY + i * interval, 'y'),
         axis: 'y',
       });
     }
-
     return labels;
   }
 

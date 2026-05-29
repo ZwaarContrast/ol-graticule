@@ -85,6 +85,7 @@ export { RenderCache } from './util/renderCache.js';
 export { BoundedCache } from './util/boundedCache.js';
 export { LruCache } from './util/lruCache.js';
 export { ProjectionScratch } from './util/projectionScratch.js';
+export { TransformCache, transformBatchCached } from './util/transformCache.js';
 export { formatDecimal } from './util/formatNumber.js';
 export { normalizeLon, extentFromPolygon, transformExtentSampled } from './util/geo.js';
 export {

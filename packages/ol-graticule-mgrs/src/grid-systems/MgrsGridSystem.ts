@@ -15,9 +15,12 @@ import type {
   FormattedCoordinate,
 } from '@zwaarcontrast/ol-graticule';
 import {
+  BoundedCache,
   LruCache,
   ProjectionScratch,
   RenderCache,
+  TransformCache,
+  transformBatchCached,
 } from '@zwaarcontrast/ol-graticule';
 import { registerCRS } from '@zwaarcontrast/ol-graticule-projected';
 import { iterateVisibleGzds, type Gzd } from '../mgrs/gzd.js';
@@ -78,15 +81,6 @@ interface GzdStatic {
   }>;
 }
 
-/** Per-(zone, band, tileE, tileN, interval) interior grid line data. */
-interface TilePolylines {
-  polylines: ReadonlyArray<{
-    coords: ReadonlyArray<readonly [number, number]>;
-    axis: 'e' | 'n';
-    constUtm: number;
-  }>;
-}
-
 /** Per-frame derived state, memoized via {@link RenderCache} on `(extent, resolution, viewProjection)`. */
 interface RenderContext {
   geoExtent: Extent;
@@ -103,6 +97,11 @@ const PROBE_LAT_STEP = 0.01;
 const PROBE_LON_STEP = 0.01;
 const MIN_CELL_AREA_FRACTION = 0.01;
 
+function cursorKey(coordinate: [number, number], projection: ProjectionLike): string {
+  const code = typeof projection === 'string' ? projection : projection?.getCode() ?? '';
+  return `${code}|${Math.round(coordinate[0])}|${Math.round(coordinate[1])}`;
+}
+
 export class MgrsGridSystem implements GridSystem {
   private readonly intervals_: IntervalStrategy;
   private readonly cursorPrecision_: MgrsPrecision;
@@ -114,7 +113,8 @@ export class MgrsGridSystem implements GridSystem {
   private readonly utmTransforms_ = new Map<number, ProjectedTransforms>();
   private readonly upsTransforms_ = new Map<boolean, ProjectedTransforms>();
   private readonly gzdStaticCache_ = new LruCache<string, GzdStatic>(1500);
-  private readonly tileLineCache_ = new LruCache<string, TilePolylines>(5000);
+  private readonly cursorCache_ = new BoundedCache<string, FormattedCoordinate>(512);
+  private readonly transformCache_ = new TransformCache();
 
   private readonly projScratch_ = new ProjectionScratch();
 
@@ -187,12 +187,20 @@ export class MgrsGridSystem implements GridSystem {
     coordinate: [number, number],
     viewProjection: ProjectionLike,
   ): FormattedCoordinate {
+    const key = cursorKey(coordinate, viewProjection);
+    const cached = this.cursorCache_.get(key);
+    if (cached !== undefined) return cached;
     const toLonLat = getTransform(viewProjection, 'EPSG:4326');
     const [lon, lat] = toLonLat(coordinate, undefined, 2);
-    if (lon === undefined || lat === undefined) return { combined: '-' };
-    const parts = lonLatToMgrsParts(lon, lat);
-    if (!parts) return { combined: '-' };
-    return { combined: formatMgrs(parts, this.cursorPrecision_) };
+    let result: FormattedCoordinate;
+    if (lon === undefined || lat === undefined) {
+      result = { combined: '-' };
+    } else {
+      const parts = lonLatToMgrsParts(lon, lat);
+      result = parts ? { combined: formatMgrs(parts, this.cursorPrecision_) } : { combined: '-' };
+    }
+    this.cursorCache_.set(key, result);
+    return result;
   }
 
   isValidCoordinate(
@@ -230,6 +238,7 @@ export class MgrsGridSystem implements GridSystem {
     const lines: { axis: 'x' | 'y'; constLatLon: number; offset: number; npts: number }[] = [];
 
     for (const [lon, segs] of meridians) {
+      if (lon < minLon || lon > maxLon) continue;
       for (const [latLo, latHi] of mergeSegments_(segs)) {
         const lo = Math.max(latLo, minLat, -89.9999);
         const hi = Math.min(latHi, maxLat, 89.9999);
@@ -244,6 +253,7 @@ export class MgrsGridSystem implements GridSystem {
     }
     for (const [lat, segs] of parallels) {
       if (Math.abs(lat) >= 89.99) continue;
+      if (lat < minLat || lat > maxLat) continue;
       for (const [lonLo, lonHi] of mergeSegments_(segs)) {
         const lo = Math.max(lonLo, minLon);
         const hi = Math.min(lonHi, maxLon);
@@ -278,14 +288,16 @@ export class MgrsGridSystem implements GridSystem {
     ctx: RenderContext,
     gzds: Gzd[],
   ): void {
-    type CachedPolyline = TilePolylines['polylines'][number];
+    type Polyline = { coords: [number, number][]; axis: 'e' | 'n'; constUtm: number };
     interface Group {
       zoneKey: string;
       axis: 'e' | 'n';
       constUtm: number;
-      members: CachedPolyline[];
+      members: Polyline[];
     }
     const groups = new Map<string, Group>();
+    const interval = ctx.interval;
+    const density = interiorDensity_(interval, this.densification_);
     for (const gzd of gzds) {
       const stat = this.getGzdStatic_(gzd);
       if (!stat.utmExtent || !stat.tileBounds) continue;
@@ -293,24 +305,41 @@ export class MgrsGridSystem implements GridSystem {
       const bvUtm = computeBandViewportUtm_(gzd, ctx.geoExtent, tx.toProj);
       if (!bvUtm) continue;
 
-      const tEMin = Math.max(stat.tileBounds.eMin, Math.floor(bvUtm[0]! / 100_000));
-      const tEMax = Math.min(stat.tileBounds.eMax, Math.floor(bvUtm[2]! / 100_000));
-      const tNMin = Math.max(stat.tileBounds.nMin, Math.floor(bvUtm[1]! / 100_000));
-      const tNMax = Math.min(stat.tileBounds.nMax, Math.floor(bvUtm[3]! / 100_000));
-      if (tEMin > tEMax || tNMin > tNMax) continue;
+      const utmExt = stat.utmExtent;
+      const eLo = Math.max(utmExt[0], bvUtm[0]!);
+      const eHi = Math.min(utmExt[2], bvUtm[2]!);
+      const nLo = Math.max(utmExt[1], bvUtm[1]!);
+      const nHi = Math.min(utmExt[3], bvUtm[3]!);
+      if (eLo >= eHi || nLo >= nHi) continue;
 
       const zoneKey = gzd.zone === 0 ? `0|${gzd.band}` : `${gzd.zone}`;
-      for (let tE = tEMin; tE <= tEMax; tE++) {
-        for (let tN = tNMin; tN <= tNMax; tN++) {
-          const tile = this.getTileLines_(gzd, tE, tN, ctx.interval);
-          for (const pl of tile.polylines) {
-            const key = `${zoneKey}|${pl.axis}|${pl.constUtm}`;
-            const existing = groups.get(key);
-            if (existing) existing.members.push(pl);
-            else groups.set(key, {
-              zoneKey, axis: pl.axis, constUtm: pl.constUtm, members: [pl],
-            });
-          }
+
+      // Directly enumerate visible lines from the viewport UTM bbox so each
+      // line is generated exactly once, with a sweep that spans only the
+      // visible perpendicular range. At deep zoom we touch ~viewport_size /
+      // interval lines per GZD instead of the full-tile 100_000 / interval.
+      const eStart = Math.ceil(eLo / interval) * interval;
+      const eEnd = Math.floor(eHi / interval) * interval;
+      for (let e = eStart; e <= eEnd; e += interval) {
+        const lines: Polyline[] = [];
+        pushClippedLine_(lines, 'e', e, nLo, nHi, density, gzd, tx.fromProj);
+        for (const pl of lines) {
+          const key = `${zoneKey}|e|${pl.constUtm}`;
+          const existing = groups.get(key);
+          if (existing) existing.members.push(pl);
+          else groups.set(key, { zoneKey, axis: 'e', constUtm: pl.constUtm, members: [pl] });
+        }
+      }
+      const nStart = Math.ceil(nLo / interval) * interval;
+      const nEnd = Math.floor(nHi / interval) * interval;
+      for (let n = nStart; n <= nEnd; n += interval) {
+        const lines: Polyline[] = [];
+        pushClippedLine_(lines, 'n', n, eLo, eHi, density, gzd, tx.fromProj);
+        for (const pl of lines) {
+          const key = `${zoneKey}|n|${pl.constUtm}`;
+          const existing = groups.get(key);
+          if (existing) existing.members.push(pl);
+          else groups.set(key, { zoneKey, axis: 'n', constUtm: pl.constUtm, members: [pl] });
         }
       }
     }
@@ -406,7 +435,7 @@ export class MgrsGridSystem implements GridSystem {
 
     if (texts.length === 0) return;
 
-    scratch.transform(ctx.toView);
+    scratch.transformCached(ctx.toView, this.transformCache_);
 
     for (let k = 0; k < texts.length; k++) {
       const x = scratch.getX(k);
@@ -452,7 +481,9 @@ export class MgrsGridSystem implements GridSystem {
         probeFlat[i * 6 + 4] = cLon + PROBE_LON_STEP;
         probeFlat[i * 6 + 5] = cLat;
       }
-      if (probeFlat.length > 0) toView(probeFlat, probeFlat, 2);
+      if (probeFlat.length > 0) {
+        transformBatchCached(probeFlat, probeFlat, 2, toView, this.transformCache_);
+      }
 
       for (let i = 0; i < gzds.length; i++) {
         const g = gzds[i]!;
@@ -509,26 +540,6 @@ export class MgrsGridSystem implements GridSystem {
     return built;
   }
 
-  /** Fetch (or compute and cache) interior-line polylines for one 100 km UTM tile at the given interval. */
-  private getTileLines_(
-    gzd: Gzd,
-    tileE: number,
-    tileN: number,
-    interval: number,
-  ): TilePolylines {
-    const key = `${gzd.zone}|${gzd.band}|${tileE}|${tileN}|${interval}`;
-    const cached = this.tileLineCache_.get(key);
-    if (cached) return cached;
-    const tx = this.transformsFor_(gzd);
-    const built: TilePolylines = {
-      polylines: computeTileLines_(
-        gzd, tileE, tileN, interval, tx.fromProj,
-        interiorDensity_(interval, this.densification_),
-      ),
-    };
-    this.tileLineCache_.set(key, built);
-    return built;
-  }
 
   /** Transforms for a GZD's projected CRS, UTM by zone, UPS by hemisphere. */
   private transformsFor_(gzd: Gzd): ProjectedTransforms {
@@ -797,36 +808,6 @@ function computeBandViewportUtm_(
   const latN = Math.min(geoExtent[3]!, gzd.lat[1]);
   if (lonE <= lonW || latN <= latS) return null;
   return sampleLatLonRectInUtm_(lonW, lonE, latS, latN, toUtm, 4);
-}
-
-/** Generate the interior grid line polylines for one 100 km UTM tile at the given interval. */
-function computeTileLines_(
-  gzd: Gzd,
-  tileE: number,
-  tileN: number,
-  interval: number,
-  fromUtm: TransformFunction,
-  density: number,
-): TilePolylines['polylines'] {
-  const out: { coords: [number, number][]; axis: 'e' | 'n'; constUtm: number }[] = [];
-  const eMinM = tileE * 100_000;
-  const eMaxM = eMinM + 100_000;
-  const nMinM = tileN * 100_000;
-  const nMaxM = nMinM + 100_000;
-
-  const EPS_BOUND = 1e-9;
-  const startE = Math.ceil(eMinM / interval) * interval;
-  const endE = Math.floor((eMaxM - EPS_BOUND) / interval) * interval;
-  const startN = Math.ceil(nMinM / interval) * interval;
-  const endN = Math.floor((nMaxM - EPS_BOUND) / interval) * interval;
-
-  for (let e = startE; e <= endE; e += interval) {
-    pushClippedLine_(out, 'e', e, nMinM, nMaxM, density, gzd, fromUtm);
-  }
-  for (let n = startN; n <= endN; n += interval) {
-    pushClippedLine_(out, 'n', n, eMinM, eMaxM, density, gzd, fromUtm);
-  }
-  return out;
 }
 
 /** Densify, pole-clamp, antimeridian-unwrap, lon-window-shift, and clip one UTM grid line into `out`. */

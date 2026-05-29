@@ -88,17 +88,14 @@ describe('KriegsmarineGridSystem', () => {
       expect(baFeatures.length).toBeGreaterThan(0);
       expect(baFeatures.length).toBeLessThanOrEqual(4);
 
-      // Shared-edge dedup: total feature count should be meaningfully
-      // smaller than the naive "4 edges per rect + N edges per poly"
-      // bound. This is the whole point of the pass, loose sanity check
-      // that we aren't accidentally disabling it.
-      const naiveEdgeCount = features.length * 2; // crude upper estimate
+      // Shared-edge dedup: each contributor must show up at least once,
+      // and many edges should dedupe into a single feature (so contributor
+      // count is materially larger than feature count).
       const contributorCount = features.reduce(
         (sum, f) => sum + (f.get('gridSquares') as string[]).length,
         0,
       );
-      expect(contributorCount).toBeGreaterThanOrEqual(features.length);
-      expect(contributorCount).toBeLessThanOrEqual(naiveEdgeCount);
+      expect(contributorCount).toBeGreaterThan(features.length);
     });
 
     it('returns empty for an extent with no grid squares', () => {

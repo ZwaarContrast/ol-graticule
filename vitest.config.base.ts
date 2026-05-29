@@ -5,6 +5,9 @@ export const baseConfig = defineConfig({
     globals: true,
     passWithNoTests: true,
     include: ['src/**/*.{test,spec}.ts'],
+    benchmark: {
+      include: ['src/**/*.bench.ts'],
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

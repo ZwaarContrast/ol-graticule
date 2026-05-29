@@ -113,3 +113,21 @@ export function inverse(coord: DhgCoord, shift: DatumShift = activeDatumShift): 
   const [lon, lat] = proj4(code, 'EPSG:4326', [coord.easting, coord.northing]) as [number, number];
   return [lat, lon];
 }
+
+/** Batched inverse: many `(easting, northing)` pairs through one resolved converter. */
+export function inverseBatch(
+  kennziffer: number,
+  enPairs: ReadonlyArray<readonly [number, number]>,
+  shift: DatumShift = activeDatumShift,
+): LatLon[] {
+  const zone = zoneByKennziffer(kennziffer);
+  const code = registerZone(zone, shift);
+  const converter = proj4(code, 'EPSG:4326');
+  const out: LatLon[] = [];
+  for (const [easting, northing] of enPairs) {
+    const inputPoint: [number, number] = [easting, northing];
+    const [lon, lat] = converter.forward(inputPoint);
+    out.push([lat, lon]);
+  }
+  return out;
+}

@@ -2,7 +2,7 @@
  * Forward encoding: WGS 84 `(lat, lon)` to Heeresmeldenetz reference.
  */
 
-import { forward, forwardInZone, inverse } from '../dhg/projection.js';
+import { forward, forwardInZone, inverseBatch } from '../dhg/projection.js';
 import { FALSE_EASTING } from '../dhg/zones.js';
 import type { DatumShift, DhgCoord, LatLon } from '../dhg/types.js';
 import { clampTenth } from './canonical.js';
@@ -148,21 +148,21 @@ export function encodeHmn(
   const cellNwE = swE;
   const cellNwN = swN + cellSizeM;
 
-  const nw = inverse({ ...breakdown.coord, easting: cellNwE, northing: cellNwN }, shift);
-  const ne = inverse({ ...breakdown.coord, easting: cellNwE + cellSizeM, northing: cellNwN }, shift);
-  const sw = inverse({ ...breakdown.coord, easting: cellNwE, northing: cellNwN - cellSizeM }, shift);
-  const se = inverse({ ...breakdown.coord, easting: cellNwE + cellSizeM, northing: cellNwN - cellSizeM }, shift);
-  const lats = [nw[0], ne[0], sw[0], se[0]];
-  const lons = [nw[1], ne[1], sw[1], se[1]];
-  const minLat = Math.min(...lats);
-  const maxLat = Math.max(...lats);
-  const minLon = Math.min(...lons);
-  const maxLon = Math.max(...lons);
-  const center = inverse({
-    ...breakdown.coord,
-    easting: cellNwE + cellSizeM / 2,
-    northing: cellNwN - cellSizeM / 2,
-  }, shift);
+  const [nw, ne, sw, se, center] = inverseBatch(
+    breakdown.coord.kennziffer,
+    [
+      [cellNwE, cellNwN],
+      [cellNwE + cellSizeM, cellNwN],
+      [cellNwE, cellNwN - cellSizeM],
+      [cellNwE + cellSizeM, cellNwN - cellSizeM],
+      [cellNwE + cellSizeM / 2, cellNwN - cellSizeM / 2],
+    ],
+    shift,
+  );
+  const minLat = Math.min(nw[0], ne[0], sw[0], se[0]);
+  const maxLat = Math.max(nw[0], ne[0], sw[0], se[0]);
+  const minLon = Math.min(nw[1], ne[1], sw[1], se[1]);
+  const maxLon = Math.max(nw[1], ne[1], sw[1], se[1]);
 
   const ref: DecodedHmnRef = {
     canonical,

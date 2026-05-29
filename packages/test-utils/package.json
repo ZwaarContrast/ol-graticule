@@ -1,0 +1,24 @@
+{
+  "name": "@zwaarcontrast/test-utils",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Internal test helpers and shared fixtures for the ol-graticule monorepo. Not published.",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./fixtures": "./src/fixtures.ts",
+    "./dms": "./src/dms.ts"
+  },
+  "scripts": {
+    "type-check": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "ol": "^10.0.0"
+  },
+  "devDependencies": {
+    "ol": "^10.0.0",
+    "typescript": "^5.7.2"
+  }
+}

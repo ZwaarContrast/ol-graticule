@@ -59,16 +59,21 @@ describe('DegreeFormatter', () => {
   describe('DDM format', () => {
     const formatter = new DegreeFormatter('ddm');
 
-    it('formats whole degrees', () => {
-      expect(formatter.format(45, 'y')).toBe('45\u00B00\u2032N');
+    it('formats whole degrees with fixed two-decimal minutes', () => {
+      expect(formatter.format(45, 'y')).toBe('45\u00B00.00\u2032N');
     });
 
     it('formats degrees and minutes', () => {
-      expect(formatter.format(5.5, 'x')).toBe('5\u00B030\u2032E');
+      expect(formatter.format(5.5, 'x')).toBe('5\u00B030.00\u2032E');
     });
 
     it('formats with decimal minutes', () => {
-      expect(formatter.format(49.255, 'y')).toBe('49\u00B015.3\u2032N');
+      expect(formatter.format(49.255, 'y')).toBe('49\u00B015.30\u2032N');
+    });
+
+    it('rolls minute=60 over into the next whole degree', () => {
+      const justUnder = 45 + 59.999999 / 60;
+      expect(formatter.format(justUnder, 'y')).toBe('46\u00B000.00\u2032N');
     });
   });
 

@@ -18,11 +18,13 @@ import {
   ParseError,
   ProjectionScratch,
   RenderCache,
+  TransformCache,
   emitFlatLineFeatures,
   densifyCount,
   isOnMajorLine,
   measureTargetResolution,
   normalizeLon,
+  transformBatchCached,
 } from '@zwaarcontrast/ol-graticule';
 
 import {
@@ -106,6 +108,7 @@ export class LuftwaffeGridSystem implements GridSystem {
 
   private readonly ctxCache_ = new RenderCache<RenderContext>();
   private readonly projScratch_ = new ProjectionScratch();
+  private readonly transformCache_ = new TransformCache();
 
   constructor(options?: LuftwaffeGridSystemOptions) {
     this.system_ = options?.system ?? 'gnmv';
@@ -114,7 +117,7 @@ export class LuftwaffeGridSystem implements GridSystem {
     this.maxDepth_ = clampInt(options?.maxDepth ?? 5, 0, 5);
     this.minCellPx_ = options?.minCellPx ?? 40;
     this.minLabelPx_ = options?.minLabelPx ?? 40;
-    this.densificationPoints_ = options?.densificationPoints ?? 50;
+    this.densificationPoints_ = options?.densificationPoints ?? 20;
     this.levels_ = buildLevels(this.system_, this.era_);
   }
 
@@ -210,6 +213,8 @@ export class LuftwaffeGridSystem implements GridSystem {
     const kLonStart = Math.floor(minLon / level.lonSpan);
     const kLonEnd = Math.ceil(maxLon / level.lonSpan);
 
+    const flat: number[] = [];
+    const texts: string[] = [];
     for (let kLat = kLatStart; kLat < kLatEnd; kLat++) {
       const lat = ZZG_BASELINE_LAT + kLat * level.latSpan;
       const cellCenterLat = lat + level.latSpan / 2;
@@ -220,13 +225,19 @@ export class LuftwaffeGridSystem implements GridSystem {
         if (cellCenterLon < minLon || cellCenterLon > maxLon) continue;
         const text = this.cellLabelText_(level, cellCenterLat, normalizeLon(cellCenterLon));
         if (!text) continue;
-        const projected = transform([cellCenterLon, cellCenterLat], 'EPSG:4326', viewProjection);
-        out.push({
-          point: new Point(projected),
-          text,
-          cellSizePx: cellPx,
-        });
+        flat.push(cellCenterLon, cellCenterLat);
+        texts.push(text);
       }
+    }
+    if (texts.length === 0) return;
+    const toView = getTransform('EPSG:4326', viewProjection);
+    transformBatchCached(flat, flat, 2, toView, this.transformCache_);
+    for (let i = 0; i < texts.length; i++) {
+      out.push({
+        point: new Point([flat[i * 2]!, flat[i * 2 + 1]!]),
+        text: texts[i]!,
+        cellSizePx: cellPx,
+      });
     }
   }
 

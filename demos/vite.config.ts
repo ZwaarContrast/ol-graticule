@@ -20,6 +20,8 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     emptyOutDir: true,
+    sourcemap: true,
+    minify: process.env.PROFILE_BUILD === '1' ? false : 'esbuild',
     rollupOptions: {
       input: {
         index: resolve(__dirname, 'index.html'),

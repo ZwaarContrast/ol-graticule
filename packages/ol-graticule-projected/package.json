@@ -45,15 +45,17 @@
     "dev": "tsc --build --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "bench": "vitest bench"
   },
   "peerDependencies": {
+    "@zwaarcontrast/ol-graticule": "^2.0.0",
     "ol": "^10.0.0",
-    "proj4": "^2.9.0",
-    "@zwaarcontrast/ol-graticule": "^2.0.0"
+    "proj4": "^2.9.0"
   },
   "devDependencies": {
     "@zwaarcontrast/ol-graticule": "*",
+    "@zwaarcontrast/test-utils": "*",
     "typescript": "^5.7.2",
     "vitest": "^4.0.17"
   }

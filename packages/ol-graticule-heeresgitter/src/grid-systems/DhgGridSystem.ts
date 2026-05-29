@@ -24,10 +24,12 @@ import {
   ProjectionScratch,
   RenderCache,
   SteppingIntervalStrategy,
+  TransformCache,
   densifyCount,
   emitFlatLineFeatures,
   measureTargetResolution,
   pushAxisGridLineSpecs,
+  transformBatchCached,
   transformExtentSampled,
 } from '@zwaarcontrast/ol-graticule';
 
@@ -103,7 +105,7 @@ export class DhgGridSystem implements GridSystem {
 
   constructor(options: DhgGridSystemOptions = {}) {
     this.zoneBoundary_ = options.zoneBoundary ?? 'tiled';
-    this.densificationPoints_ = options.densificationPoints ?? 60;
+    this.densificationPoints_ = options.densificationPoints ?? 20;
     this.targetScreenPx_ = options.targetScreenPx ?? 80;
     this.labelForm_ = options.labelForm ?? 'long';
     this.maxRenderResolution_ = options.maxRenderResolution ?? 2000;
@@ -141,18 +143,16 @@ export class DhgGridSystem implements GridSystem {
     const labels: GridLabel[] = [];
     const active = this.activeZones_(extent, viewProjection);
     if (detailed) {
-      let yAxisOwner: number | undefined;
-      let westCm = Infinity;
-      for (const k of active) {
-        const cm = zoneByKennziffer(k).cm;
-        if (cm < westCm) {
-          westCm = cm;
-          yAxisOwner = k;
-        }
-      }
-      for (const kennziffer of active) {
+      const zonesWestToEast = [...active].sort(
+        (a, b) => zoneByKennziffer(a).cm - zoneByKennziffer(b).cm,
+      );
+      const ySeenTexts = new Set<string>();
+      for (const kennziffer of zonesWestToEast) {
         for (const l of this.delegateFor_(kennziffer).getLabels(extent, resolution, viewProjection)) {
-          if (l.axis === 'y' && kennziffer !== yAxisOwner) continue;
+          if (l.axis === 'y') {
+            if (ySeenTexts.has(l.text)) continue;
+            ySeenTexts.add(l.text);
+          }
           labels.push(l);
         }
       }
@@ -370,6 +370,7 @@ class DhgZoneRenderer implements GridSystem {
   private readonly ctxCache_ = new RenderCache<RenderContext | null>();
   private readonly eastingLabelCache_ = new BoundedCache<number, string>(1024);
   private readonly northingLabelCache_ = new BoundedCache<number, string>(1024);
+  private readonly transformCache_ = new TransformCache();
 
   constructor(options: DhgZoneRendererOptions) {
     this.crs_ = options.crs;
@@ -404,23 +405,44 @@ class DhgZoneRenderer implements GridSystem {
 
     const startE = FALSE_EASTING + Math.ceil((tMinE - FALSE_EASTING) / interval) * interval;
     const endE = FALSE_EASTING + Math.floor((tMaxE - FALSE_EASTING) / interval) * interval;
-    for (let e = startE; e <= endE; e += interval) {
-      const [vx, vy] = toView([e, tMaxN], undefined, 2);
-      if (vx === undefined || vy === undefined || !Number.isFinite(vx) || !Number.isFinite(vy)) continue;
+    const startN = Math.ceil(tMinN / interval) * interval;
+    const endN = Math.floor(tMaxN / interval) * interval;
+
+    const xValues: number[] = [];
+    for (let e = startE; e <= endE; e += interval) xValues.push(e);
+    const yValues: number[] = [];
+    for (let n = startN; n <= endN; n += interval) yValues.push(n);
+    if (xValues.length === 0 && yValues.length === 0) return labels;
+
+    const flat: number[] = new Array((xValues.length + yValues.length) * 2);
+    for (let i = 0; i < xValues.length; i++) {
+      flat[i * 2] = xValues[i]!;
+      flat[i * 2 + 1] = tMaxN;
+    }
+    const yBase = xValues.length * 2;
+    for (let i = 0; i < yValues.length; i++) {
+      flat[yBase + i * 2] = tMinE;
+      flat[yBase + i * 2 + 1] = yValues[i]!;
+    }
+    transformBatchCached(flat, flat, 2, toView, this.transformCache_);
+
+    for (let i = 0; i < xValues.length; i++) {
+      const vx = flat[i * 2]!;
+      const vy = flat[i * 2 + 1]!;
+      if (!Number.isFinite(vx) || !Number.isFinite(vy)) continue;
       labels.push({
         point: new Point([vx, vy]),
-        text: this.formatX_(e),
+        text: this.formatX_(xValues[i]!),
         axis: 'x',
       });
     }
-    const startN = Math.ceil(tMinN / interval) * interval;
-    const endN = Math.floor(tMaxN / interval) * interval;
-    for (let n = startN; n <= endN; n += interval) {
-      const [vx, vy] = toView([tMinE, n], undefined, 2);
-      if (vx === undefined || vy === undefined || !Number.isFinite(vx) || !Number.isFinite(vy)) continue;
+    for (let i = 0; i < yValues.length; i++) {
+      const vx = flat[yBase + i * 2]!;
+      const vy = flat[yBase + i * 2 + 1]!;
+      if (!Number.isFinite(vx) || !Number.isFinite(vy)) continue;
       labels.push({
         point: new Point([vx, vy]),
-        text: this.formatY_(n),
+        text: this.formatY_(yValues[i]!),
         axis: 'y',
       });
     }

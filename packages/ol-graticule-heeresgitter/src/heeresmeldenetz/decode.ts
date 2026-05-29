@@ -5,7 +5,7 @@
  * the cell is in: either an explicit `Grossquadrat`, or a `near` location.
  */
 
-import { forward, inverse } from '../dhg/projection.js';
+import { forward, inverseBatch } from '../dhg/projection.js';
 import { FALSE_EASTING } from '../dhg/zones.js';
 import type { DatumShift, LatLon } from '../dhg/types.js';
 import { canonicalizeHmnLabel, parseHmnTokens } from './canonical.js';
@@ -78,20 +78,21 @@ export function parseHmn(text: string, options: ParseHmnOptions): DecodedHmnRef 
     cellSize = TENTH_M;
   }
 
-  const dhgFrame = { kennziffer: grossquadrat.kennziffer, easting: 0, northing: 0 };
   const shift = options.datumShift;
 
-  const nw = inverse({ ...dhgFrame, easting: cellNwE, northing: cellNwN }, shift);
-  const ne = inverse({ ...dhgFrame, easting: cellNwE + cellSize, northing: cellNwN }, shift);
-  const sw = inverse({ ...dhgFrame, easting: cellNwE, northing: cellNwN - cellSize }, shift);
-  const se = inverse({ ...dhgFrame, easting: cellNwE + cellSize, northing: cellNwN - cellSize }, shift);
+  const [nw, ne, sw, se, center] = inverseBatch(
+    grossquadrat.kennziffer,
+    [
+      [cellNwE, cellNwN],
+      [cellNwE + cellSize, cellNwN],
+      [cellNwE, cellNwN - cellSize],
+      [cellNwE + cellSize, cellNwN - cellSize],
+      [cellNwE + cellSize / 2, cellNwN - cellSize / 2],
+    ],
+    shift,
+  );
   const lats = [nw[0], ne[0], sw[0], se[0]];
   const lons = [nw[1], ne[1], sw[1], se[1]];
-  const center = inverse({
-    ...dhgFrame,
-    easting: cellNwE + cellSize / 2,
-    northing: cellNwN - cellSize / 2,
-  }, shift);
 
   const klein = col + row;
   const canonical = canonicalizeHmnLabel(klein, meldetrapez, arbeitstrapez, tenths);

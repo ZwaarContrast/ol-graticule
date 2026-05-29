@@ -44,12 +44,14 @@
     "dev": "tsc --build --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "bench": "vitest bench"
   },
   "peerDependencies": {
     "ol": "^10.0.0"
   },
   "devDependencies": {
+    "@zwaarcontrast/test-utils": "*",
     "typescript": "^5.7.2",
     "vitest": "^4.0.17"
   }

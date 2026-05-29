@@ -1,5 +1,6 @@
 /** Reusable interleaved coordinate buffer for one-pass per-frame projection. */
 import type { TransformFunction } from 'ol/proj';
+import { transformBatchCached, type TransformCache } from './transformCache.js';
 
 export class ProjectionScratch {
   private readonly buf_: number[] = [];
@@ -31,6 +32,12 @@ export class ProjectionScratch {
   transform(toView: TransformFunction): void {
     if (this.buf_.length === 0) return;
     toView(this.buf_, this.buf_, 2);
+  }
+
+  /** Project the buffer in place, consulting `cache` for repeat (x, y) inputs. */
+  transformCached(toView: TransformFunction, cache: TransformCache): void {
+    if (this.buf_.length === 0) return;
+    transformBatchCached(this.buf_, this.buf_, 2, toView, cache);
   }
 
   /** Copy a contiguous range out as flat-coord array.

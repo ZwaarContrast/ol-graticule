@@ -11,6 +11,8 @@
       "project": ["**/*.ts"],
       "ignoreDependencies": ["@types/proj4"]
     },
-    "packages/*": {}
+    "packages/*": {
+      "entry": ["src/**/*.bench.ts"]
+    }
   }
 }

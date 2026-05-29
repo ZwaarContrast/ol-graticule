@@ -16,66 +16,36 @@ function roundCoord(v: number): number {
   return Math.round(v * f) / f;
 }
 
-interface VerticalEdge {
-  axis: 'v';
-  lon: number;
-  latLo: number;
-  latHi: number;
+/** Internal raw representation of an edge to minimize allocations. */
+export interface RawEdge {
+  axis: 'v' | 'h' | 'd';
+  val: number; // lon for 'v', lat for 'h'
+  lo: number;
+  hi: number;
   depth: number;
   squareId: string;
+  p1?: LatLon; // Only for diagonals
+  p2?: LatLon;
 }
 
-interface HorizontalEdge {
-  axis: 'h';
-  lat: number;
-  lonLo: number;
-  lonHi: number;
-  depth: number;
-  squareId: string;
-}
-
-interface DiagonalEdge {
-  axis: 'd';
-  p1: LatLon;
-  p2: LatLon;
-  depth: number;
-  squareId: string;
-}
-
-export type ClassifiedEdge = VerticalEdge | HorizontalEdge | DiagonalEdge;
-
-interface MergedVertical {
-  axis: 'v';
-  lon: number;
-  latLo: number;
-  latHi: number;
+interface MergedEdge {
+  axis: 'v' | 'h' | 'd';
+  lon?: number;
+  lat?: number;
+  latLo?: number;
+  latHi?: number;
+  lonLo?: number;
+  lonHi?: number;
+  p1?: LatLon;
+  p2?: LatLon;
   depth: number;
   squareIds: string[];
 }
-
-interface MergedHorizontal {
-  axis: 'h';
-  lat: number;
-  lonLo: number;
-  lonHi: number;
-  depth: number;
-  squareIds: string[];
-}
-
-interface MergedDiagonal {
-  axis: 'd';
-  p1: LatLon;
-  p2: LatLon;
-  depth: number;
-  squareIds: string[];
-}
-
-type MergedEdge = MergedVertical | MergedHorizontal | MergedDiagonal;
 
 /** Classify each of a rect square's 4 edges; antimeridian-crossing rects emit as diagonals. */
-export function rectEdges(sq: RectSquare, depth: number): ClassifiedEdge[] {
+export function rectEdges(sq: RectSquare, depth: number, out: RawEdge[] = []): RawEdge[] {
   if (rectCrossesAntimeridian(sq.nw, sq.se)) {
-    return antimeridianRectEdges(sq, depth);
+    return antimeridianRectEdges(sq, depth, out);
   }
   const nwLat = roundCoord(sq.nw[0]);
   const nwLon = roundCoord(sq.nw[1]);
@@ -85,15 +55,17 @@ export function rectEdges(sq: RectSquare, depth: number): ClassifiedEdge[] {
   const latHi = Math.max(nwLat, seLat);
   const lonLo = Math.min(nwLon, seLon);
   const lonHi = Math.max(nwLon, seLon);
-  return [
-    { axis: 'h', lat: latHi, lonLo, lonHi, depth, squareId: sq.id },
-    { axis: 'h', lat: latLo, lonLo, lonHi, depth, squareId: sq.id },
-    { axis: 'v', lon: lonLo, latLo, latHi, depth, squareId: sq.id },
-    { axis: 'v', lon: lonHi, latLo, latHi, depth, squareId: sq.id },
-  ];
+
+  out.push(
+    { axis: 'h', val: latHi, lo: lonLo, hi: lonHi, depth, squareId: sq.id },
+    { axis: 'h', val: latLo, lo: lonLo, hi: lonHi, depth, squareId: sq.id },
+    { axis: 'v', val: lonLo, lo: latLo, hi: latHi, depth, squareId: sq.id },
+    { axis: 'v', val: lonHi, lo: latLo, hi: latHi, depth, squareId: sq.id },
+  );
+  return out;
 }
 
-function antimeridianRectEdges(sq: RectSquare, depth: number): ClassifiedEdge[] {
+function antimeridianRectEdges(sq: RectSquare, depth: number, out: RawEdge[]): RawEdge[] {
   const { nw, se } = sq;
   const eastLon = se[1] < nw[1] ? se[1] + 360 : se[1];
   const corners: LatLon[] = [
@@ -102,18 +74,16 @@ function antimeridianRectEdges(sq: RectSquare, depth: number): ClassifiedEdge[] 
     [se[0], eastLon],
     [se[0], nw[1]],
   ];
-  const out: ClassifiedEdge[] = [];
   for (let i = 0; i < corners.length; i++) {
     const a = corners[i]!;
     const b = corners[(i + 1) % corners.length]!;
-    out.push({ axis: 'd', p1: a, p2: b, depth, squareId: sq.id });
+    out.push({ axis: 'd', val: 0, lo: 0, hi: 0, p1: a, p2: b, depth, squareId: sq.id });
   }
   return out;
 }
 
 /** Classify each edge of a poly square; axis-aligned edges bucket with rect edges, others stay diagonal. */
-export function polyEdges(sq: PolySquare, depth: number): ClassifiedEdge[] {
-  const out: ClassifiedEdge[] = [];
+export function polyEdges(sq: PolySquare, depth: number, out: RawEdge[] = []): RawEdge[] {
   const n = sq.poly.length;
   for (let i = 0; i < n; i++) {
     const a = sq.poly[i]!;
@@ -125,45 +95,46 @@ export function polyEdges(sq: PolySquare, depth: number): ClassifiedEdge[] {
     if (aLat === bLat && aLon !== bLon) {
       out.push({
         axis: 'h',
-        lat: aLat,
-        lonLo: Math.min(aLon, bLon),
-        lonHi: Math.max(aLon, bLon),
+        val: aLat,
+        lo: Math.min(aLon, bLon),
+        hi: Math.max(aLon, bLon),
         depth,
         squareId: sq.id,
       });
     } else if (aLon === bLon && aLat !== bLat) {
       out.push({
         axis: 'v',
-        lon: aLon,
-        latLo: Math.min(aLat, bLat),
-        latHi: Math.max(aLat, bLat),
+        val: aLon,
+        lo: Math.min(aLat, bLat),
+        hi: Math.max(aLat, bLat),
         depth,
         squareId: sq.id,
       });
     } else {
-      out.push({ axis: 'd', p1: a, p2: b, depth, squareId: sq.id });
+      out.push({ axis: 'd', val: 0, lo: 0, hi: 0, p1: a, p2: b, depth, squareId: sq.id });
     }
   }
   return out;
 }
 
 /** Merge classified edges into deduplicated segments; merged segments carry every contributing `squareIds`. */
-export function mergeEdges(edges: ClassifiedEdge[]): MergedEdge[] {
-  const vertical = new Map<number, VerticalEdge[]>();
-  const horizontal = new Map<number, HorizontalEdge[]>();
-  const diagonals = new Map<string, DiagonalEdge>();
+export function mergeEdges(edges: RawEdge[]): MergedEdge[] {
+  const vertical = new Map<number, RawEdge[]>();
+  const horizontal = new Map<number, RawEdge[]>();
+  const diagonals = new Map<string, RawEdge>();
 
-  for (const e of edges) {
+  for (let i = 0; i < edges.length; i++) {
+    const e = edges[i]!;
     if (e.axis === 'v') {
-      const list = vertical.get(e.lon);
+      const list = vertical.get(e.val);
       if (list) list.push(e);
-      else vertical.set(e.lon, [e]);
+      else vertical.set(e.val, [e]);
     } else if (e.axis === 'h') {
-      const list = horizontal.get(e.lat);
+      const list = horizontal.get(e.val);
       if (list) list.push(e);
-      else horizontal.set(e.lat, [e]);
+      else horizontal.set(e.val, [e]);
     } else {
-      const key = diagonalKey(e.p1, e.p2);
+      const key = diagonalKey(e.p1!, e.p2!);
       if (!diagonals.has(key)) diagonals.set(key, e);
     }
   }
@@ -171,7 +142,7 @@ export function mergeEdges(edges: ClassifiedEdge[]): MergedEdge[] {
   const out: MergedEdge[] = [];
 
   for (const [lon, bucket] of vertical) {
-    for (const merged of mergeIntervals(bucket, 'latLo', 'latHi')) {
+    for (const merged of mergeIntervals(bucket)) {
       out.push({
         axis: 'v',
         lon,
@@ -184,7 +155,7 @@ export function mergeEdges(edges: ClassifiedEdge[]): MergedEdge[] {
   }
 
   for (const [lat, bucket] of horizontal) {
-    for (const merged of mergeIntervals(bucket, 'lonLo', 'lonHi')) {
+    for (const merged of mergeIntervals(bucket)) {
       out.push({
         axis: 'h',
         lat,
@@ -199,8 +170,8 @@ export function mergeEdges(edges: ClassifiedEdge[]): MergedEdge[] {
   for (const e of diagonals.values()) {
     out.push({
       axis: 'd',
-      p1: e.p1,
-      p2: e.p2,
+      p1: e.p1!,
+      p2: e.p2!,
       depth: e.depth,
       squareIds: [e.squareId],
     });
@@ -217,38 +188,30 @@ interface Interval {
 }
 
 /** Sort + sweep interval merge; overlapping/touching edges union to one interval with max depth. */
-function mergeIntervals<
-  E extends { depth: number; squareId: string },
-  LoKey extends keyof E,
-  HiKey extends keyof E,
->(edges: E[], loKey: LoKey, hiKey: HiKey): Interval[] {
+function mergeIntervals(edges: RawEdge[]): Interval[] {
   if (edges.length === 0) return [];
-  const sorted = edges.slice().sort((a, b) => {
-    const aLo = a[loKey] as unknown as number;
-    const bLo = b[loKey] as unknown as number;
-    return aLo - bLo;
-  });
+  if (edges.length > 1) {
+    edges.sort((a, b) => a.lo - b.lo);
+  }
 
   const result: Interval[] = [];
-  const first = sorted[0]!;
+  const first = edges[0]!;
   let cur: Interval = {
-    lo: first[loKey] as unknown as number,
-    hi: first[hiKey] as unknown as number,
+    lo: first.lo,
+    hi: first.hi,
     depth: first.depth,
     squareIds: [first.squareId],
   };
 
-  for (let i = 1; i < sorted.length; i++) {
-    const e = sorted[i]!;
-    const eLo = e[loKey] as unknown as number;
-    const eHi = e[hiKey] as unknown as number;
-    if (eLo <= cur.hi) {
-      if (eHi > cur.hi) cur.hi = eHi;
+  for (let i = 1; i < edges.length; i++) {
+    const e = edges[i]!;
+    if (e.lo <= cur.hi + 1e-9) { // Using epsilon for touching edges
+      if (e.hi > cur.hi) cur.hi = e.hi;
       if (e.depth > cur.depth) cur.depth = e.depth;
       cur.squareIds.push(e.squareId);
     } else {
       result.push(cur);
-      cur = { lo: eLo, hi: eHi, depth: e.depth, squareIds: [e.squareId] };
+      cur = { lo: e.lo, hi: e.hi, depth: e.depth, squareIds: [e.squareId] };
     }
   }
   result.push(cur);

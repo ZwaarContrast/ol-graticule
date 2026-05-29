@@ -349,8 +349,22 @@ export interface ParseResult {
   system: LuftwaffeSystem;
 }
 
-/** Parse either system, preferring a non-throwing JMN match. JMN is post-1943 only. */
+const ZZG_DISPATCH_PATTERN = /^(\d{2,3})(SUEDOST|SUEDWEST|SUDOST|SUDWEST|SOST|SWEST|OST|WEST|SO|SW|O|W)(.*)$/;
+
+/** Parse either system. Routes on the char after the ZZG suffix: N/S → JMN, digit → GNMV. */
 export function parseRef(text: string, era: LuftwaffeEra = 'post-1943'): ParseResult {
+  const normalized = normalizeInput(text);
+  const dispatch = normalized.match(ZZG_DISPATCH_PATTERN);
+  if (dispatch) {
+    const tail = dispatch[3] ?? '';
+    const first = tail.charAt(0);
+    if (first === '' || first === 'N' || first === 'S') {
+      return { decoded: parseJmnRef(text), system: 'jmn' };
+    }
+    if (first >= '0' && first <= '9') {
+      return { decoded: parseGnmvRef(text, era), system: 'gnmv' };
+    }
+  }
   let jmnError: ParseError | undefined;
   try {
     return { decoded: parseJmnRef(text), system: 'jmn' };

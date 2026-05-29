@@ -162,3 +162,26 @@ a:hover { color: var(--accent-bright); }
   box-shadow: 0 0 0 1px var(--ink), 0 4px 12px rgba(0, 0, 0, 0.5);
   pointer-events: none;
 }
+
+.controls {
+  margin-top: 8px;
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.controls button {
+  font: 600 11px ui-monospace, "SF Mono", monospace;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: rgba(15, 23, 42, 0.55);
+  color: var(--paper);
+  cursor: pointer;
+}
+
+.controls button.active {
+  background: var(--accent);
+  border-color: var(--accent);
+}

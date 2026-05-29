@@ -11,6 +11,7 @@
 import type { RectSquare, PolySquare, Square, SquareGroup, PolygonalDef } from './types.js';
 import { largeRegularSquares, largePartialSquares, irregularSquares, polygonalSquares, twoByFiveSquares, partialSquares } from './data.js';
 import { shift, fromSquareDef } from './subdivision.js';
+import { squareExtent } from './geo.js';
 
 interface GroupEntry {
   group: SquareGroup;
@@ -20,6 +21,16 @@ interface GroupEntry {
 let groupIndex: Map<string, GroupEntry[]> | undefined;
 let polyIndex: Map<string, PolygonalDef> | undefined;
 let cachedLargeSquares: Square[] | undefined;
+
+const LAT_BAND_DEG = 5;
+const LAT_BAND_COUNT = Math.ceil(180 / LAT_BAND_DEG);
+let largeSquaresByLatBand: Square[][] | undefined;
+
+function latBandIndex(lat: number): number {
+  const clamped = Math.max(-90, Math.min(90, lat));
+  const idx = Math.floor((clamped + 90) / LAT_BAND_DEG);
+  return idx >= LAT_BAND_COUNT ? LAT_BAND_COUNT - 1 : idx;
+}
 
 function getGroupIndex(): Map<string, GroupEntry[]> {
   if (groupIndex) return groupIndex;
@@ -165,4 +176,50 @@ export function getAllLargeSquares(): Square[] {
 
   cachedLargeSquares = result;
   return result;
+}
+
+function getLargeSquaresByLatBand(): Square[][] {
+  if (largeSquaresByLatBand) return largeSquaresByLatBand;
+  const bands: Square[][] = Array.from({ length: LAT_BAND_COUNT }, () => []);
+  for (const sq of getAllLargeSquares()) {
+    const [, minLat, , maxLat] = squareExtent(sq);
+    const lo = latBandIndex(minLat);
+    const hi = latBandIndex(maxLat);
+    for (let i = lo; i <= hi; i++) {
+      const band = bands[i];
+      if (band) band.push(sq);
+    }
+  }
+  largeSquaresByLatBand = bands;
+  return bands;
+}
+
+/** Large squares whose bbox touches the 5° latitude band containing `lat`. */
+export function getLargeSquaresNearLat(lat: number): Square[] {
+  if (!Number.isFinite(lat)) return getAllLargeSquares();
+  return getLargeSquaresByLatBand()[latBandIndex(lat)] ?? [];
+}
+
+/** Large squares whose bbox touches any 5° latitude band between `minLat` and `maxLat`. */
+export function getLargeSquaresInLatRange(minLat: number, maxLat: number): Square[] {
+  if (!Number.isFinite(minLat) || !Number.isFinite(maxLat)) return getAllLargeSquares();
+
+  const lo = latBandIndex(minLat);
+  const hi = latBandIndex(maxLat);
+  if (lo === hi) return getLargeSquaresNearLat(minLat);
+
+  const bands = getLargeSquaresByLatBand();
+  const seen = new Set<string>();
+  const out: Square[] = [];
+  for (let i = lo; i <= hi; i++) {
+    const band = bands[i];
+    if (!band) continue;
+    for (const sq of band) {
+      if (!seen.has(sq.id)) {
+        seen.add(sq.id);
+        out.push(sq);
+      }
+    }
+  }
+  return out;
 }

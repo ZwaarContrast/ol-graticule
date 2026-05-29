@@ -121,7 +121,7 @@ export class GeographicHmnGridSystem implements GridSystem {
 
   constructor(options: GeographicHmnGridSystemOptions = {}) {
     this.maxDepth_ = options.maxDepth ?? 4;
-    this.densificationPoints_ = options.densificationPoints ?? 60;
+    this.densificationPoints_ = options.densificationPoints ?? 20;
     this.targetScreenPx_ = options.targetScreenPx ?? 80;
     this.maxRenderResolution_ = options.maxRenderResolution ?? 150;
   }

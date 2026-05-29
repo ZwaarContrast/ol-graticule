@@ -264,10 +264,11 @@ export class UniversalGraticule extends VectorLayer {
           : [extent[0] - offset, extent[1], extent[2] - offset, extent[3]];
       const items = fetch(shifted);
       for (let i = 0; i < items.length; i++) {
-        const item = items[i]!;
-        const coords = item.point.getCoordinates();
-        const c0 = coords[0]!;
-        const c1 = coords[1]!;
+        const item = items[i];
+        if (!item) continue;
+        const coords = item.point.getFlatCoordinates();
+        const c0 = coords[0] ?? 0;
+        const c1 = coords[1] ?? 0;
         if (item.axis === 'x') {
           pushDrawEntry(xBuf, xCount++, item, c0 + offset, offset, c0, c1);
         } else {
@@ -295,7 +296,7 @@ export class UniversalGraticule extends VectorLayer {
       const items = fetch(shifted);
       for (let i = 0; i < items.length; i++) {
         const item = items[i]!;
-        const coords = item.point.getCoordinates();
+        const coords = item.point.getFlatCoordinates();
         pushCellEntry(buf, count++, item, offset, coords[0]!, coords[1]!);
       }
     }

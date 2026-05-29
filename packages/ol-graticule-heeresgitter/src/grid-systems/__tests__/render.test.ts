@@ -84,10 +84,10 @@ describe('DhgGridSystem render smoke', () => {
     expect(labels).toHaveLength(0);
   });
 
-  it('emits Y-axis labels only from the zone at the viewport\'s left edge', () => {
+  it('emits exactly one Y-axis label per northing line across multiple zones', () => {
     // Viewport spans lon ~20°E to ~32°E at lat ~47°N..50°N — covers zones 4, 5, 6
-    // (CMs 21, 27, 33). Without the filter, every active zone emitted its own
-    // copy of every northing label, stacked at the viewport's left margin.
+    // (CMs 21, 27, 33). Y labels are deduped by view-CRS pixel row so every
+    // northing line gets exactly one label, not one per visible zone.
     const wideExtent: [number, number, number, number] = [
       2_226_390, 5_944_000, 3_562_224, 6_447_000,
     ];
@@ -102,6 +102,25 @@ describe('DhgGridSystem render smoke', () => {
       counts.set(l.text, (counts.get(l.text) ?? 0) + 1);
     }
     expect(Math.max(...counts.values())).toBe(1);
+  });
+
+  it('Y labels prefer the westernmost zone so they sit at the viewport left edge', () => {
+    // Same multi-zone viewport: 20°E..32°E covers zones 4 (CM 21°E), 5 (CM 27°E), 6 (CM 33°E).
+    // The leftmost zone (4) has its strip-left edge near 18°E ≈ x=2_003_751 in EPSG:3857.
+    // Zone 5's strip-left edge is at 24°E ≈ x=2_671_667, well inside the viewport.
+    // The deduped Y labels should land near zone 4's left edge, not zone 5's.
+    const wideExtent: [number, number, number, number] = [
+      2_226_390, 5_944_000, 3_562_224, 6_447_000,
+    ];
+    const grid = new DhgGridSystem();
+    const yLabels = grid
+      .getLabels(wideExtent, ZOOM12_RES, 'EPSG:3857')
+      .filter((l) => l.axis === 'y');
+    const xs = yLabels.map((l) => l.point.getCoordinates()[0]!);
+    // Tightest test: the maximum x across all y-labels is closer to zone 4's
+    // strip-left (~2_003_751) than to zone 5's (~2_671_667).
+    const maxX = Math.max(...xs);
+    expect(maxX).toBeLessThan(2_500_000);
   });
 
   it('overlap mode draws features from at least one zone', () => {

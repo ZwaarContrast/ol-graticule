@@ -25,10 +25,12 @@ import {
   PolygonClippedGridSystem,
   ProjectionScratch,
   RenderCache,
+  TransformCache,
   densifyCount,
   emitFlatLineFeatures,
   measureTargetResolution,
   pushAxisGridLineSpecs,
+  transformBatchCached,
   transformExtentSampled,
 } from '@zwaarcontrast/ol-graticule';
 
@@ -90,7 +92,7 @@ export class HmnGridSystem implements GridSystem {
 
   constructor(options: HmnGridSystemOptions = {}) {
     this.maxDepth_ = options.maxDepth ?? 4;
-    this.densificationPoints_ = options.densificationPoints ?? 60;
+    this.densificationPoints_ = options.densificationPoints ?? 20;
     this.targetScreenPx_ = options.targetScreenPx ?? 80;
     this.zoneBoundary_ = options.zoneBoundary ?? 'tiled';
     this.maxRenderResolution_ = options.maxRenderResolution ?? 150;
@@ -258,6 +260,7 @@ class HmnZoneRenderer implements GridSystem {
   private readonly densificationPoints_: number;
   private readonly projScratch_ = new ProjectionScratch();
   private readonly ctxCache_ = new RenderCache<RenderContext | null>();
+  private readonly transformCache_ = new TransformCache();
 
   constructor(options: HmnZoneRendererOptions) {
     this.crs_ = options.crs;
@@ -307,22 +310,45 @@ class HmnZoneRenderer implements GridSystem {
     const nMin = Math.floor(tMinN / interval) * interval + halfInterval;
     const nMax = Math.ceil(tMaxN / interval) * interval - halfInterval;
 
+    const texts: string[] = [];
+    const flat: number[] = [];
     for (let e = eMin; e <= eMax; e += interval) {
       for (let n = nMin; n <= nMax; n += interval) {
         const text = hmnHierarchicalLabel(e, n, interval);
         if (!text) continue;
-        const [vx, vy] = toView([e, n], undefined, 2);
-        if (vx === undefined || vy === undefined) continue;
-        if (!Number.isFinite(vx) || !Number.isFinite(vy)) continue;
-        const cellRing = projectCellRing_(toView, e, n, halfInterval);
-        if (!cellRing) continue;
-        labels.push({
-          point: new Point([vx, vy]),
-          text,
-          cellSizePx,
-          cellRing,
-        });
+        texts.push(text);
+        flat.push(
+          e, n,
+          e - halfInterval, n - halfInterval,
+          e + halfInterval, n - halfInterval,
+          e + halfInterval, n + halfInterval,
+          e - halfInterval, n + halfInterval,
+        );
       }
+    }
+    if (texts.length === 0) return labels;
+    transformBatchCached(flat, flat, 2, toView, this.transformCache_);
+
+    for (let i = 0; i < texts.length; i++) {
+      const base = i * 10;
+      const vx = flat[base]!;
+      const vy = flat[base + 1]!;
+      if (!Number.isFinite(vx) || !Number.isFinite(vy)) continue;
+      const ring: [number, number][] = [];
+      let ringOk = true;
+      for (let k = 1; k <= 4; k++) {
+        const rx = flat[base + k * 2]!;
+        const ry = flat[base + k * 2 + 1]!;
+        if (!Number.isFinite(rx) || !Number.isFinite(ry)) { ringOk = false; break; }
+        ring.push([rx, ry]);
+      }
+      if (!ringOk) continue;
+      labels.push({
+        point: new Point([vx, vy]),
+        text: texts[i]!,
+        cellSizePx,
+        cellRing: ring,
+      });
     }
     return labels;
   }
@@ -378,27 +404,5 @@ class HmnZoneRenderer implements GridSystem {
     pushAxisGridLineSpecs(specs, 'y', startN, endN, interval, tMinE, tMaxE, ctx.npts, type, skipN);
     emitFlatLineFeatures(out, this.projScratch_, specs, ctx.toView);
   }
-}
-
-function projectCellRing_(
-  toView: TransformFunction,
-  cx: number,
-  cy: number,
-  half: number,
-): [number, number][] | null {
-  const corners: Array<[number, number]> = [
-    [cx - half, cy - half],
-    [cx + half, cy - half],
-    [cx + half, cy + half],
-    [cx - half, cy + half],
-  ];
-  const out: [number, number][] = [];
-  for (const c of corners) {
-    const [x, y] = toView(c, undefined, 2);
-    if (x === undefined || y === undefined) return null;
-    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
-    out.push([x, y]);
-  }
-  return out;
 }
 

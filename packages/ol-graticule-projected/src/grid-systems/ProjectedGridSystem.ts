@@ -24,12 +24,14 @@ import {
   ProjectionScratch,
   ParseError,
   RenderCache,
+  TransformCache,
   emitFlatLineFeatures,
   isOnMajorLine,
   densifyCount,
   measureTargetResolution,
   parsePairViaFormatter,
   pushAxisGridLineSpecs,
+  transformBatchCached,
   transformExtentSampled,
 } from '@zwaarcontrast/ol-graticule';
 import { registerCRS } from '../registerCRS.js';
@@ -108,10 +110,11 @@ export class ProjectedGridSystem implements GridSystem {
   /** Memoized render context for the last `(extent, resolution, projection)`. */
   private readonly ctxCache_ = new RenderCache<RenderContext | null>();
   private readonly projScratch_ = new ProjectionScratch();
+  private readonly transformCache_ = new TransformCache();
 
   constructor(options: ProjectedGridSystemOptions) {
     this.crs_ = options.crs;
-    this.densificationPoints_ = options.densificationPoints ?? 100;
+    this.densificationPoints_ = options.densificationPoints ?? 20;
     this.extent_ = options.extent;
     this.emitBoundary_ = options.emitBoundary ?? (options.extent !== undefined);
 
@@ -178,28 +181,43 @@ export class ProjectedGridSystem implements GridSystem {
     const [tMinX, tMinY, tMaxX, tMaxY] = ctx.targetExtent;
     const { interval, transformFn } = ctx;
 
-    // X-axis labels (vertical grid lines) at the top edge
     const startX = Math.ceil(tMinX / interval) * interval;
     const endX = Math.floor(tMaxX / interval) * interval;
-    for (let x = startX; x <= endX; x += interval) {
+    const startY = Math.ceil(tMinY / interval) * interval;
+    const endY = Math.floor(tMaxY / interval) * interval;
+
+    const xVals: number[] = [];
+    for (let x = startX; x <= endX; x += interval) xVals.push(x);
+    const yVals: number[] = [];
+    for (let y = startY; y <= endY; y += interval) yVals.push(y);
+    if (xVals.length === 0 && yVals.length === 0) return labels;
+
+    const flat: number[] = new Array((xVals.length + yVals.length) * 2);
+    for (let i = 0; i < xVals.length; i++) {
+      flat[i * 2] = xVals[i]!;
+      flat[i * 2 + 1] = tMaxY;
+    }
+    const yBase = xVals.length * 2;
+    for (let i = 0; i < yVals.length; i++) {
+      flat[yBase + i * 2] = tMinX;
+      flat[yBase + i * 2 + 1] = yVals[i]!;
+    }
+    transformBatchCached(flat, flat, 2, transformFn, this.transformCache_);
+
+    for (let i = 0; i < xVals.length; i++) {
       labels.push({
-        point: new Point(transformFn([x, tMaxY], undefined, 2)),
-        text: this.formatter_.format(x, 'x'),
+        point: new Point([flat[i * 2]!, flat[i * 2 + 1]!]),
+        text: this.formatter_.format(xVals[i]!, 'x'),
         axis: 'x',
       });
     }
-
-    // Y-axis labels (horizontal grid lines) at the left edge
-    const startY = Math.ceil(tMinY / interval) * interval;
-    const endY = Math.floor(tMaxY / interval) * interval;
-    for (let y = startY; y <= endY; y += interval) {
+    for (let i = 0; i < yVals.length; i++) {
       labels.push({
-        point: new Point(transformFn([tMinX, y], undefined, 2)),
-        text: this.formatter_.format(y, 'y'),
+        point: new Point([flat[yBase + i * 2]!, flat[yBase + i * 2 + 1]!]),
+        text: this.formatter_.format(yVals[i]!, 'y'),
         axis: 'y',
       });
     }
-
     return labels;
   }
 
@@ -222,24 +240,30 @@ export class ProjectedGridSystem implements GridSystem {
     const nCellsX = Math.ceil((tMaxX - startX) / interval);
     const nCellsY = Math.ceil((tMaxY - startY) / interval);
 
+    const texts: string[] = [];
+    const flat: number[] = [];
     for (let ix = 0; ix < nCellsX; ix++) {
       const x = startX + ix * interval;
       for (let iy = 0; iy < nCellsY; iy++) {
         const y = startY + iy * interval;
         const midX = x + interval / 2;
         const midY = y + interval / 2;
-
         const text = this.formatter_.formatCellLabel(midX, midY);
         if (!text) continue;
-
-        labels.push({
-          point: new Point(transformFn([midX, midY], undefined, 2)),
-          text,
-          cellSizePx,
-        });
+        texts.push(text);
+        flat.push(midX, midY);
       }
     }
+    if (texts.length === 0) return labels;
 
+    transformBatchCached(flat, flat, 2, transformFn, this.transformCache_);
+    for (let i = 0; i < texts.length; i++) {
+      labels.push({
+        point: new Point([flat[i * 2]!, flat[i * 2 + 1]!]),
+        text: texts[i]!,
+        cellSizePx,
+      });
+    }
     return labels;
   }
 

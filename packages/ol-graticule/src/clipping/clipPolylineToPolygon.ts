@@ -1,4 +1,3 @@
-import { pointInRing, pointInRings } from './pointInRing.js';
 import { PolygonEdgeIndex, createEdgeBuffer, type EdgeBuffer } from './PolygonEdgeIndex.js';
 
 const T_EPSILON = 1e-9;
@@ -32,15 +31,48 @@ export function clipPolylineToPolygon(
 ): [number, number][][] {
   const n = polyline.length;
   if (n < 2) return [];
-  const ringList = normaliseRings(rings);
 
-  let plMinX = Infinity, plMinY = Infinity, plMaxX = -Infinity, plMaxY = -Infinity;
+  const flat = new Array<number>(n * 2);
   for (let i = 0; i < n; i++) {
     const p = polyline[i]!;
-    if (p[0] < plMinX) plMinX = p[0];
-    if (p[0] > plMaxX) plMaxX = p[0];
-    if (p[1] < plMinY) plMinY = p[1];
-    if (p[1] > plMaxY) plMaxY = p[1];
+    flat[i * 2] = p[0];
+    flat[i * 2 + 1] = p[1];
+  }
+
+  const flatPieces = clipPolylineFlat(flat, 0, flat.length, 2, rings, index, scratch);
+  const tuplePieces: [number, number][][] = [];
+  for (const piece of flatPieces) {
+    const ring: [number, number][] = [];
+    for (let i = 0; i < piece.length; i += 2) ring.push([piece[i]!, piece[i + 1]!]);
+    tuplePieces.push(ring);
+  }
+  return tuplePieces;
+}
+
+/**
+ * Clip a flat-coordinate polyline against one or more rings.
+ * Returns an array of flat-coordinate sub-polylines (all XY).
+ */
+export function clipPolylineFlat(
+  flatCoordinates: ReadonlyArray<number>,
+  offset: number,
+  end: number,
+  stride: number,
+  rings: ReadonlyArray<readonly [number, number]>
+    | ReadonlyArray<ReadonlyArray<readonly [number, number]>>,
+  index: PolygonEdgeIndex,
+  scratch?: ClipScratch,
+): number[][] {
+  const count = (end - offset) / stride;
+  if (count < 2) return [];
+
+  let plMinX = Infinity, plMinY = Infinity, plMaxX = -Infinity, plMaxY = -Infinity;
+  for (let i = offset; i < end; i += stride) {
+    const x = flatCoordinates[i]!, y = flatCoordinates[i + 1]!;
+    if (x < plMinX) plMinX = x;
+    if (x > plMaxX) plMaxX = x;
+    if (y < plMinY) plMinY = y;
+    if (y > plMaxY) plMaxY = y;
   }
   const [rMinX, rMinY, rMaxX, rMaxY] = index.ringExtent;
   if (plMaxX < rMinX || plMinX > rMaxX || plMaxY < rMinY || plMinY > rMaxY) {
@@ -50,30 +82,26 @@ export function clipPolylineToPolygon(
   const scr = scratch ?? createClipScratch();
   const inside = scr.insideFlags;
   inside.length = 0;
-  for (let i = 0; i < n; i++) {
-    const p = polyline[i]!;
-    inside.push(
-      ringList.length === 1
-        ? pointInRing(p[0], p[1], ringList[0]!)
-        : pointInRings(p[0], p[1], ringList),
-    );
+  for (let i = offset; i < end; i += stride) {
+    const x = flatCoordinates[i]!, y = flatCoordinates[i + 1]!;
+    inside.push(index.pointInRing(x, y));
   }
 
-  const output: [number, number][][] = [];
-  let current: [number, number][] | null = null;
+  const output: number[][] = [];
+  let current: number[] | null = null;
   const edgeCandidates = scr.edgeCandidates;
   const ts = scr.intersectionTs;
   const eb = scr.edgeBuf;
 
-  for (let i = 0; i < n - 1; i++) {
-    const p0 = polyline[i]!;
-    const p1 = polyline[i + 1]!;
-    const p0x = p0[0], p0y = p0[1];
-    const p1x = p1[0], p1y = p1[1];
+  for (let i = 0; i < count - 1; i++) {
+    const o0 = offset + i * stride;
+    const o1 = o0 + stride;
+    const p0x = flatCoordinates[o0]!, p0y = flatCoordinates[o0 + 1]!;
+    const p1x = flatCoordinates[o1]!, p1y = flatCoordinates[o1 + 1]!;
     let state = inside[i]!;
 
     if (state && current === null) {
-      current = [[p0x, p0y]];
+      current = [p0x, p0y];
     }
 
     const segMinX = p0x < p1x ? p0x : p1x;
@@ -98,36 +126,23 @@ export function clipPolylineToPolygon(
       const ix = p0x + t * (p1x - p0x);
       const iy = p0y + t * (p1y - p0y);
       if (state) {
-        current!.push([ix, iy]);
-        if (current!.length >= 2) output.push(current!);
+        current!.push(ix, iy);
+        if (current!.length >= 4) output.push(current!);
         current = null;
       } else {
-        current = [[ix, iy]];
+        current = [ix, iy];
       }
       state = !state;
     }
 
     if (state) {
-      if (current === null) current = [[p0x, p0y]];
-      current.push([p1x, p1y]);
+      if (current === null) current = [p0x, p0y];
+      current.push(p1x, p1y);
     }
   }
 
-  if (current !== null && current.length >= 2) output.push(current);
+  if (current !== null && current.length >= 4) output.push(current);
   return output;
-}
-
-type Ring = ReadonlyArray<readonly [number, number]>;
-
-function normaliseRings(
-  input: Ring | ReadonlyArray<Ring>,
-): ReadonlyArray<Ring> {
-  if (input.length === 0) return [] as unknown as ReadonlyArray<Ring>;
-  const first = input[0]!;
-  if (Array.isArray(first) && first.length === 2 && typeof first[0] === 'number') {
-    return [input as Ring];
-  }
-  return input as ReadonlyArray<Ring>;
 }
 
 function segmentSegmentTU_(

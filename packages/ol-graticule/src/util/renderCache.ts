@@ -24,11 +24,11 @@ export class RenderCache<T> {
     if (
       this.has_ &&
       this.resolution_ === resolution &&
-      this.x0_ === extent[0] &&
-      this.y0_ === extent[1] &&
-      this.x1_ === extent[2] &&
-      this.y1_ === extent[3] &&
-      this.projKey_ === projKey
+      this.projKey_ === projKey &&
+      Math.abs(this.x0_ - extent[0]) < resolution &&
+      Math.abs(this.y0_ - extent[1]) < resolution &&
+      Math.abs(this.x1_ - extent[2]) < resolution &&
+      Math.abs(this.y1_ - extent[3]) < resolution
     ) {
       return this.value_;
     }

@@ -2,13 +2,11 @@ import 'ol/ol.css';
 import Map from 'ol/Map';
 import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
-import Overlay from 'ol/Overlay';
 import OSM from 'ol/source/OSM';
 import { fromLonLat, transform } from 'ol/proj';
 import {
   UniversalGraticule,
   CursorPositionControl,
-  ParseError,
   createDefaultCellLabelHandler,
 } from '@zwaarcontrast/ol-graticule';
 import {
@@ -17,7 +15,7 @@ import {
 } from '@zwaarcontrast/ol-graticule-luftwaffe-planquadrat';
 import type { LuftwaffeSystem } from '@zwaarcontrast/ol-graticule-luftwaffe-planquadrat';
 import { gridLine, cursorStyle } from '../shared';
-import { tryNominatimFallback } from '../nominatim';
+import { createCoordinateInput } from '../coordinateInput';
 
 const snapCellLabelHandler = createDefaultCellLabelHandler({
   fontWeight: 700,
@@ -91,81 +89,17 @@ interface InputUi {
 
 function createInputUi(): InputUi {
   if (!badge) return { setPlaceholder() {} };
-
-  const wrap = document.createElement('div');
-  wrap.className = 'coord-input';
-  const row = document.createElement('div');
-  row.className = 'coord-input__row';
-  const field = document.createElement('input');
-  field.type = 'text';
-  field.spellcheck = false;
-  field.autocomplete = 'off';
-  field.autocapitalize = 'off';
-  field.placeholder = '15 Ost 33 3 9 7 c';
-  field.className = 'coord-input__field';
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.textContent = 'Go';
-  button.className = 'coord-input__button';
-  row.append(field, button);
-  const status = document.createElement('p');
-  status.className = 'coord-input__status';
-  status.setAttribute('aria-live', 'polite');
-  const defaultHint = 'Try "15 Ost 33 3 9 7 c" (Reichstag, GNMV) or "05 Ost S NO 3 2 a" (Köln, JMN).';
-  status.textContent = defaultHint;
-  wrap.append(row, status);
-  badge.append(wrap);
-
-  const markerEl = document.createElement('div');
-  markerEl.className = 'coord-input__marker';
-  const overlay = new Overlay({ element: markerEl, positioning: 'center-center', stopEvent: false });
-  map.addOverlay(overlay);
-
-  function setStatus(text: string, isError: boolean): void {
-    status.textContent = text;
-    status.classList.toggle('coord-input__status--error', isError);
-  }
-
-  async function go(): Promise<void> {
-    const text = field.value.trim();
-    if (text.length === 0) return;
-    const projection = map.getView().getProjection();
-    let parserReason: string | undefined;
-    try {
+  const handle = createCoordinateInput({
+    map,
+    host: badge,
+    placeholder: '15 Ost 33 3 9 7 c',
+    hint: 'Try "15 Ost 33 3 9 7 c" (Reichstag, GNMV) or "05 Ost S NO 3 2 a" (Köln, JMN).',
+    parse: (text, projection) => {
       const result = parseRef(text);
-      if (result.system !== activeSystem) {
-        setActiveSystem(result.system);
-      }
+      if (result.system !== activeSystem) setActiveSystem(result.system);
       const [lat, lon] = result.decoded.center;
-      const coord = transform([lon, lat], 'EPSG:4326', projection);
-      overlay.setPosition(coord);
-      map.getView().animate({ center: coord, duration: 400 });
-      setStatus(defaultHint, false);
-      return;
-    } catch (err) {
-      parserReason = err instanceof ParseError ? err.reason
-        : err instanceof Error ? err.message
-        : 'parse failed';
-    }
-    // Fall back to OSM Nominatim for place-name lookups.
-    await tryNominatimFallback(text, parserReason ?? 'parse failed', (hit) => {
-      const coord = transform([hit.lon, hit.lat], 'EPSG:4326', projection);
-      overlay.setPosition(coord);
-      map.getView().animate({ center: coord, duration: 400 });
-    }, setStatus);
-  }
-
-  button.addEventListener('click', () => { void go(); });
-  field.addEventListener('keydown', (event) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      void go();
-    }
-  });
-
-  return {
-    setPlaceholder(text: string): void {
-      field.placeholder = text;
+      return transform([lon, lat], 'EPSG:4326', projection);
     },
-  };
+  });
+  return { setPlaceholder: (text) => handle?.setPlaceholder(text) };
 }

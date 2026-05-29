@@ -18,6 +18,42 @@ plus the period-correct British War Office (Dunnose) variant.
 
 **Live demo:** <https://zwaarcontrast.nl/ol-graticule/ol-graticule-modified-british-system/>
 
+## Install
+
+```bash
+npm install \
+  @zwaarcontrast/ol-graticule \
+  @zwaarcontrast/ol-graticule-projected \
+  @zwaarcontrast/ol-graticule-modified-british-system \
+  ol proj4
+```
+
+## Usage
+
+```ts
+import { UniversalGraticule } from '@zwaarcontrast/ol-graticule';
+import { createNordDeGuerreGridSystem } from '@zwaarcontrast/ol-graticule-modified-british-system';
+
+const gridSystem = createNordDeGuerreGridSystem();
+
+map.addLayer(new UniversalGraticule({ gridSystem, style: { edgeLabel: true } }));
+```
+
+Swap in any other factory the same way:
+
+```ts
+import { createWarOfficeCassiniGridSystem } from '@zwaarcontrast/ol-graticule-modified-british-system';
+const gridSystem = createWarOfficeCassiniGridSystem();
+```
+
+What you'll see:
+
+- Major grid lines at the 100 km MBS interval (with minor lines at the
+  20 km subdivisions when you zoom in).
+- **Letter-cell codes** centred in each cell, `vK`, `wL`, `aT`, etc., fading in / out with zoom so they appear only when readable.
+- Drawing clipped to the theatre's historical coverage polygon, nothing
+  spills into the surrounding seas or neighbouring zones.
+
 ## Theatres
 
 | Theatre | Factory | CRS | Projection |
@@ -61,42 +97,6 @@ row sits on the NORTH of any 500 km square:
 
 (A fifth rotation with VWXYZ on the north row would complete the cyclic
 group but isn't observed in any theatre Thierry catalogues.)
-
-## Install
-
-```bash
-npm install \
-  @zwaarcontrast/ol-graticule \
-  @zwaarcontrast/ol-graticule-projected \
-  @zwaarcontrast/ol-graticule-modified-british-system \
-  ol proj4
-```
-
-## Usage
-
-```ts
-import { UniversalGraticule } from '@zwaarcontrast/ol-graticule';
-import { createNordDeGuerreGridSystem } from '@zwaarcontrast/ol-graticule-modified-british-system';
-
-const gridSystem = createNordDeGuerreGridSystem();
-
-map.addLayer(new UniversalGraticule({ gridSystem, style: { edgeLabel: true } }));
-```
-
-Swap in any other factory the same way:
-
-```ts
-import { createWarOfficeCassiniGridSystem } from '@zwaarcontrast/ol-graticule-modified-british-system';
-const gridSystem = createWarOfficeCassiniGridSystem();
-```
-
-What you'll see:
-
-- Major grid lines at the 100 km MBS interval (with minor lines at the
-  20 km subdivisions when you zoom in).
-- **Letter-cell codes** centred in each cell, `vK`, `wL`, `aT`, etc., fading in / out with zoom so they appear only when readable.
-- Drawing clipped to the theatre's historical coverage polygon, nothing
-  spills into the surrounding seas or neighbouring zones.
 
 ### Tweaking a factory
 
