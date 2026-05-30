@@ -189,6 +189,45 @@ describe('MgrsGridSystem.formatCoordinate', () => {
   });
 });
 
+describe('MgrsGridSystem.parseCoordinate', () => {
+  it('parses a UTM-band MGRS ref and returns coordinates in the view projection', () => {
+    const grid = new MgrsGridSystem();
+    const eiffel = grid.parseCoordinate('31U DQ 48251 11932', 'EPSG:4326');
+    expect(eiffel[0]).toBeCloseTo(2.294, 2);
+    expect(eiffel[1]).toBeCloseTo(48.858, 2);
+  });
+
+  it('parses a UPS (polar) MGRS ref', () => {
+    const grid = new MgrsGridSystem();
+    const formatted = grid.formatCoordinate([30, 88], 'EPSG:4326');
+    if (!isCombinedFormatted(formatted) || formatted.combined === '-') {
+      throw new Error('expected a non-empty combined UPS MGRS ref');
+    }
+    expect(formatted.combined).toMatch(/^Z /);
+    const [lon, lat] = grid.parseCoordinate(formatted.combined, 'EPSG:4326');
+    expect(lon).toBeCloseTo(30, 0);
+    expect(lat).toBeCloseTo(88, 0);
+  });
+
+  it('throws ParseError on garbage input', () => {
+    const grid = new MgrsGridSystem();
+    expect(() => grid.parseCoordinate('not-an-mgrs-ref', 'EPSG:4326')).toThrow();
+  });
+
+  it('round-trips formatCoordinate ↔ parseCoordinate for a known location', () => {
+    const grid = new MgrsGridSystem();
+    const original: [number, number] = [4.895, 52.37];
+    const formatted = grid.formatCoordinate(original, 'EPSG:4326');
+    if (!isCombinedFormatted(formatted) || formatted.combined === '-') {
+      throw new Error('expected a non-empty combined MGRS ref');
+    }
+    const [lon, lat] = grid.parseCoordinate(formatted.combined, 'EPSG:4326');
+    // 1 m precision → within ~1 m in each axis.
+    expect(lon).toBeCloseTo(original[0], 4);
+    expect(lat).toBeCloseTo(original[1], 4);
+  });
+});
+
 describe('MgrsGridSystem.isValidCoordinate', () => {
   it('accepts a normal lat/lon coordinate', () => {
     const grid = new MgrsGridSystem();

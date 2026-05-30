@@ -1,8 +1,8 @@
 /** 100,000-metre square identifier letters for MGRS (modern WGS84 "AA" scheme). */
 
 const COLUMN_SETS = ['ABCDEFGH', 'JKLMNPQR', 'STUVWXYZ'] as const;
-const ROW_LETTERS = 'ABCDEFGHJKLMNPQRSTUV';
-const ROW_CYCLE = ROW_LETTERS.length;
+export const ROW_LETTERS = 'ABCDEFGHJKLMNPQRSTUV';
+export const ROW_CYCLE = ROW_LETTERS.length;
 
 /** Column letter set for a given UTM zone number (1-60). */
 export function columnSetForZone(zone: number): string {
@@ -38,4 +38,19 @@ export function squareLetters(
   const col = columnLetter(zone, easting);
   if (col === undefined) return undefined;
   return col + rowLetter(zone, northing);
+}
+
+/** Inverse of {@link columnLetter}: easting of the SW corner of the column's 100 km strip. */
+export function columnLetterToEasting(zone: number, letter: string): number | undefined {
+  const idx = columnSetForZone(zone).indexOf(letter);
+  if (idx < 0) return undefined;
+  return (idx + 1) * 100_000;
+}
+
+/** Inverse of {@link rowLetter}: row index within the 2,000 km cycle (0..{@link ROW_CYCLE}-1). */
+export function rowLetterToCycleIndex(zone: number, letter: string): number | undefined {
+  const rowIdx = ROW_LETTERS.indexOf(letter);
+  if (rowIdx < 0) return undefined;
+  const offset = rowOffsetForZone(zone);
+  return ((rowIdx - offset) % ROW_CYCLE + ROW_CYCLE) % ROW_CYCLE;
 }

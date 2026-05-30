@@ -1,20 +1,30 @@
 /** Lat/lon to MGRS conversion. */
 
 import proj4 from 'proj4';
+import { ParseError } from '@zwaarcontrast/ol-graticule';
 import {
+  bandLatBounds,
   bandLetterFromLatitude,
   utmCrsCode,
   utmProj4,
   zoneNumberFromLonLat,
 } from './zones.js';
-import { rowLetter, columnLetter } from './squares.js';
+import {
+  columnLetter,
+  columnLetterToEasting,
+  rowLetter,
+  rowLetterToCycleIndex,
+} from './squares.js';
 import {
   upsColumnLetter,
+  upsColumnLetterToEasting,
   upsCrsCode,
   upsIsNorth,
   upsProj4,
   upsRowLetter,
+  upsRowLetterToNorthing,
   upsZoneLetter,
+  upsZoneLonLatBounds,
 } from './ups.js';
 
 /** Number of digits per axis in an MGRS string. 5 = 1 m, 4 = 10 m, ... 0 = GZD only. */
@@ -172,4 +182,111 @@ export function lonLatToMgrs(
 ): string | undefined {
   const parts = lonLatToMgrsParts(lon, lat);
   return parts ? formatMgrs(parts, precision) : undefined;
+}
+
+export interface ParsedMgrs {
+  parts: MgrsParts;
+  precision: MgrsPrecision;
+}
+
+const MGRS_RE = /^(?:(\d{1,2})([C-HJ-NP-X])|([ABYZ]))(?:([A-HJ-NP-Z])([A-HJ-NP-V])(\d*))?$/;
+
+/** Parse an MGRS reference into its component parts and the implied precision. */
+export function parseMgrsRef(text: string): ParsedMgrs {
+  if (typeof text !== 'string') throw new ParseError(String(text), 'expected string input');
+  const normalised = text.replace(/[\s/,;\-_]+/g, '').toUpperCase();
+  if (normalised.length === 0) throw new ParseError(text, 'empty input');
+  const m = MGRS_RE.exec(normalised);
+  if (!m) throw new ParseError(text, 'unrecognised MGRS shape');
+  const [, utmZone, utmBand, upsBand, col, row, digits = ''] = m;
+
+  let zone: number;
+  let band: string;
+  if (utmZone !== undefined && utmBand !== undefined) {
+    zone = Number(utmZone);
+    if (zone < 1 || zone > 60) throw new ParseError(text, `UTM zone out of range: ${zone}`);
+    band = utmBand;
+  } else if (upsBand !== undefined) {
+    zone = 0;
+    band = upsBand;
+  } else {
+    throw new ParseError(text, 'missing GZD');
+  }
+
+  if (col === undefined || row === undefined) {
+    return { parts: { zone, band, square: '', easting: 0, northing: 0 }, precision: 0 };
+  }
+
+  if (digits.length % 2 !== 0 || digits.length > 10) {
+    throw new ParseError(text, `expected even number of digits (0–10), got ${digits.length}`);
+  }
+  const precision = (digits.length / 2) as MgrsPrecision;
+  const square = col + row;
+  if (precision === 0) {
+    return { parts: { zone, band, square, easting: 0, northing: 0 }, precision: 0 };
+  }
+  const factor = 10 ** (5 - precision);
+  const easting = Number(digits.slice(0, precision)) * factor;
+  const northing = Number(digits.slice(precision)) * factor;
+  return { parts: { zone, band, square, easting, northing }, precision };
+}
+
+const ROW_CYCLE_M = 2_000_000;
+
+/**
+ * Inverse of {@link lonLatToMgrsParts} + {@link formatMgrs}: returns the
+ * `[lon, lat]` cell centre at the given precision. Bare GZD (no square) →
+ * GZD centre; GZD + square (precision 0) → 100 km cell centre.
+ */
+export function mgrsPartsToLonLat(
+  parts: MgrsParts,
+  precision: MgrsPrecision = 5,
+): [number, number] | undefined {
+  const { zone, band, square, easting, northing } = parts;
+
+  if (square === '') return gzdCentre_(zone, band);
+
+  if (zone === 0) {
+    if (band !== 'Y' && band !== 'Z' && band !== 'A' && band !== 'B') return undefined;
+    const cellE = upsColumnLetterToEasting(band, square[0]!);
+    const cellN = upsRowLetterToNorthing(band, square[1]!);
+    if (cellE === undefined || cellN === undefined) return undefined;
+    const cellSize = precision === 0 ? 100_000 : 10 ** (5 - precision);
+    return upsToLonLat(
+      cellE + easting + cellSize / 2,
+      cellN + northing + cellSize / 2,
+      band === 'Y' || band === 'Z',
+    );
+  }
+
+  const cellE = columnLetterToEasting(zone, square[0]!);
+  if (cellE === undefined) return undefined;
+  const cycleIdx = rowLetterToCycleIndex(zone, square[1]!);
+  if (cycleIdx === undefined) return undefined;
+  const latRange = bandLatBounds(band);
+  if (latRange === undefined) return undefined;
+  const approxLat = (latRange[0] + latRange[1]) / 2;
+  const lonCentre = -180 + (zone - 1) * 6 + 3;
+  const approx = lonLatToUtm(lonCentre, approxLat, zone);
+  const baseCycle = Math.round((approx.northing - cycleIdx * 100_000) / ROW_CYCLE_M);
+  const cellN = baseCycle * ROW_CYCLE_M + cycleIdx * 100_000;
+
+  const cellSize = precision === 0 ? 100_000 : 10 ** (5 - precision);
+  return utmToLonLat(
+    zone,
+    cellE + easting + cellSize / 2,
+    cellN + northing + cellSize / 2,
+    approxLat < 0,
+  );
+}
+
+function gzdCentre_(zone: number, band: string): [number, number] | undefined {
+  if (zone === 0) {
+    if (band !== 'Y' && band !== 'Z' && band !== 'A' && band !== 'B') return undefined;
+    const b = upsZoneLonLatBounds(band);
+    return [(b.lon[0] + b.lon[1]) / 2, (b.lat[0] + b.lat[1]) / 2];
+  }
+  const lat = bandLatBounds(band);
+  if (!lat) return undefined;
+  return [-180 + (zone - 1) * 6 + 3, (lat[0] + lat[1]) / 2];
 }

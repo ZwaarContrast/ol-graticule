@@ -86,3 +86,25 @@ export function upsZoneLonLatBounds(
     case 'B': return { lon: [0, 180], lat: [-90, -80] };
   }
 }
+
+/** Inverse of {@link upsColumnLetter}: easting of the SW corner of the column's 100 km strip. */
+export function upsColumnLetterToEasting(
+  zone: 'Y' | 'Z' | 'A' | 'B',
+  letter: string,
+): number | undefined {
+  const tab = UPS_COLS[zone];
+  const idx = tab.letters.indexOf(letter);
+  if (idx < 0) return undefined;
+  return (tab.offset + idx) * 100_000;
+}
+
+/** Inverse of {@link upsRowLetter}: northing of the SW corner of the row's 100 km strip. */
+export function upsRowLetterToNorthing(
+  zone: 'Y' | 'Z' | 'A' | 'B',
+  letter: string,
+): number | undefined {
+  const tab = (zone === 'Y' || zone === 'Z') ? UPS_ROWS.N : UPS_ROWS.S;
+  const idx = tab.letters.indexOf(letter);
+  if (idx < 0) return undefined;
+  return (tab.offset + idx) * 100_000;
+}

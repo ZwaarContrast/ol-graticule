@@ -22,6 +22,7 @@ import {
   clipPolylineToRect,
   densifyAndProject,
   LruCache,
+  ParseError,
   polygonArea,
   ProjectionScratch,
   RenderCache,
@@ -42,6 +43,8 @@ import {
 import {
   formatMgrs,
   lonLatToMgrsParts,
+  mgrsPartsToLonLat,
+  parseMgrsRef,
   type MgrsPrecision,
 } from '../mgrs/conversion.js';
 import { MgrsIntervals } from '../mgrs/intervals.js';
@@ -213,6 +216,18 @@ export class MgrsGridSystem implements GridSystem {
     if (lon === undefined || lat === undefined) return false;
     if (!Number.isFinite(lon) || !Number.isFinite(lat)) return false;
     return lat >= -90 && lat <= 90;
+  }
+
+  parseCoordinate(text: string, viewProjection: ProjectionLike): [number, number] {
+    const { parts, precision } = parseMgrsRef(text);
+    const lonLat = mgrsPartsToLonLat(parts, precision);
+    if (!lonLat) throw new ParseError(text, 'MGRS reference does not resolve to a coordinate');
+    const toView = getTransform('EPSG:4326', viewProjection);
+    const [px, py] = toView([lonLat[0], lonLat[1]], undefined, 2);
+    if (px === undefined || py === undefined || !Number.isFinite(px) || !Number.isFinite(py)) {
+      throw new ParseError(text, 'transform produced non-finite coordinate');
+    }
+    return [px, py];
   }
 
   private emitGzdOutlines_(features: Feature<Geometry>[], ctx: RenderContext): void {

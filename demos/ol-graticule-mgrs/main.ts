@@ -15,6 +15,7 @@ import {
   cellLabelHandler,
   cursorStyle,
 } from '../shared';
+import { createCoordinateInput } from '../coordinateInput';
 
 const gridSystem = new MgrsGridSystem();
 
@@ -45,5 +46,16 @@ const map = new Map({
     zoom: 5,
   }),
 });
+
+const badge = document.querySelector<HTMLElement>('.badge');
+if (badge) {
+  createCoordinateInput({
+    map,
+    gridSystem,
+    host: badge,
+    placeholder: '31U FT 23234 23252',
+    hint: 'GZD + 100 km square + easting/northing (1–10 digits). UPS zones Y/Z/A/B also accepted.',
+  });
+}
 
 void map;
