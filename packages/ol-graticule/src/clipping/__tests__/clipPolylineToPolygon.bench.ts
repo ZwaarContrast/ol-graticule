@@ -14,11 +14,12 @@ function buildBoundary(): [number, number][] {
   return points;
 }
 
-function buildPolyline(n: number): [number, number][] {
-  const out: [number, number][] = [];
+function buildPolylineFlat(n: number): number[] {
+  const out: number[] = new Array((n + 1) * 2);
   for (let i = 0; i <= n; i++) {
     const t = i / n;
-    out.push([-100 + 300 * t, -50 + 200 * t]);
+    out[i * 2] = -100 + 300 * t;
+    out[i * 2 + 1] = -50 + 200 * t;
   }
   return out;
 }
@@ -26,15 +27,15 @@ function buildPolyline(n: number): [number, number][] {
 const boundary = buildBoundary();
 const edgeIndex = new PolygonEdgeIndex([boundary]);
 const scratch = createClipScratch();
-const polyline50 = buildPolyline(50);
-const polyline500 = buildPolyline(500);
+const polyline50 = buildPolylineFlat(50);
+const polyline500 = buildPolylineFlat(500);
 
 describe('clipPolylineToPolygon — typical hot path', () => {
   bench('50-segment polyline against 32-vertex polygon', () => {
-    clipPolylineToPolygon(polyline50, [boundary], edgeIndex, scratch);
+    clipPolylineToPolygon(polyline50, 0, polyline50.length, 2, edgeIndex, scratch);
   });
 
   bench('500-segment polyline against 32-vertex polygon', () => {
-    clipPolylineToPolygon(polyline500, [boundary], edgeIndex, scratch);
+    clipPolylineToPolygon(polyline500, 0, polyline500.length, 2, edgeIndex, scratch);
   });
 });

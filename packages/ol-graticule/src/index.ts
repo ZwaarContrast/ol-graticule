@@ -49,7 +49,7 @@ export {
   createClipScratch,
 } from './clipping/clipPolylineToPolygon.js';
 export type { ClipScratch } from './clipping/clipPolylineToPolygon.js';
-export { densifyRing, projectRing } from './clipping/densifyRing.js';
+export { densifyRing, projectRing, densifyAndProject } from './clipping/densifyRing.js';
 export { snapRingToCellGrid } from './clipping/snapRingToCellGrid.js';
 
 export { UniversalGraticule } from './UniversalGraticule.js';

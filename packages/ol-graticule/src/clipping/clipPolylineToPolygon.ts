@@ -33,45 +33,15 @@ export function createClipScratch(): ClipScratch {
   };
 }
 
-/** Clip a polyline against one or more rings, returning inside sub-polylines. */
-export function clipPolylineToPolygon(
-  polyline: ReadonlyArray<readonly [number, number]>,
-  rings: ReadonlyArray<readonly [number, number]>
-    | ReadonlyArray<ReadonlyArray<readonly [number, number]>>,
-  index: PolygonEdgeIndex,
-  scratch?: ClipScratch,
-): [number, number][][] {
-  const n = polyline.length;
-  if (n < 2) return [];
-
-  const flat = new Array<number>(n * 2);
-  for (let i = 0; i < n; i++) {
-    const p = polyline[i]!;
-    flat[i * 2] = p[0];
-    flat[i * 2 + 1] = p[1];
-  }
-
-  const flatPieces = clipPolylineFlat(flat, 0, flat.length, 2, rings, index, scratch);
-  const tuplePieces: [number, number][][] = [];
-  for (const piece of flatPieces) {
-    const ring: [number, number][] = [];
-    for (let i = 0; i < piece.length; i += 2) ring.push([piece[i]!, piece[i + 1]!]);
-    tuplePieces.push(ring);
-  }
-  return tuplePieces;
-}
-
 /**
- * Clip a flat-coordinate polyline against one or more rings.
+ * Clip a flat-coordinate polyline against the rings indexed by `index`.
  * Returns an array of flat-coordinate sub-polylines (all XY).
  */
-export function clipPolylineFlat(
+export function clipPolylineToPolygon(
   flatCoordinates: ReadonlyArray<number>,
   offset: number,
   end: number,
   stride: number,
-  rings: ReadonlyArray<readonly [number, number]>
-    | ReadonlyArray<ReadonlyArray<readonly [number, number]>>,
   index: PolygonEdgeIndex,
   scratch?: ClipScratch,
 ): number[][] {

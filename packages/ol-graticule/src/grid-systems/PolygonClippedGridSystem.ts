@@ -16,7 +16,7 @@ import type {
 import { isCombinedFormatted } from '../types.js';
 import { pointInRing, pointInRings } from '../clipping/pointInRing.js';
 import { PolygonEdgeIndex } from '../clipping/PolygonEdgeIndex.js';
-import { clipPolylineFlat, createClipScratch, type ClipScratch } from '../clipping/clipPolylineToPolygon.js';
+import { clipPolylineToPolygon, createClipScratch, type ClipScratch } from '../clipping/clipPolylineToPolygon.js';
 import { clipPolygonToConvex } from '../clipping/clipPolygonToConvex.js';
 import { densifyRing, projectRing } from '../clipping/densifyRing.js';
 import { snapRingToCellGrid } from '../clipping/snapRingToCellGrid.js';
@@ -136,12 +136,11 @@ export class PolygonClippedGridSystem implements GridSystem {
         coordStride = stride;
       }
 
-      const clipped = clipPolylineFlat(
+      const clipped = clipPolylineToPolygon(
         coords,
         coordOffset,
         coordEnd,
         coordStride,
-        view.projectedRings,
         view.index,
         this.clipScratch_,
       );

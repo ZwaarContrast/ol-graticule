@@ -19,6 +19,7 @@ import {
   BoundedCache,
   clipPolygonToConvex,
   clipPolylineToRect,
+  densifyAndProject,
   LruCache,
   polygonArea,
   ProjectionScratch,
@@ -737,7 +738,11 @@ function computeCellLabels_(
       if (cLon === undefined || cLat === undefined) continue;
       if (!Number.isFinite(cLon) || !Number.isFinite(cLat)) continue;
       if (cLat < latLo || cLat >= latHi) continue;
-      const polygon = sampleCellPolygon_(e, e + 100_000, n, n + 100_000, fromUtm);
+      const polygon = densifyAndProject(
+        [[e, n], [e + 100_000, n], [e + 100_000, n + 100_000], [e, n + 100_000]],
+        2,
+        fromUtm,
+      );
       const origArea = polygonArea(polygon);
       if (origArea === 0) continue;
       const clipped = clipPolygonToConvex(polygon, bandRing);
@@ -757,34 +762,6 @@ function computeCellLabels_(
     }
   }
   return out;
-}
-
-/** Sample 8 perimeter points (4 corners + 4 edge midpoints) of a UTM cell, projected to lat/lon. */
-function sampleCellPolygon_(
-  eMin: number,
-  eMax: number,
-  nMin: number,
-  nMax: number,
-  fromUtm: TransformFunction,
-): [number, number][] {
-  const eMid = (eMin + eMax) / 2;
-  const nMid = (nMin + nMax) / 2;
-  const corners: [number, number][] = [
-    [eMin, nMin], [eMid, nMin], [eMax, nMin],
-    [eMax, nMid],
-    [eMax, nMax], [eMid, nMax], [eMin, nMax],
-    [eMin, nMid],
-  ];
-  const points: [number, number][] = [];
-  for (const [e, n] of corners) {
-    const ll = fromUtm([e, n], undefined, 2);
-    const lon = ll[0];
-    const lat = ll[1];
-    if (lon === undefined || lat === undefined) continue;
-    if (!Number.isFinite(lon) || !Number.isFinite(lat)) continue;
-    points.push([lon, lat]);
-  }
-  return points;
 }
 
 /** Compute the inclusive integer 100 km tile bounds covering a UTM extent. */
@@ -822,17 +799,13 @@ function pushClippedLine_(
   gzd: Gzd,
   fromUtm: TransformFunction,
 ): void {
+  const startUtm: [number, number] = axis === 'e' ? [constUtm, sweepStart] : [sweepStart, constUtm];
+  const endUtm: [number, number] = axis === 'e' ? [constUtm, sweepEnd] : [sweepEnd, constUtm];
+  const raw = densifyAndProject([startUtm, endUtm], density, fromUtm, false);
   const lonLat: [number, number][] = [];
-  for (let i = 0; i <= density; i++) {
-    const t = i / density;
-    const sweep = sweepStart + t * (sweepEnd - sweepStart);
-    const e = axis === 'e' ? constUtm : sweep;
-    const n = axis === 'e' ? sweep : constUtm;
-    const ll = fromUtm([e, n], undefined, 2);
-    let lon = ll[0];
-    let lat = ll[1];
-    if (lon === undefined || lat === undefined) continue;
-    if (!Number.isFinite(lon) || !Number.isFinite(lat)) continue;
+  for (let i = 0; i < raw.length; i++) {
+    let lon = raw[i]![0];
+    let lat = raw[i]![1];
     if (lat > 89.9999) lat = 89.9999;
     else if (lat < -89.9999) lat = -89.9999;
     if (lonLat.length > 0) {
