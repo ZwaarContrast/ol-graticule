@@ -1,8 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import {
-  clipPolygonToRect,
-  polygonArea,
-} from '../clipPolygonToRect.js';
+import { clipPolygonToRect } from '../clipPolygonToRect.js';
 
 describe('clipPolygonToRect', () => {
   it('keeps a polygon entirely inside the rect', () => {
@@ -48,24 +45,6 @@ describe('clipPolygonToRect', () => {
     }
     // And must include the original (3,3) which was inside.
     expect(out).toContainEqual([3, 3]);
-  });
-});
-
-describe('polygonArea', () => {
-  it('returns 0 for degenerate polygons', () => {
-    expect(polygonArea([])).toBe(0);
-    expect(polygonArea([[0, 0]])).toBe(0);
-    expect(polygonArea([[0, 0], [1, 1]])).toBe(0);
-  });
-
-  it('computes a unit square area', () => {
-    expect(polygonArea([[0, 0], [1, 0], [1, 1], [0, 1]])).toBeCloseTo(1, 12);
-  });
-
-  it('is independent of winding direction', () => {
-    const ccw = polygonArea([[0, 0], [1, 0], [1, 1], [0, 1]]);
-    const cw = polygonArea([[0, 0], [0, 1], [1, 1], [1, 0]]);
-    expect(ccw).toBe(cw);
   });
 });
 

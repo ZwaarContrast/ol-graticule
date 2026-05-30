@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { clipPolygonToConvex } from '../clipPolygonToConvex.js';
+import { polygonArea } from '../polygonArea.js';
 
 type Pt = [number, number];
 
@@ -10,16 +11,6 @@ function square(minX: number, minY: number, size: number): Pt[] {
     [minX + size, minY + size],
     [minX, minY + size],
   ];
-}
-
-function polygonArea(ring: ReadonlyArray<Pt>): number {
-  let s = 0;
-  for (let i = 0; i < ring.length; i++) {
-    const a = ring[i]!;
-    const b = ring[(i + 1) % ring.length]!;
-    s += a[0] * b[1] - b[0] * a[1];
-  }
-  return Math.abs(s) * 0.5;
 }
 
 function vertexSet(ring: ReadonlyArray<Pt>): Set<string> {

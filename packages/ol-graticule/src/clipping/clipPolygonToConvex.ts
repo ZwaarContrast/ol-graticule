@@ -10,6 +10,8 @@
  * the same coordinate system.
  */
 
+import { signedArea } from './polygonArea.js';
+
 type Pt = readonly [number, number];
 
 export function clipPolygonToConvex(
@@ -48,17 +50,6 @@ export function clipPolygonToConvex(
     }
   }
   return output;
-}
-
-function signedArea(ring: ReadonlyArray<Pt>): number {
-  const n = ring.length;
-  let s = 0;
-  for (let i = 0; i < n; i++) {
-    const a = ring[i]!;
-    const b = ring[(i + 1) % n]!;
-    s += a[0] * b[1] - b[0] * a[1];
-  }
-  return s * 0.5;
 }
 
 function isInsideEdge(p: Pt, a: Pt, b: Pt, ccw: boolean): boolean {

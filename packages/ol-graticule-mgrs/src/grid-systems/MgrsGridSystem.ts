@@ -17,7 +17,10 @@ import type {
 } from '@zwaarcontrast/ol-graticule';
 import {
   BoundedCache,
+  clipPolygonToRect,
+  clipPolylineToRect,
   LruCache,
+  polygonArea,
   ProjectionScratch,
   RenderCache,
   TransformCache,
@@ -39,11 +42,6 @@ import {
   type MgrsPrecision,
 } from '../mgrs/conversion.js';
 import { MgrsIntervals } from '../mgrs/intervals.js';
-import { clipPolylineToRect } from '../mgrs/clipPolylineToRect.js';
-import {
-  clipPolygonToRect,
-  polygonArea,
-} from '../mgrs/clipPolygonToRect.js';
 
 export interface MgrsGridSystemOptions {
   /** Override the default MGRS interval strategy. */

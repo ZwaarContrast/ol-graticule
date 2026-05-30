@@ -1,4 +1,4 @@
-/** Sutherland-Hodgman polygon clipping against an axis-aligned rectangle, with an area helper. */
+/** Sutherland-Hodgman polygon clipping against an axis-aligned rectangle. */
 
 import { inspectBboxRelToRect } from './bboxFastPath.js';
 
@@ -27,19 +27,6 @@ export function clipPolygonToRect(
   if (out.length === 0) return [];
   out = clipEdge_(out, (p) => p[1] <= yHi, (a, b) => intersectHorizontal_(a, b, yHi));
   return out;
-}
-
-/** Polygon absolute area (shoelace formula). */
-export function polygonArea(polygon: ReadonlyArray<RectPoint>): number {
-  const n = polygon.length;
-  if (n < 3) return 0;
-  let a = 0;
-  for (let i = 0; i < n; i++) {
-    const p1 = polygon[i]!;
-    const p2 = polygon[(i + 1) % n]!;
-    a += p1[0] * p2[1] - p2[0] * p1[1];
-  }
-  return Math.abs(a) * 0.5;
 }
 
 function clipEdge_(
