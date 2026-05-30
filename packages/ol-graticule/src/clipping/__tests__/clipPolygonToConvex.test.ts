@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { clipPolygonToConvex, polygonCentroid } from '../clipPolygonToConvex.js';
+import { clipPolygonToConvex } from '../clipPolygonToConvex.js';
 
 type Pt = [number, number];
 
@@ -106,36 +106,3 @@ describe('clipPolygonToConvex', () => {
   });
 });
 
-describe('polygonCentroid', () => {
-  it('returns the geometric centre of a square', () => {
-    const c = polygonCentroid(square(0, 0, 4));
-    expect(c).not.toBeNull();
-    expect(c![0]).toBeCloseTo(2, 10);
-    expect(c![1]).toBeCloseTo(2, 10);
-  });
-
-  it('returns the centroid of a triangle at the average of vertices', () => {
-    const tri: Pt[] = [[0, 0], [6, 0], [0, 6]];
-    const c = polygonCentroid(tri);
-    expect(c).not.toBeNull();
-    expect(c![0]).toBeCloseTo(2, 10);
-    expect(c![1]).toBeCloseTo(2, 10);
-  });
-
-  it('returns null for fewer than 3 vertices', () => {
-    expect(polygonCentroid([[0, 0], [1, 1]])).toBeNull();
-  });
-
-  it('returns null for a degenerate (zero-area) polygon', () => {
-    expect(polygonCentroid([[0, 0], [1, 0], [2, 0]])).toBeNull();
-  });
-
-  it('is invariant under translation', () => {
-    const tri: Pt[] = [[0, 0], [6, 0], [0, 6]];
-    const shifted: Pt[] = tri.map(([x, y]) => [x + 100, y - 50]);
-    const c0 = polygonCentroid(tri)!;
-    const c1 = polygonCentroid(shifted)!;
-    expect(c1[0] - c0[0]).toBeCloseTo(100, 10);
-    expect(c1[1] - c0[1]).toBeCloseTo(-50, 10);
-  });
-});

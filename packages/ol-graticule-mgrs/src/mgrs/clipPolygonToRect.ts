@@ -1,4 +1,4 @@
-/** Sutherland-Hodgman polygon clipping against an axis-aligned rectangle, with area and centroid helpers. */
+/** Sutherland-Hodgman polygon clipping against an axis-aligned rectangle, with an area helper. */
 
 import { inspectBboxRelToRect } from './bboxFastPath.js';
 
@@ -40,35 +40,6 @@ export function polygonArea(polygon: ReadonlyArray<RectPoint>): number {
     a += p1[0] * p2[1] - p2[0] * p1[1];
   }
   return Math.abs(a) * 0.5;
-}
-
-/** Area-weighted centroid of a simple polygon, falling back to vertex mean for degenerate slivers. */
-export function polygonCentroid(polygon: ReadonlyArray<RectPoint>): [number, number] {
-  const n = polygon.length;
-  if (n === 0) return [NaN, NaN];
-  if (n === 1) return [polygon[0]![0], polygon[0]![1]];
-  let cx = 0;
-  let cy = 0;
-  let signedArea = 0;
-  for (let i = 0; i < n; i++) {
-    const p1 = polygon[i]!;
-    const p2 = polygon[(i + 1) % n]!;
-    const cross = p1[0] * p2[1] - p2[0] * p1[1];
-    signedArea += cross;
-    cx += (p1[0] + p2[0]) * cross;
-    cy += (p1[1] + p2[1]) * cross;
-  }
-  if (Math.abs(signedArea) < 1e-12) {
-    let mx = 0;
-    let my = 0;
-    for (let i = 0; i < n; i++) {
-      mx += polygon[i]![0];
-      my += polygon[i]![1];
-    }
-    return [mx / n, my / n];
-  }
-  const factor = 1 / (3 * signedArea);
-  return [cx * factor, cy * factor];
 }
 
 function clipEdge_(

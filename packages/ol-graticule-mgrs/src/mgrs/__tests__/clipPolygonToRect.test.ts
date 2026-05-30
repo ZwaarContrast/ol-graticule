@@ -2,7 +2,6 @@ import { describe, it, expect } from 'vitest';
 import {
   clipPolygonToRect,
   polygonArea,
-  polygonCentroid,
 } from '../clipPolygonToRect.js';
 
 describe('clipPolygonToRect', () => {
@@ -70,23 +69,3 @@ describe('polygonArea', () => {
   });
 });
 
-describe('polygonCentroid', () => {
-  it('returns the centre of a unit square', () => {
-    const c = polygonCentroid([[0, 0], [1, 0], [1, 1], [0, 1]]);
-    expect(c[0]).toBeCloseTo(0.5, 12);
-    expect(c[1]).toBeCloseTo(0.5, 12);
-  });
-
-  it('shifts toward the wide side of an L-shape', () => {
-    // L-shape biased toward +x at the bottom.
-    const c = polygonCentroid([[0, 0], [3, 0], [3, 1], [1, 1], [1, 2], [0, 2]]);
-    expect(c[0]).toBeGreaterThan(0.5);
-    expect(c[1]).toBeLessThan(1);
-  });
-
-  it('falls back to the vertex mean for a degenerate sliver', () => {
-    const c = polygonCentroid([[0, 0], [1, 0], [2, 0]]);
-    expect(c[0]).toBeCloseTo(1, 12);
-    expect(c[1]).toBeCloseTo(0, 12);
-  });
-});

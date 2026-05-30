@@ -1,6 +1,7 @@
 import Feature from 'ol/Feature';
 import LineString from 'ol/geom/LineString';
 import Point from 'ol/geom/Point';
+import Polygon from 'ol/geom/Polygon';
 import { get as getProjection, getTransform, transform } from 'ol/proj';
 import { getIntersection, isEmpty } from 'ol/extent';
 import type { Extent } from 'ol/extent';
@@ -16,7 +17,7 @@ import { isCombinedFormatted } from '../types.js';
 import { pointInRing, pointInRings } from '../clipping/pointInRing.js';
 import { PolygonEdgeIndex } from '../clipping/PolygonEdgeIndex.js';
 import { clipPolylineFlat, createClipScratch, type ClipScratch } from '../clipping/clipPolylineToPolygon.js';
-import { clipPolygonToConvex, polygonCentroid } from '../clipping/clipPolygonToConvex.js';
+import { clipPolygonToConvex } from '../clipping/clipPolygonToConvex.js';
 import { densifyRing, projectRing } from '../clipping/densifyRing.js';
 import { snapRingToCellGrid } from '../clipping/snapRingToCellGrid.js';
 import { transformExtentSampled } from '../util/geo.js';
@@ -226,10 +227,11 @@ export class PolygonClippedGridSystem implements GridSystem {
       }
       const clipped = clipPolygonToConvex(cellRing, clipRing);
       if (clipped.length < 3) continue;
-      const centre = polygonCentroid(clipped);
-      if (!centre) continue;
+      const interior = new Polygon([clipped]).getFlatInteriorPoint();
+      const [ix, iy] = interior;
+      if (ix === undefined || iy === undefined || !Number.isFinite(ix) || !Number.isFinite(iy)) continue;
       const replaced: GridCellLabel = {
-        point: new Point([centre[0], centre[1]]),
+        point: new Point([ix, iy]),
         text: label.text,
         cellSizePx: clippedCellSizePx_(cellRing, clipped, label.cellSizePx),
       };

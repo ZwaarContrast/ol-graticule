@@ -3,6 +3,7 @@
 import Feature from 'ol/Feature';
 import LineString from 'ol/geom/LineString';
 import Point from 'ol/geom/Point';
+import Polygon from 'ol/geom/Polygon';
 import { getTransform, transformExtent } from 'ol/proj';
 import type Geometry from 'ol/geom/Geometry';
 import type { Extent } from 'ol/extent';
@@ -42,7 +43,6 @@ import { clipPolylineToRect } from '../mgrs/clipPolylineToRect.js';
 import {
   clipPolygonToRect,
   polygonArea,
-  polygonCentroid,
 } from '../mgrs/clipPolygonToRect.js';
 
 export interface MgrsGridSystemOptions {
@@ -743,10 +743,10 @@ function computeCellLabels_(
       if (clipped.length < 3) continue;
       const clippedArea = polygonArea(clipped);
       if (clippedArea / origArea < MIN_CELL_AREA_FRACTION) continue;
-      const [cx, cy] = polygonCentroid(clipped);
-      if (!Number.isFinite(cx) || !Number.isFinite(cy)) continue;
-      const labelLon = cx;
-      const labelLat = cy;
+      const [ix, iy] = new Polygon([clipped]).getFlatInteriorPoint();
+      if (ix === undefined || iy === undefined || !Number.isFinite(ix) || !Number.isFinite(iy)) continue;
+      const labelLon = ix;
+      const labelLat = iy;
       const sizeFactor = Math.min(1, Math.sqrt(clippedArea / origArea));
       out.push({
         lonLat: [labelLon, labelLat],

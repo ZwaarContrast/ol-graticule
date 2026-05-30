@@ -1,7 +1,6 @@
 /**
- * Sutherland-Hodgman clip of a subject polygon against a convex clip polygon,
- * plus an area-weighted centroid helper. Used by PolygonClippedGridSystem to
- * place cell labels at the centre of the *visible* portion of a clipped cell.
+ * Sutherland-Hodgman clip of a subject polygon against a convex clip polygon.
+ * Used by PolygonClippedGridSystem to compute the visible portion of a clipped cell.
  *
  * The clip polygon MUST be convex; for the strip rectangles in EPSG:4326
  * projected to Web Mercator that's automatic (parallels and meridians stay
@@ -49,28 +48,6 @@ export function clipPolygonToConvex(
     }
   }
   return output;
-}
-
-/** Area-weighted centroid of an open polygon ring. Returns `null` for degenerate input. */
-export function polygonCentroid(
-  ring: ReadonlyArray<Pt>,
-): [number, number] | null {
-  const n = ring.length;
-  if (n < 3) return null;
-  let twiceArea = 0;
-  let cx = 0;
-  let cy = 0;
-  for (let i = 0; i < n; i++) {
-    const a = ring[i]!;
-    const b = ring[(i + 1) % n]!;
-    const cross = a[0] * b[1] - b[0] * a[1];
-    twiceArea += cross;
-    cx += (a[0] + b[0]) * cross;
-    cy += (a[1] + b[1]) * cross;
-  }
-  if (twiceArea === 0) return null;
-  const f = 1 / (3 * twiceArea);
-  return [cx * f, cy * f];
 }
 
 function signedArea(ring: ReadonlyArray<Pt>): number {
