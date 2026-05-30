@@ -1,6 +1,6 @@
 {
   "name": "@zwaarcontrast/ol-graticule-modified-british-system",
-  "version": "2.3.1",
+  "version": "3.0.0",
   "type": "module",
   "description": "Modified British System letter-cell artillery grids for WWII theatres (Nord de Guerre, French Lambert I/II/III, British/Irish Cassini, War Office Cassini, Scandinavian Zone 3, Italian Northern/Southern, Iberian Peninsula) for ol-graticule.",
   "license": "MIT",
@@ -50,8 +50,8 @@
     "bench": "vitest bench"
   },
   "peerDependencies": {
-    "@zwaarcontrast/ol-graticule": "^2.0.0",
-    "@zwaarcontrast/ol-graticule-projected": "^2.0.0",
+    "@zwaarcontrast/ol-graticule": "^3.0.0",
+    "@zwaarcontrast/ol-graticule-projected": "^3.0.0",
     "ol": "^10.0.0",
     "proj4": "^2.9.0"
   },

@@ -1,5 +1,12 @@
 # @zwaarcontrast/ol-graticule-luftwaffe-planquadrat
 
+## 3.0.0
+
+### Patch Changes
+
+- Updated dependencies [e397dfb]
+  - @zwaarcontrast/ol-graticule@3.0.0
+
 ## 2.3.1
 
 ## 2.3.0
