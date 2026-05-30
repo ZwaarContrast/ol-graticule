@@ -1,6 +1,6 @@
 {
   "name": "@zwaarcontrast/ol-graticule-mgrs",
-  "version": "2.3.1",
+  "version": "3.0.0",
   "type": "module",
   "description": "Military Grid Reference System (MGRS / NATO grid) for ol-graticule.",
   "license": "MIT",
@@ -48,8 +48,8 @@
     "bench": "vitest bench"
   },
   "peerDependencies": {
-    "@zwaarcontrast/ol-graticule": "^2.0.0",
-    "@zwaarcontrast/ol-graticule-projected": "^2.0.0",
+    "@zwaarcontrast/ol-graticule": "^3.0.0",
+    "@zwaarcontrast/ol-graticule-projected": "^3.0.0",
     "ol": "^10.0.0",
     "proj4": "^2.9.0"
   },

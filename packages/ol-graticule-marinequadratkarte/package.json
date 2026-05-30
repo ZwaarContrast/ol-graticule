@@ -50,7 +50,7 @@
     "bench": "vitest bench"
   },
   "peerDependencies": {
-    "@zwaarcontrast/ol-graticule": "^2.0.0",
+    "@zwaarcontrast/ol-graticule": "^3.0.0",
     "ol": "^10.0.0"
   },
   "devDependencies": {
