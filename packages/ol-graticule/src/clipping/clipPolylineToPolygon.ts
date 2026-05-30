@@ -1,3 +1,15 @@
+/**
+ * Polyline-vs-polygon clipping for arbitrary (possibly concave) clip rings.
+ *
+ * Per input segment: query a {@link PolygonEdgeIndex} for nearby ring edges,
+ * compute every segment-vs-edge intersection, sort the t-values, then walk
+ * them flipping inside/outside state. The first segment endpoint's containment
+ * seeds the state via {@link PolygonEdgeIndex.pointInRing}.
+ *
+ * For the axis-aligned rectangle clip case, prefer {@link clipPolylineToRect}
+ * (Liang-Barsky): no index, no per-edge intersections, just four scalar
+ * inequalities per segment.
+ */
 import { PolygonEdgeIndex, createEdgeBuffer, type EdgeBuffer } from './PolygonEdgeIndex.js';
 
 const T_EPSILON = 1e-9;

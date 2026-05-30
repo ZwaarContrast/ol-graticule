@@ -19,6 +19,25 @@ export function clipPolygonToConvex(
   clip: ReadonlyArray<Pt>,
 ): [number, number][] {
   if (subject.length < 3 || clip.length < 3) return [];
+
+  let sMinX = Infinity, sMinY = Infinity, sMaxX = -Infinity, sMaxY = -Infinity;
+  for (let i = 0; i < subject.length; i++) {
+    const x = subject[i]![0], y = subject[i]![1];
+    if (x < sMinX) sMinX = x;
+    if (x > sMaxX) sMaxX = x;
+    if (y < sMinY) sMinY = y;
+    if (y > sMaxY) sMaxY = y;
+  }
+  let cMinX = Infinity, cMinY = Infinity, cMaxX = -Infinity, cMaxY = -Infinity;
+  for (let i = 0; i < clip.length; i++) {
+    const x = clip[i]![0], y = clip[i]![1];
+    if (x < cMinX) cMinX = x;
+    if (x > cMaxX) cMaxX = x;
+    if (y < cMinY) cMinY = y;
+    if (y > cMaxY) cMaxY = y;
+  }
+  if (sMaxX < cMinX || sMinX > cMaxX || sMaxY < cMinY || sMinY > cMaxY) return [];
+
   const clipSigned = signedArea(clip);
   if (clipSigned === 0) return [];
   const clipCCW = clipSigned > 0;

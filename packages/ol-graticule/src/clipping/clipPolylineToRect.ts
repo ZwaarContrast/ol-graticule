@@ -1,4 +1,12 @@
-/** Liang-Barsky polyline clipping against an axis-aligned 2D rectangle. */
+/**
+ * Liang-Barsky polyline clipping against an axis-aligned 2D rectangle.
+ *
+ * Per input segment: solve four scalar inequalities for the `[t0, t1]`
+ * sub-interval that lies inside the rect, then emit `[p0 + t0·d, p0 + t1·d]`.
+ * Cheaper than {@link clipPolylineToPolygon} because no spatial index and no
+ * 2D segment-vs-edge intersections are needed. Only valid for axis-aligned
+ * rectangular clip shapes.
+ */
 
 import { inspectBboxRelToRect } from './bboxFastPath.js';
 

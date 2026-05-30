@@ -17,7 +17,7 @@ import type {
 } from '@zwaarcontrast/ol-graticule';
 import {
   BoundedCache,
-  clipPolygonToRect,
+  clipPolygonToConvex,
   clipPolylineToRect,
   LruCache,
   polygonArea,
@@ -671,6 +671,9 @@ function computeCellLabels_(
   const lonHi = gzd.lon[1];
   const latLo = gzd.lat[0];
   const latHi = gzd.lat[1];
+  const bandRing: [number, number][] = [
+    [lonLo, latLo], [lonHi, latLo], [lonHi, latHi], [lonLo, latHi],
+  ];
 
   const isUps = gzd.zone === 0;
   const upsZone = gzd.band as 'Y' | 'Z' | 'A' | 'B';
@@ -737,7 +740,7 @@ function computeCellLabels_(
       const polygon = sampleCellPolygon_(e, e + 100_000, n, n + 100_000, fromUtm);
       const origArea = polygonArea(polygon);
       if (origArea === 0) continue;
-      const clipped = clipPolygonToRect(polygon, lonLo, latLo, lonHi, latHi);
+      const clipped = clipPolygonToConvex(polygon, bandRing);
       if (clipped.length < 3) continue;
       const clippedArea = polygonArea(clipped);
       if (clippedArea / origArea < MIN_CELL_AREA_FRACTION) continue;

@@ -40,7 +40,6 @@ export type {
 export { pointInRing } from './clipping/pointInRing.js';
 export { clipPolygonToConvex } from './clipping/clipPolygonToConvex.js';
 export { polygonArea, signedArea } from './clipping/polygonArea.js';
-export { clipPolygonToRect } from './clipping/clipPolygonToRect.js';
 export { clipPolylineToRect } from './clipping/clipPolylineToRect.js';
 export { inspectBboxRelToRect } from './clipping/bboxFastPath.js';
 export { PolygonEdgeIndex, createEdgeBuffer } from './clipping/PolygonEdgeIndex.js';
