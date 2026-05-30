@@ -10,50 +10,34 @@
  * the same coordinate system.
  */
 
+import { boundingExtent, intersects } from 'ol/extent';
+import type { Coordinate } from 'ol/coordinate';
 import { signedArea } from './polygonArea.js';
 
-type Pt = readonly [number, number];
-
 export function clipPolygonToConvex(
-  subject: ReadonlyArray<Pt>,
-  clip: ReadonlyArray<Pt>,
-): [number, number][] {
+  subject: Coordinate[],
+  clip: Coordinate[],
+): Coordinate[] {
   if (subject.length < 3 || clip.length < 3) return [];
 
-  let sMinX = Infinity, sMinY = Infinity, sMaxX = -Infinity, sMaxY = -Infinity;
-  for (let i = 0; i < subject.length; i++) {
-    const x = subject[i]![0], y = subject[i]![1];
-    if (x < sMinX) sMinX = x;
-    if (x > sMaxX) sMaxX = x;
-    if (y < sMinY) sMinY = y;
-    if (y > sMaxY) sMaxY = y;
-  }
-  let cMinX = Infinity, cMinY = Infinity, cMaxX = -Infinity, cMaxY = -Infinity;
-  for (let i = 0; i < clip.length; i++) {
-    const x = clip[i]![0], y = clip[i]![1];
-    if (x < cMinX) cMinX = x;
-    if (x > cMaxX) cMaxX = x;
-    if (y < cMinY) cMinY = y;
-    if (y > cMaxY) cMaxY = y;
-  }
-  if (sMaxX < cMinX || sMinX > cMaxX || sMaxY < cMinY || sMinY > cMaxY) return [];
+  if (!intersects(boundingExtent(subject), boundingExtent(clip))) return [];
 
   const clipSigned = signedArea(clip);
   if (clipSigned === 0) return [];
   const clipCCW = clipSigned > 0;
 
-  let output: [number, number][] = subject.map((p) => [p[0], p[1]]);
+  let output: Coordinate[] = subject.map((p): Coordinate => [p[0], p[1]]);
   const cn = clip.length;
   for (let i = 0; i < cn; i++) {
     if (output.length === 0) break;
-    const a = clip[i]!;
-    const b = clip[(i + 1) % cn]!;
+    const a = clip[i];
+    const b = clip[(i + 1) % cn];
     const input = output;
     output = [];
     const len = input.length;
     for (let j = 0; j < len; j++) {
-      const p = input[j]!;
-      const q = input[(j + 1) % len]!;
+      const p = input[j];
+      const q = input[(j + 1) % len];
       const pInside = isInsideEdge(p, a, b, clipCCW);
       const qInside = isInsideEdge(q, a, b, clipCCW);
       if (pInside) {
@@ -71,12 +55,12 @@ export function clipPolygonToConvex(
   return output;
 }
 
-function isInsideEdge(p: Pt, a: Pt, b: Pt, ccw: boolean): boolean {
+function isInsideEdge(p: Coordinate, a: Coordinate, b: Coordinate, ccw: boolean): boolean {
   const cross = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]);
   return ccw ? cross >= 0 : cross <= 0;
 }
 
-function intersect(p: Pt, q: Pt, a: Pt, b: Pt): [number, number] | null {
+function intersect(p: Coordinate, q: Coordinate, a: Coordinate, b: Coordinate): Coordinate | null {
   const rx = q[0] - p[0];
   const ry = q[1] - p[1];
   const sx = b[0] - a[0];

@@ -1,3 +1,4 @@
+import type { Coordinate } from 'ol/coordinate';
 import type { Extent } from 'ol/extent';
 import type { ProjectionLike } from 'ol/proj';
 import type Feature from 'ol/Feature';
@@ -105,7 +106,7 @@ export interface GridCellLabel {
    * clip boundary still read correctly. Optional; renderers that omit it fall
    * back to a point-in-polygon visibility filter on the centre.
    */
-  cellRing?: ReadonlyArray<readonly [number, number]>;
+  cellRing?: Coordinate[];
 }
 
 /** Formats a raw coordinate value into a display string. */

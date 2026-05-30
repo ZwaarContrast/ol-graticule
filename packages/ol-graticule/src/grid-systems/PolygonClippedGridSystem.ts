@@ -3,6 +3,7 @@ import LineString from 'ol/geom/LineString';
 import Point from 'ol/geom/Point';
 import Polygon from 'ol/geom/Polygon';
 import { get as getProjection, getTransform, transform } from 'ol/proj';
+import type { Coordinate } from 'ol/coordinate';
 import { getIntersection, isEmpty } from 'ol/extent';
 import type { Extent } from 'ol/extent';
 import type { Geometry } from 'ol/geom';
@@ -349,19 +350,19 @@ function extentOverlaps_(a: Extent, b: Extent): boolean {
 }
 
 function ringFullyInsideIndexed_(
-  ring: ReadonlyArray<readonly [number, number]>,
+  ring: Coordinate[],
   index: PolygonEdgeIndex,
 ): boolean {
   for (let i = 0; i < ring.length; i++) {
-    const p = ring[i]!;
+    const p = ring[i];
     if (!index.pointInRing(p[0], p[1])) return false;
   }
   return true;
 }
 
 function clippedCellSizePx_(
-  original: ReadonlyArray<readonly [number, number]>,
-  clipped: ReadonlyArray<readonly [number, number]>,
+  original: Coordinate[],
+  clipped: Coordinate[],
   originalSizePx: number,
 ): number {
   const orig = ringMinExtent_(original);
@@ -370,10 +371,10 @@ function clippedCellSizePx_(
   return originalSizePx * (clip / orig);
 }
 
-function ringMinExtent_(ring: ReadonlyArray<readonly [number, number]>): number {
+function ringMinExtent_(ring: Coordinate[]): number {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (let i = 0; i < ring.length; i++) {
-    const p = ring[i]!;
+    const p = ring[i];
     if (p[0] < minX) minX = p[0];
     if (p[0] > maxX) maxX = p[0];
     if (p[1] < minY) minY = p[1];

@@ -6,6 +6,7 @@ import Point from 'ol/geom/Point';
 import Polygon from 'ol/geom/Polygon';
 import { getTransform, transformExtent } from 'ol/proj';
 import type Geometry from 'ol/geom/Geometry';
+import type { Coordinate } from 'ol/coordinate';
 import type { Extent } from 'ol/extent';
 import type { ProjectionLike, TransformFunction } from 'ol/proj';
 import type {
@@ -287,7 +288,7 @@ export class MgrsGridSystem implements GridSystem {
     ctx: RenderContext,
     gzds: Gzd[],
   ): void {
-    type Polyline = { coords: [number, number][]; axis: 'e' | 'n'; constUtm: number };
+    type Polyline = { coords: Coordinate[]; axis: 'e' | 'n'; constUtm: number };
     interface Group {
       zoneKey: string;
       axis: 'e' | 'n';
@@ -790,7 +791,7 @@ function computeBandViewportUtm_(
 
 /** Densify, pole-clamp, antimeridian-unwrap, lon-window-shift, and clip one UTM grid line into `out`. */
 function pushClippedLine_(
-  out: { coords: [number, number][]; axis: 'e' | 'n'; constUtm: number }[],
+  out: { coords: Coordinate[]; axis: 'e' | 'n'; constUtm: number }[],
   axis: 'e' | 'n',
   constUtm: number,
   sweepStart: number,

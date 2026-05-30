@@ -8,33 +8,34 @@
  * rectangular clip shapes.
  */
 
-import { inspectBboxRelToRect } from './bboxFastPath.js';
-
-type ClipPoint = readonly [number, number];
+import { boundingExtent, containsExtent, intersects } from 'ol/extent';
+import type { Extent } from 'ol/extent';
+import type { Coordinate } from 'ol/coordinate';
 
 const EPS = 1e-12;
 
 export function clipPolylineToRect(
-  polyline: ReadonlyArray<ClipPoint>,
+  polyline: Coordinate[],
   xLo: number,
   yLo: number,
   xHi: number,
   yHi: number,
-): [number, number][][] {
-  const out: [number, number][][] = [];
+): Coordinate[][] {
+  const out: Coordinate[][] = [];
   if (polyline.length < 2) return out;
 
-  const { allInside, outsideRect } = inspectBboxRelToRect(polyline, xLo, yLo, xHi, yHi);
-  if (outsideRect) return out;
-  if (allInside) {
-    out.push(polyline.map((p): [number, number] => [p[0], p[1]]));
+  const rect: Extent = [xLo, yLo, xHi, yHi];
+  const bbox = boundingExtent(polyline);
+  if (!intersects(rect, bbox)) return out;
+  if (containsExtent(rect, bbox)) {
+    out.push(polyline.map((p): Coordinate => [p[0]!, p[1]!]));
     return out;
   }
 
-  let current: [number, number][] = [];
+  let current: Coordinate[] = [];
   for (let i = 0; i < polyline.length - 1; i++) {
-    const p0 = polyline[i]!;
-    const p1 = polyline[i + 1]!;
+    const p0 = polyline[i];
+    const p1 = polyline[i + 1];
     const seg = liangBarsky_(p0, p1, xLo, yLo, xHi, yHi);
     if (seg === null) {
       if (current.length > 1) out.push(current);
@@ -45,7 +46,7 @@ export function clipPolylineToRect(
     if (current.length === 0) {
       current.push(pa);
     } else {
-      const last = current[current.length - 1]!;
+      const last = current[current.length - 1];
       if (Math.abs(last[0] - pa[0]) > EPS || Math.abs(last[1] - pa[1]) > EPS) {
         if (current.length > 1) out.push(current);
         current = [pa];
@@ -58,13 +59,13 @@ export function clipPolylineToRect(
 }
 
 function liangBarsky_(
-  p0: ClipPoint,
-  p1: ClipPoint,
+  p0: Coordinate,
+  p1: Coordinate,
   xLo: number,
   yLo: number,
   xHi: number,
   yHi: number,
-): [[number, number], [number, number]] | null {
+): [Coordinate, Coordinate] | null {
   let t0 = 0;
   let t1 = 1;
   const dx = p1[0] - p0[0];
@@ -77,8 +78,8 @@ function liangBarsky_(
     [dy, yHi - p0[1]],
   ];
   for (let k = 0; k < 4; k++) {
-    const p = ps[k]![0];
-    const q = ps[k]![1];
+    const p = ps[k][0];
+    const q = ps[k][1];
     if (p === 0) {
       if (q < 0) return null;
       continue;
