@@ -197,4 +197,17 @@ describe('KriegsmarineGridSystem', () => {
       expect(() => gs.parseCoordinate('hello', 'EPSG:3857')).toThrow();
     });
   });
+
+  describe('custom-sub Pacific squares (childRefs_ override branch)', () => {
+    it('emits NL/NU child squares (squares with a hand-defined `sub` layout)', () => {
+      const gs = new KriegsmarineGridSystem({ maxDepth: 2, minSquarePx: 10 });
+      const features = gs.getFeatures([165, 50, 178, 60], 0.05, 'EPSG:4326');
+      expect(features.length).toBeGreaterThan(0);
+      const childRefs = features
+        .map((f) => f.get('gridSquare') as string | undefined)
+        .filter((id): id is string => typeof id === 'string')
+        .filter((id) => id.startsWith('NL') || id.startsWith('NU'));
+      expect(childRefs.length).toBeGreaterThan(0);
+    });
+  });
 });

@@ -1,5 +1,7 @@
 import { describe, it, expect } from 'vitest';
+import fc from 'fast-check';
 import type { Point } from 'ol/geom';
+import { ParseError, isCombinedFormatted } from '@zwaarcontrast/ol-graticule';
 import { LuftwaffeGridSystem } from '../LuftwaffeGridSystem.js';
 
 function latsOfHorizontalLines(grid: LuftwaffeGridSystem, extent: [number, number, number, number], resolution: number): number[] {
@@ -160,5 +162,159 @@ describe('LuftwaffeGridSystem antimeridian', () => {
     expect(byCenterLon.get(-195)).toBe('160 Ost');
     expect(byCenterLon.get(-205)).toBe('150 Ost');
     expect(byCenterLon.get(-215)).toBe('140 Ost');
+  });
+});
+
+describe('LuftwaffeGridSystem.getLabels', () => {
+  it('returns an empty array (no edge labels)', () => {
+    const grid = new LuftwaffeGridSystem();
+    expect(grid.getLabels([-10, 40, 20, 60], 0.05, 'EPSG:4326')).toEqual([]);
+  });
+});
+
+describe('LuftwaffeGridSystem.parseCoordinate', () => {
+  it('decodes a known GNMV reference (Berlin Reichstag) to the centre of its cell', () => {
+    const grid = new LuftwaffeGridSystem({ system: 'gnmv' });
+    const [lon, lat] = grid.parseCoordinate('15 O 33 3 9 7 c', 'EPSG:4326');
+    expect(lon).toBeGreaterThan(13.37);
+    expect(lon).toBeLessThan(13.39);
+    expect(lat).toBeGreaterThan(52.51);
+    expect(lat).toBeLessThan(52.53);
+  });
+
+  it('decodes 15O to the centre [15, 54] of its [10, 49, 20, 59] bbox', () => {
+    const grid = new LuftwaffeGridSystem({ system: 'gnmv' });
+    const [lon, lat] = grid.parseCoordinate('15O', 'EPSG:4326');
+    expect(lon).toBeCloseTo(15, 6);
+    expect(lat).toBeCloseTo(54, 6);
+  });
+
+  it('throws ParseError on garbage input', () => {
+    const grid = new LuftwaffeGridSystem({ system: 'gnmv' });
+    expect(() => grid.parseCoordinate('not-a-ref', 'EPSG:4326')).toThrow(ParseError);
+  });
+});
+
+describe('LuftwaffeGridSystem.parseCoordinate — property: format ↔ parse round-trip', () => {
+  function expectRoundTrip(system: 'gnmv' | 'jmn', maxDepth: number, numRuns = 100): void {
+    const grid = new LuftwaffeGridSystem({ system, maxDepth });
+    fc.assert(
+      fc.property(
+        fc.double({ min: 40, max: 58, noNaN: true }),
+        fc.double({ min: -5, max: 25, noNaN: true }),
+        (lat, lon) => {
+          const first = grid.formatCoordinate([lon, lat], 'EPSG:4326');
+          if (!isCombinedFormatted(first) || first.combined === '-') return;
+          const [px, py] = grid.parseCoordinate(first.combined, 'EPSG:4326');
+          const second = grid.formatCoordinate([px, py], 'EPSG:4326');
+          expect(second).toEqual(first);
+        },
+      ),
+      { numRuns },
+    );
+  }
+
+  it('GNMV @ maxDepth=5 (Arbeitstrapez) — every formattable point round-trips', () => {
+    expectRoundTrip('gnmv', 5);
+  });
+
+  it('GNMV @ maxDepth=2 (Mitteltrapez)', () => {
+    expectRoundTrip('gnmv', 2);
+  });
+
+  it('JMN (post-1943) @ maxDepth=2', () => {
+    expectRoundTrip('jmn', 2);
+  });
+});
+
+describe('LuftwaffeGridSystem.parseCoordinate — property: invalid inputs always throw ParseError', () => {
+  const grid = new LuftwaffeGridSystem({ system: 'gnmv' });
+
+  it('throws on lowercase-letter-only strings (no digits, no valid suffix)', () => {
+    fc.assert(
+      fc.property(
+        fc.string({ minLength: 1, maxLength: 8, unit: fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz') }),
+        (s) => {
+          expect(() => grid.parseCoordinate(s, 'EPSG:4326')).toThrow(ParseError);
+        },
+      ),
+      { numRuns: 100 },
+    );
+  });
+
+  it('throws on punctuation-only strings (no parsable token)', () => {
+    fc.assert(
+      fc.property(
+        fc.string({ minLength: 1, maxLength: 6, unit: fc.constantFrom(...'!@#$%^&*+=<>?~`|\\') }),
+        (s) => {
+          expect(() => grid.parseCoordinate(s, 'EPSG:4326')).toThrow(ParseError);
+        },
+      ),
+      { numRuns: 100 },
+    );
+  });
+
+  it('throws on a leading letter followed by digits (suffix in wrong position)', () => {
+    fc.assert(
+      fc.property(
+        fc.constantFrom('O', 'W', 'N', 'S'),
+        fc.integer({ min: 1, max: 99 }),
+        (suffix, n) => {
+          expect(() => grid.parseCoordinate(`${suffix}${n}`, 'EPSG:4326')).toThrow(ParseError);
+        },
+      ),
+      { numRuns: 50 },
+    );
+  });
+
+  it('throws on the empty string and on whitespace-only input', () => {
+    fc.assert(
+      fc.property(
+        fc.string({ minLength: 0, maxLength: 6, unit: fc.constantFrom(' ', '\t', '\n') }),
+        (s) => {
+          expect(() => grid.parseCoordinate(s, 'EPSG:4326')).toThrow(ParseError);
+        },
+      ),
+      { numRuns: 30 },
+    );
+  });
+
+  it('throws when ZZG latitude-tens exceeds 8 (last digit of the prefix)', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 10, max: 18 }),
+        fc.constantFrom('O', 'W', 'SO', 'SW'),
+        (lonTens, suffix) => {
+          expect(() => grid.parseCoordinate(`${lonTens}9${suffix}`, 'EPSG:4326')).toThrow(ParseError);
+        },
+      ),
+      { numRuns: 50 },
+    );
+  });
+
+  it('throws when ZZG longitude-tens exceeds 18 (first digits of the prefix)', () => {
+    fc.assert(
+      fc.property(
+        fc.integer({ min: 19, max: 99 }),
+        fc.integer({ min: 0, max: 8 }),
+        fc.constantFrom('O', 'W'),
+        (lonTens, latTens, suffix) => {
+          expect(() => grid.parseCoordinate(`${lonTens}${latTens}${suffix}`, 'EPSG:4326')).toThrow(ParseError);
+        },
+      ),
+      { numRuns: 50 },
+    );
+  });
+
+  it('throws on ZZG with trailing chars outside the [\\s/,;] separator set', () => {
+    fc.assert(
+      fc.property(
+        fc.string({ minLength: 1, maxLength: 4, unit: fc.constantFrom(...'!@#$%^&*+=<>?~`|\\') }),
+        (garbage) => {
+          expect(() => grid.parseCoordinate(`15O${garbage}`, 'EPSG:4326')).toThrow(ParseError);
+        },
+      ),
+      { numRuns: 100 },
+    );
   });
 });

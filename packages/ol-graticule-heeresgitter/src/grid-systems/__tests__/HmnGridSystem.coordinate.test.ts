@@ -73,3 +73,33 @@ describe('DhgGridSystem.formatCoordinate / isValidCoordinate', () => {
     expect(grid.isValidCoordinate(berlin3857, 'EPSG:3857')).toBe(true);
   });
 });
+
+describe('HmnGridSystem — public getters and edge labels', () => {
+  it('getLabels returns an empty array (DHG underneath carries those)', () => {
+    const grid = new HmnGridSystem();
+    expect(grid.getLabels([-10, 40, 20, 60], 0.05, 'EPSG:4326')).toEqual([]);
+  });
+
+  it('exposes the datumShift the instance was constructed with', () => {
+    const grid = new HmnGridSystem();
+    expect(grid.datumShift).toBeDefined();
+  });
+
+  it('exposes the configured maxDepth (default and overridden)', () => {
+    expect(new HmnGridSystem().maxDepth).toBeGreaterThanOrEqual(2);
+    expect(new HmnGridSystem({ maxDepth: 2 }).maxDepth).toBe(2);
+    expect(new HmnGridSystem({ maxDepth: 4 }).maxDepth).toBe(4);
+  });
+});
+
+describe('DhgGridSystem — public getters', () => {
+  it('exposes the datumShift the instance was constructed with', () => {
+    const grid = new DhgGridSystem();
+    expect(grid.datumShift).toBeDefined();
+  });
+
+  it('exposes the configured zoneBoundaryMode', () => {
+    const grid = new DhgGridSystem();
+    expect(typeof grid.zoneBoundaryMode).toBe('string');
+  });
+});

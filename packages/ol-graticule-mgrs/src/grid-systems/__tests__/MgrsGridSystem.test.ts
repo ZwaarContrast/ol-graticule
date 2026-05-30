@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import LineString from 'ol/geom/LineString';
 import type Feature from 'ol/Feature';
 import type Geometry from 'ol/geom/Geometry';
+import { isCombinedFormatted } from '@zwaarcontrast/ol-graticule';
 import { MgrsGridSystem } from '../MgrsGridSystem.js';
 
 /**
@@ -111,5 +112,98 @@ describe('MgrsGridSystem GZD outlines', () => {
       const segs = meridianSegmentsAt(features, present);
       expect(segs.length).toBe(1);
     }
+  });
+});
+
+describe('MgrsGridSystem.getLabels', () => {
+  it('returns an empty array (axis labels are not emitted for MGRS)', () => {
+    const grid = new MgrsGridSystem();
+    expect(grid.getLabels()).toEqual([]);
+  });
+});
+
+describe('MgrsGridSystem.getCellLabels', () => {
+  it('emits GZD labels for a UTM-band viewport (Western Europe)', () => {
+    const grid = new MgrsGridSystem();
+    const labels = grid.getCellLabels(
+      [-2, 49, 8, 54],
+      0.01,
+      'EPSG:4326',
+    );
+    expect(labels.length).toBeGreaterThan(0);
+    const gzdRe = /^\d{1,2}[A-Z]$/;
+    const cellRe = /^[A-Z]{2}$/;
+    expect(labels.some((l) => gzdRe.test(l.text))).toBe(true);
+    for (const label of labels) {
+      expect(gzdRe.test(label.text) || cellRe.test(label.text)).toBe(true);
+      const [x, y] = label.point.getCoordinates();
+      expect(Number.isFinite(x)).toBe(true);
+      expect(Number.isFinite(y)).toBe(true);
+      expect(label.cellSizePx).toBeGreaterThan(0);
+    }
+  });
+
+  it('emits 100 km cell labels when the viewport is zoomed in enough', () => {
+    const grid = new MgrsGridSystem();
+    const labels = grid.getCellLabels(
+      [4, 51, 6, 53],
+      0.005,
+      'EPSG:4326',
+    );
+    const cellLabels = labels.filter((l) => /^[A-Z]{2}$/.test(l.text));
+    expect(cellLabels.length).toBeGreaterThan(0);
+  });
+
+  it('emits UPS labels for a north-polar viewport', () => {
+    const grid = new MgrsGridSystem();
+    const labels = grid.getCellLabels(
+      [-30, 84, 30, 89],
+      0.02,
+      'EPSG:4326',
+    );
+    expect(labels.length).toBeGreaterThan(0);
+    expect(labels.some((l) => l.text === 'Y' || l.text === 'Z')).toBe(true);
+  });
+});
+
+describe('MgrsGridSystem.formatCoordinate', () => {
+  it('formats a UTM-band coordinate into an MGRS string', () => {
+    const grid = new MgrsGridSystem();
+    const out = grid.formatCoordinate([4.895, 52.37], 'EPSG:4326');
+    expect(isCombinedFormatted(out)).toBe(true);
+    if (isCombinedFormatted(out)) expect(out.combined).toMatch(/^31U/);
+  });
+
+  it('returns `-` for a coordinate that does not project to lat/lon', () => {
+    const grid = new MgrsGridSystem();
+    const out = grid.formatCoordinate([Number.NaN, Number.NaN], 'EPSG:4326');
+    expect(isCombinedFormatted(out)).toBe(true);
+    if (isCombinedFormatted(out)) expect(out.combined).toBe('-');
+  });
+
+  it('caches by view-projection + rounded coordinate (returns equal output for nearby calls)', () => {
+    const grid = new MgrsGridSystem();
+    const a = grid.formatCoordinate([4.895, 52.37], 'EPSG:4326');
+    const b = grid.formatCoordinate([4.895, 52.37], 'EPSG:4326');
+    expect(a).toEqual(b);
+  });
+});
+
+describe('MgrsGridSystem.isValidCoordinate', () => {
+  it('accepts a normal lat/lon coordinate', () => {
+    const grid = new MgrsGridSystem();
+    expect(grid.isValidCoordinate([4.895, 52.37], 'EPSG:4326')).toBe(true);
+  });
+
+  it('rejects non-finite coordinates', () => {
+    const grid = new MgrsGridSystem();
+    expect(grid.isValidCoordinate([Number.NaN, 52], 'EPSG:4326')).toBe(false);
+    expect(grid.isValidCoordinate([4, Number.POSITIVE_INFINITY], 'EPSG:4326')).toBe(false);
+  });
+
+  it('rejects coordinates beyond the latitude range', () => {
+    const grid = new MgrsGridSystem();
+    expect(grid.isValidCoordinate([0, 95], 'EPSG:4326')).toBe(false);
+    expect(grid.isValidCoordinate([0, -95], 'EPSG:4326')).toBe(false);
   });
 });

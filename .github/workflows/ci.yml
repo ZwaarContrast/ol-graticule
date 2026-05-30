@@ -60,3 +60,23 @@ jobs:
       - run: npm run build
 
       - run: npm test
+
+  coverage:
+    name: Coverage
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test:coverage
+      - name: Coverage report
+        if: always()
+        uses: davelosert/vitest-coverage-report-action@v2

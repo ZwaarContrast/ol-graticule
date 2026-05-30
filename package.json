@@ -21,7 +21,8 @@
   "scripts": {
     "build": "tsc --build",
     "type-check": "tsc --build --noEmit",
-    "test": "npm run test --workspaces --if-present",
+    "test": "vitest run",
+    "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{ts,js,json,md}\"",

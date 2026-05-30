@@ -51,3 +51,48 @@ describe('GeographicHmnGridSystem render smoke', () => {
     }
   });
 });
+
+describe('GeographicHmnGridSystem — public coordinate methods', () => {
+  it('getLabels returns an empty array (cells carry the labels)', () => {
+    const grid = new GeographicHmnGridSystem();
+    expect(grid.getLabels()).toEqual([]);
+  });
+
+  it('formatCoordinate returns a canonical HMN ref for a Den Haag point', () => {
+    const grid = new GeographicHmnGridSystem({ maxDepth: 2 });
+    const out = grid.formatCoordinate([4.31, 52.08], 'EPSG:4326');
+    expect(out).toHaveProperty('combined');
+    if ('combined' in out) {
+      expect(out.combined).toMatch(/^[A-HJ-Z]{2}$/);
+    }
+  });
+
+  it('formatCoordinate returns `-` for a non-projectable coordinate', () => {
+    const grid = new GeographicHmnGridSystem();
+    const out = grid.formatCoordinate([Number.NaN, Number.NaN], 'EPSG:4326');
+    expect(out).toHaveProperty('combined');
+    if ('combined' in out) expect(out.combined).toBe('-');
+  });
+
+  it('formatCoordinate caches per (coord, projection) — repeats return the same object', () => {
+    const grid = new GeographicHmnGridSystem();
+    const a = grid.formatCoordinate([4.31, 52.08], 'EPSG:4326');
+    const b = grid.formatCoordinate([4.31, 52.08], 'EPSG:4326');
+    expect(a).toBe(b);
+  });
+
+  it('isValidCoordinate accepts mid-latitude coords and rejects polar/non-finite', () => {
+    const grid = new GeographicHmnGridSystem();
+    expect(grid.isValidCoordinate([4.31, 52.08], 'EPSG:4326')).toBe(true);
+    expect(grid.isValidCoordinate([0, 88], 'EPSG:4326')).toBe(false);
+    expect(grid.isValidCoordinate([0, -88], 'EPSG:4326')).toBe(false);
+    expect(grid.isValidCoordinate([Number.NaN, 0], 'EPSG:4326')).toBe(false);
+    expect(grid.isValidCoordinate([0, Number.POSITIVE_INFINITY], 'EPSG:4326')).toBe(false);
+  });
+
+  it('exposes the configured maxDepth', () => {
+    expect(new GeographicHmnGridSystem().maxDepth).toBeGreaterThanOrEqual(2);
+    expect(new GeographicHmnGridSystem({ maxDepth: 2 }).maxDepth).toBe(2);
+    expect(new GeographicHmnGridSystem({ maxDepth: 4 }).maxDepth).toBe(4);
+  });
+});

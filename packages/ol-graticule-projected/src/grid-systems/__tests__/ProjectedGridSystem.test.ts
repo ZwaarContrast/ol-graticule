@@ -431,4 +431,58 @@ describe('ProjectedGridSystem', () => {
       expect(py).toBeCloseTo(original[1], 0);
     });
   });
+
+  describe('getCellLabels', () => {
+    const formatter = {
+      format: (v: number, _axis: 'x' | 'y'): string => String(v),
+      formatCellLabel: (x: number, y: number): string | undefined => {
+        if (x < 0 || y < 0) return undefined;
+        return `${Math.round(x)},${Math.round(y)}`;
+      },
+    };
+
+    it('returns an empty array when the formatter has no formatCellLabel', () => {
+      const sys = new ProjectedGridSystem({
+        crs: 'EPSG:4326',
+        formatter: { format: (v) => String(v) },
+      });
+      const labels = sys.getCellLabels([0, 0, 10, 10], 0.1, 'EPSG:4326');
+      expect(labels).toEqual([]);
+    });
+
+    it('emits one cell label per cell whose formatCellLabel returns a value', () => {
+      const sys = new ProjectedGridSystem({ crs: 'EPSG:4326', formatter });
+      const labels = sys.getCellLabels([0, 0, 5, 5], 0.05, 'EPSG:4326');
+      expect(labels.length).toBeGreaterThan(0);
+      for (const label of labels) {
+        expect(label.text).toMatch(/^\d+,\d+$/);
+        const [x, y] = label.point.getCoordinates();
+        expect(Number.isFinite(x)).toBe(true);
+        expect(Number.isFinite(y)).toBe(true);
+        expect(label.cellSizePx).toBeGreaterThan(0);
+      }
+    });
+
+    it('skips cells where formatCellLabel returns undefined (negative-coord quadrant)', () => {
+      const sys = new ProjectedGridSystem({ crs: 'EPSG:4326', formatter });
+      const labels = sys.getCellLabels([-5, -5, 5, 5], 0.05, 'EPSG:4326');
+      expect(labels.length).toBeGreaterThan(0);
+      for (const label of labels) {
+        const [x, y] = label.point.getCoordinates();
+        expect(x).toBeGreaterThanOrEqual(0);
+        expect(y).toBeGreaterThanOrEqual(0);
+      }
+    });
+
+    it('returns an empty array when every cell skips (no formatCellLabel hits)', () => {
+      const sys = new ProjectedGridSystem({
+        crs: 'EPSG:4326',
+        formatter: {
+          format: (v) => String(v),
+          formatCellLabel: () => undefined,
+        },
+      });
+      expect(sys.getCellLabels([0, 0, 10, 10], 0.1, 'EPSG:4326')).toEqual([]);
+    });
+  });
 });
