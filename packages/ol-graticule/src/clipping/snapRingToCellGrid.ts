@@ -1,3 +1,4 @@
+import { createEmpty, extendXY } from 'ol/extent';
 import { pointInRing } from './pointInRing.js';
 
 /** Snap a ring to an axis-aligned cell grid; returns staircase rings per region. */
@@ -10,14 +11,9 @@ export function snapRingToCellGrid(
   if (n < 3) return [];
   const NONE: [number, number][][] = [];
 
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (let i = 0; i < n; i++) {
-    const p = ring[i]!;
-    if (p[0] < minX) minX = p[0];
-    if (p[0] > maxX) maxX = p[0];
-    if (p[1] < minY) minY = p[1];
-    if (p[1] > maxY) maxY = p[1];
-  }
+  const bbox = createEmpty();
+  for (let i = 0; i < n; i++) extendXY(bbox, ring[i][0], ring[i][1]);
+  const [minX, minY, maxX, maxY] = bbox;
 
   const startX = Math.floor(minX / interval) * interval;
   const startY = Math.floor(minY / interval) * interval;

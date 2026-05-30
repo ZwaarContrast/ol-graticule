@@ -5,6 +5,7 @@
  * the cell is in: either an explicit `Grossquadrat`, or a `near` location.
  */
 
+import { boundingExtent } from 'ol/extent';
 import { forward, inverseBatch } from '../dhg/projection.js';
 import { FALSE_EASTING } from '../dhg/zones.js';
 import type { DatumShift, LatLon } from '../dhg/types.js';
@@ -91,9 +92,6 @@ export function parseHmn(text: string, options: ParseHmnOptions): DecodedHmnRef 
     ],
     shift,
   );
-  const lats = [nw[0], ne[0], sw[0], se[0]];
-  const lons = [nw[1], ne[1], sw[1], se[1]];
-
   const klein = col + row;
   const canonical = canonicalizeHmnLabel(klein, meldetrapez, arbeitstrapez, tenths);
 
@@ -102,7 +100,7 @@ export function parseHmn(text: string, options: ParseHmnOptions): DecodedHmnRef 
     kleinquadrat: klein,
     grossquadrat,
     depth,
-    bbox: [Math.min(...lons), Math.min(...lats), Math.max(...lons), Math.max(...lats)],
+    bbox: boundingExtent([[nw[1], nw[0]], [ne[1], ne[0]], [sw[1], sw[0]], [se[1], se[0]]]),
     center,
   };
   if (meldetrapez !== undefined) ref.meldetrapez = meldetrapez;

@@ -1,3 +1,4 @@
+import type { Extent } from 'ol/extent';
 import type { LatLon } from '@zwaarcontrast/ol-graticule';
 
 import type { DatumShift } from '../dhg/types.js';
@@ -42,7 +43,7 @@ export interface DecodedHmnRef {
   /** Depth resolved: 2 (Kleinquadrat) … 5 (with tenths). */
   depth: 2 | 3 | 4 | 5;
   /** Geographic bounding box of the resolved cell: `[minLon, minLat, maxLon, maxLat]`. */
-  bbox: [number, number, number, number];
+  bbox: Extent;
   /** Geographic centre of the resolved cell: `[lat, lon]`. */
   center: LatLon;
   /**

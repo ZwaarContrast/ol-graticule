@@ -4,7 +4,7 @@ import Point from 'ol/geom/Point';
 import Polygon from 'ol/geom/Polygon';
 import { get as getProjection, getTransform, transform } from 'ol/proj';
 import type { Coordinate } from 'ol/coordinate';
-import { getIntersection, isEmpty } from 'ol/extent';
+import { boundingExtent, getIntersection, isEmpty } from 'ol/extent';
 import type { Extent } from 'ol/extent';
 import type { Geometry } from 'ol/geom';
 import type { ProjectionLike, TransformFunction } from 'ol/proj';
@@ -112,7 +112,7 @@ export class PolygonClippedGridSystem implements GridSystem {
 
       const flat = geom.getFlatCoordinates();
       const stride = geom.getStride();
-      let coords: ReadonlyArray<number>;
+      let coords: number[];
       let coordOffset: number;
       let coordEnd: number;
       let coordStride: number;
@@ -372,14 +372,7 @@ function clippedCellSizePx_(
 }
 
 function ringMinExtent_(ring: Coordinate[]): number {
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (let i = 0; i < ring.length; i++) {
-    const p = ring[i];
-    if (p[0] < minX) minX = p[0];
-    if (p[0] > maxX) maxX = p[0];
-    if (p[1] < minY) minY = p[1];
-    if (p[1] > maxY) maxY = p[1];
-  }
+  const [minX, minY, maxX, maxY] = boundingExtent(ring);
   const w = maxX - minX;
   const h = maxY - minY;
   return w < h ? w : h;

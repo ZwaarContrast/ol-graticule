@@ -1,3 +1,4 @@
+import { createEmpty, extendXY } from 'ol/extent';
 import type { Extent } from 'ol/extent';
 
 /** Uniform-grid spatial index over a ring's edges for fast bbox queries. */
@@ -28,7 +29,7 @@ export class PolygonEdgeIndex {
     this.numEdges_ = totalEdges;
     this.edgeBuf_ = new Float64Array(totalEdges * 4);
 
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    const extent = createEmpty();
     let edgeIdx = 0;
     for (let r = 0; r < rings.length; r++) {
       const ring = rings[r]!;
@@ -41,14 +42,12 @@ export class PolygonEdgeIndex {
         this.edgeBuf_[base + 1] = p0[1];
         this.edgeBuf_[base + 2] = p1[0];
         this.edgeBuf_[base + 3] = p1[1];
-        if (p0[0] < minX) minX = p0[0];
-        if (p0[0] > maxX) maxX = p0[0];
-        if (p0[1] < minY) minY = p0[1];
-        if (p0[1] > maxY) maxY = p0[1];
+        extendXY(extent, p0[0], p0[1]);
         edgeIdx++;
       }
     }
-    this.extent_ = [minX, minY, maxX, maxY];
+    this.extent_ = extent;
+    const [minX, minY, maxX, maxY] = extent;
 
     this.cells_ = Math.max(1, Math.ceil(Math.sqrt(totalEdges)));
     this.cellSizeX_ = (maxX - minX) / this.cells_ || 1;

@@ -10,6 +10,7 @@
  * (Liang-Barsky): no index, no per-edge intersections, just four scalar
  * inequalities per segment.
  */
+import { createOrUpdateFromFlatCoordinates, intersects } from 'ol/extent';
 import { PolygonEdgeIndex, createEdgeBuffer, type EdgeBuffer } from './PolygonEdgeIndex.js';
 
 const T_EPSILON = 1e-9;
@@ -38,7 +39,7 @@ export function createClipScratch(): ClipScratch {
  * Returns an array of flat-coordinate sub-polylines (all XY).
  */
 export function clipPolylineToPolygon(
-  flatCoordinates: ReadonlyArray<number>,
+  flatCoordinates: number[],
   offset: number,
   end: number,
   stride: number,
@@ -48,18 +49,8 @@ export function clipPolylineToPolygon(
   const count = (end - offset) / stride;
   if (count < 2) return [];
 
-  let plMinX = Infinity, plMinY = Infinity, plMaxX = -Infinity, plMaxY = -Infinity;
-  for (let i = offset; i < end; i += stride) {
-    const x = flatCoordinates[i]!, y = flatCoordinates[i + 1]!;
-    if (x < plMinX) plMinX = x;
-    if (x > plMaxX) plMaxX = x;
-    if (y < plMinY) plMinY = y;
-    if (y > plMaxY) plMaxY = y;
-  }
-  const [rMinX, rMinY, rMaxX, rMaxY] = index.ringExtent;
-  if (plMaxX < rMinX || plMinX > rMaxX || plMaxY < rMinY || plMinY > rMaxY) {
-    return [];
-  }
+  const bbox = createOrUpdateFromFlatCoordinates(flatCoordinates, offset, end, stride);
+  if (!intersects(bbox, index.ringExtent)) return [];
 
   const scr = scratch ?? createClipScratch();
   const inside = scr.insideFlags;

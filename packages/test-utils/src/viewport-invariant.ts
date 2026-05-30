@@ -1,4 +1,5 @@
 import LineString from 'ol/geom/LineString';
+import { createOrUpdateFromFlatCoordinates, intersects } from 'ol/extent';
 import type { Extent } from 'ol/extent';
 import type { ProjectionLike } from 'ol/proj';
 import type Feature from 'ol/Feature';
@@ -14,17 +15,10 @@ interface GridSystemLike {
 }
 
 export interface OffScreenFeature {
-  bbox: [number, number, number, number];
+  bbox: Extent;
   gridLineType?: string;
   gridAxis?: string;
   gridValue?: string;
-}
-
-function bboxIntersectsExtent(
-  bMinX: number, bMinY: number, bMaxX: number, bMaxY: number,
-  eMinX: number, eMinY: number, eMaxX: number, eMaxY: number,
-): boolean {
-  return !(bMaxX < eMinX || bMinX > eMaxX || bMaxY < eMinY || bMinY > eMaxY);
 }
 
 /**
@@ -40,25 +34,16 @@ export function findOffScreenFeatures(
 ): OffScreenFeature[] {
   const features = grid.getFeatures(extent, resolution, viewProjection);
   const out: OffScreenFeature[] = [];
-  const [eMinX, eMinY, eMaxX, eMaxY] = extent;
   for (const f of features) {
     const geom = f.getGeometry();
     if (!(geom instanceof LineString)) continue;
     const flat = geom.getFlatCoordinates();
     const stride = geom.getStride();
     if (flat.length < stride) continue;
-    let bMinX = Infinity, bMinY = Infinity, bMaxX = -Infinity, bMaxY = -Infinity;
-    for (let i = 0; i < flat.length; i += stride) {
-      const x = flat[i]!;
-      const y = flat[i + 1]!;
-      if (x < bMinX) bMinX = x;
-      if (x > bMaxX) bMaxX = x;
-      if (y < bMinY) bMinY = y;
-      if (y > bMaxY) bMaxY = y;
-    }
-    if (!bboxIntersectsExtent(bMinX, bMinY, bMaxX, bMaxY, eMinX, eMinY, eMaxX, eMaxY)) {
+    const bbox = createOrUpdateFromFlatCoordinates(flat, 0, flat.length, stride);
+    if (!intersects(bbox, extent)) {
       out.push({
-        bbox: [bMinX, bMinY, bMaxX, bMaxY],
+        bbox,
         gridLineType: maybeString_(f.get('gridLineType')),
         gridAxis: maybeString_(f.get('gridAxis')),
         gridValue: maybeString_(f.get('gridValue')),

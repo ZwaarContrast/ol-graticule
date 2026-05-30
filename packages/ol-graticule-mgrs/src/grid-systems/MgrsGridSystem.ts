@@ -27,6 +27,7 @@ import {
   RenderCache,
   TransformCache,
   transformBatchCached,
+  transformExtentSampled,
 } from '@zwaarcontrast/ol-graticule';
 import { registerCRS } from '@zwaarcontrast/ol-graticule-projected';
 import { iterateVisibleGzds, type Gzd } from '../mgrs/gzd.js';
@@ -627,30 +628,8 @@ function sampleLatLonRectInUtm_(
   const lonEE = lonE >=  180 ?  180 - EPS : lonE;
   const latSE = latS <= -90  ?  -90 + EPS : latS;
   const latNE = latN >=  90  ?   90 - EPS : latN;
-  let minE = Infinity, minN = Infinity, maxE = -Infinity, maxN = -Infinity;
-  const consider = (e: number | undefined, n: number | undefined): void => {
-    if (e === undefined || n === undefined) return;
-    if (!Number.isFinite(e) || !Number.isFinite(n)) return;
-    if (e < minE) minE = e;
-    if (e > maxE) maxE = e;
-    if (n < minN) minN = n;
-    if (n > maxN) maxN = n;
-  };
-  for (let i = 0; i <= samples; i++) {
-    const t = i / samples;
-    const lon = lonWE + t * (lonEE - lonWE);
-    const lat = latSE + t * (latNE - latSE);
-    const top = toUtm([lon, latNE], undefined, 2);
-    const bottom = toUtm([lon, latSE], undefined, 2);
-    const left = toUtm([lonWE, lat], undefined, 2);
-    const right = toUtm([lonEE, lat], undefined, 2);
-    consider(top[0], top[1]);
-    consider(bottom[0], bottom[1]);
-    consider(left[0], left[1]);
-    consider(right[0], right[1]);
-  }
-  if (!Number.isFinite(minE)) return null;
-  return [minE, minN, maxE, maxN];
+  const out = transformExtentSampled([lonWE, latSE, lonEE, latNE], toUtm, samples);
+  return Number.isFinite(out[0]) ? out : null;
 }
 
 /** Sample the UTM extent of a GZD's lat/lon footprint along its four edges. */

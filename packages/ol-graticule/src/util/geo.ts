@@ -1,3 +1,4 @@
+import { buffer, createEmpty, extendXY } from 'ol/extent';
 import type { Extent } from 'ol/extent';
 import type { TransformFunction } from 'ol/proj';
 
@@ -14,14 +15,9 @@ export function extentFromPolygon(
   polygon: ReadonlyArray<readonly [number, number]>,
   pad = 0,
 ): Extent {
-  let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-  for (const [x, y] of polygon) {
-    if (x < minX) minX = x;
-    if (x > maxX) maxX = x;
-    if (y < minY) minY = y;
-    if (y > maxY) maxY = y;
-  }
-  return [minX - pad, minY - pad, maxX + pad, maxY + pad];
+  const extent = createEmpty();
+  for (const [x, y] of polygon) extendXY(extent, x, y);
+  return pad === 0 ? extent : buffer(extent, pad);
 }
 
 /**
@@ -35,20 +31,14 @@ export function transformExtentSampled(
   samples = 8,
 ): Extent {
   const [minX, minY, maxX, maxY] = extent;
-  let rMinX = Infinity;
-  let rMinY = Infinity;
-  let rMaxX = -Infinity;
-  let rMaxY = -Infinity;
+  const out = createEmpty();
 
   const update = (xy: number[]): void => {
     const x = xy[0];
     const y = xy[1];
     if (x === undefined || y === undefined) return;
     if (!isFinite(x) || !isFinite(y)) return;
-    if (x < rMinX) rMinX = x;
-    if (y < rMinY) rMinY = y;
-    if (x > rMaxX) rMaxX = x;
-    if (y > rMaxY) rMaxY = y;
+    extendXY(out, x, y);
   };
 
   for (let i = 0; i <= samples; i++) {
@@ -61,6 +51,6 @@ export function transformExtentSampled(
     update(transformFn([maxX, y], undefined, 2));
   }
 
-  if (!isFinite(rMinX)) return [NaN, NaN, NaN, NaN];
-  return [rMinX, rMinY, rMaxX, rMaxY];
+  if (!isFinite(out[0])) return [NaN, NaN, NaN, NaN];
+  return out;
 }

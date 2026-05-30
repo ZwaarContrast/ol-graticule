@@ -6,6 +6,7 @@
  * his research at navalgrid.com. See the package README for the full credit.
  */
 
+import { createEmpty, extendXY } from 'ol/extent';
 import type { Extent } from 'ol/extent';
 import type { Coordinate } from 'ol/coordinate';
 import type { ProjectionLike } from 'ol/proj';
@@ -55,14 +56,9 @@ export function squareExtent(sq: Square): Extent {
 
   let ext: Extent;
   if (isPolySquare(sq)) {
-    let minLat = 90, maxLat = -90, minLon = 180, maxLon = -180;
-    for (const [lat, lon] of sq.poly) {
-      if (lat < minLat) minLat = lat;
-      if (lat > maxLat) maxLat = lat;
-      if (lon < minLon) minLon = lon;
-      if (lon > maxLon) maxLon = lon;
-    }
-    ext = [minLon, minLat, maxLon, maxLat];
+    const bbox = createEmpty();
+    for (const [lat, lon] of sq.poly) extendXY(bbox, lon, lat);
+    ext = bbox;
   } else {
     const { nw, se } = sq;
     if (rectCrossesAntimeridian(nw, se)) {
