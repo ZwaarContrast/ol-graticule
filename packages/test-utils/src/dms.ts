@@ -7,8 +7,3 @@
 export function dms(deg: number, min: number, sec = 0): number {
   return deg + (min * 60 + sec) / 3600;
 }
-
-/** Signed-DMS for southern/western inputs: `dmsSigned(-1, 52, 4, 46)`. */
-export function dmsSigned(sign: 1 | -1, deg: number, min: number, sec = 0): number {
-  return sign * dms(deg, min, sec);
-}

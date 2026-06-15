@@ -16,9 +16,9 @@ interface GridSystemLike {
 
 export interface OffScreenFeature {
   bbox: Extent;
-  gridLineType?: string;
-  gridAxis?: string;
-  gridValue?: string;
+  gridLineType?: string | undefined;
+  gridAxis?: string | undefined;
+  gridValue?: string | undefined;
 }
 
 /**
