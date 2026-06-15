@@ -5,12 +5,9 @@
  * the full credit.
  */
 
-import { PolygonClippedGridSystem, extentFromPolygon } from '@zwaarcontrast/ol-graticule';
-import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
-import type { ProjectedGridSystemOptions } from '@zwaarcontrast/ol-graticule-projected';
-import { MBSFormatter } from '../formatters/MBSFormatter.js';
+import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
 import { IRISH_CASSINI_SCHEME } from '../formatters/schemes.js';
-import { MBSIntervals } from '../intervals/MBSIntervals.js';
+import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
 
 /**
  * Irish Cassini, 1825 Ordnance Survey of Ireland Cassini-Soldner.
@@ -36,32 +33,16 @@ export const IRISH_CASSINI_CLIP_POLYGON: [number, number][] = [
   [403253, -3106], [198965, -4687], [-3077, -4788],
 ];
 
-export type IrishCassiniGridSystemOptions = Omit<
-  ProjectedGridSystemOptions,
-  'crs' | 'proj4Def' | 'extent' | 'formatter' | 'intervals'
-> & {
-  /** Override the default AOI; coordinates in Cassini metres ({@link IRISH_CASSINI_CRS}). */
-  clipPolygon?: [number, number][] | undefined;
-};
+export type IrishCassiniGridSystemOptions = MBSGridSystemOptions;
 
 export function createIrishCassiniGridSystem(
   options?: IrishCassiniGridSystemOptions,
 ): PolygonClippedGridSystem {
-  registerCRS(IRISH_CASSINI_CRS, IRISH_CASSINI_PROJ4);
-  const { clipPolygon: clipOverride, ...projOptions } = options ?? {};
-  const clip = clipOverride ?? IRISH_CASSINI_CLIP_POLYGON;
-  const intervals = new MBSIntervals();
-  const inner = new ProjectedGridSystem({
-    ...projOptions,
-    crs: IRISH_CASSINI_CRS,
-    extent: extentFromPolygon(clip, 50_000),
-    formatter: new MBSFormatter(IRISH_CASSINI_SCHEME),
-    intervals,
-  });
-  return new PolygonClippedGridSystem({
-    source: inner,
-    clipPolygon: { rings: [clip], crs: IRISH_CASSINI_CRS },
-    cellSnapInterval: (resolution, viewProjection) =>
-      intervals.getInterval(resolution, viewProjection),
-  });
+  return createMBSGridSystem(
+    IRISH_CASSINI_CRS,
+    IRISH_CASSINI_PROJ4,
+    IRISH_CASSINI_SCHEME,
+    IRISH_CASSINI_CLIP_POLYGON,
+    options,
+  );
 }

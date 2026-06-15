@@ -5,17 +5,14 @@
  * the full credit.
  */
 
-import { PolygonClippedGridSystem, extentFromPolygon } from '@zwaarcontrast/ol-graticule';
-import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
-import type { ProjectedGridSystemOptions } from '@zwaarcontrast/ol-graticule-projected';
-import { MBSFormatter } from '../formatters/MBSFormatter.js';
+import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
 import {
   FRENCH_LAMBERT_1_SCHEME,
   FRENCH_LAMBERT_2_SCHEME,
   FRENCH_LAMBERT_3_SCHEME,
   type MBSLetterScheme,
 } from '../formatters/schemes.js';
-import { MBSIntervals } from '../intervals/MBSIntervals.js';
+import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
 
 /** French IGN Lambert zones I (Nord), II (Centre), and III (Sud) with the MBS letter-cell grid overlaid. */
 
@@ -77,36 +74,20 @@ const ZONES: Record<1 | 2 | 3, ZoneSpec> = {
   3: { crs: FRENCH_LAMBERT_3_CRS, proj4: FRENCH_LAMBERT_3_PROJ4, scheme: FRENCH_LAMBERT_3_SCHEME, clipPolygon: FRENCH_LAMBERT_3_CLIP_POLYGON },
 };
 
-export type FrenchLambertGridSystemOptions = Omit<
-  ProjectedGridSystemOptions,
-  'crs' | 'proj4Def' | 'extent' | 'formatter' | 'intervals'
-> & {
-  /** Override the default AOI; coordinates in the zone's Lambert metres. */
-  clipPolygon?: [number, number][] | undefined;
-};
+export type FrenchLambertGridSystemOptions = MBSGridSystemOptions;
 
 function createFrenchLambert(
   zone: 1 | 2 | 3,
   options?: FrenchLambertGridSystemOptions,
 ): PolygonClippedGridSystem {
   const spec = ZONES[zone];
-  registerCRS(spec.crs, spec.proj4);
-  const { clipPolygon: clipOverride, ...projOptions } = options ?? {};
-  const clip = clipOverride ?? spec.clipPolygon;
-  const intervals = new MBSIntervals();
-  const inner = new ProjectedGridSystem({
-    ...projOptions,
-    crs: spec.crs,
-    extent: extentFromPolygon(clip, 50_000),
-    formatter: new MBSFormatter(spec.scheme),
-    intervals,
-  });
-  return new PolygonClippedGridSystem({
-    source: inner,
-    clipPolygon: { rings: [clip], crs: spec.crs },
-    cellSnapInterval: (resolution, viewProjection) =>
-      intervals.getInterval(resolution, viewProjection),
-  });
+  return createMBSGridSystem(
+    spec.crs,
+    spec.proj4,
+    spec.scheme,
+    spec.clipPolygon,
+    options,
+  );
 }
 
 export const createFrenchLambert1GridSystem = (

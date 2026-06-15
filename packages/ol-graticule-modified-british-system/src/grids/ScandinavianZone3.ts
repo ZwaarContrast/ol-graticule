@@ -5,12 +5,9 @@
  * the full credit.
  */
 
-import { PolygonClippedGridSystem, extentFromPolygon } from '@zwaarcontrast/ol-graticule';
-import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
-import type { ProjectedGridSystemOptions } from '@zwaarcontrast/ol-graticule-projected';
-import { MBSFormatter } from '../formatters/MBSFormatter.js';
+import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
 import { SCANDINAVIAN_ZONE_3_SCHEME } from '../formatters/schemes.js';
-import { MBSIntervals } from '../intervals/MBSIntervals.js';
+import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
 
 /**
  * Scandinavian Zone 3, Lambert Conformal Conic with standard parallels
@@ -36,32 +33,16 @@ export const SCANDINAVIAN_ZONE_3_CLIP_POLYGON: [number, number][] = [
   [704686, 196032], [386326, 193466], [159493, 193857],
 ];
 
-export type ScandinavianZone3GridSystemOptions = Omit<
-  ProjectedGridSystemOptions,
-  'crs' | 'proj4Def' | 'extent' | 'formatter' | 'intervals'
-> & {
-  /** Override the default AOI; coordinates in projected metres ({@link SCANDINAVIAN_ZONE_3_CRS}). */
-  clipPolygon?: [number, number][] | undefined;
-};
+export type ScandinavianZone3GridSystemOptions = MBSGridSystemOptions;
 
 export function createScandinavianZone3GridSystem(
   options?: ScandinavianZone3GridSystemOptions,
 ): PolygonClippedGridSystem {
-  registerCRS(SCANDINAVIAN_ZONE_3_CRS, SCANDINAVIAN_ZONE_3_PROJ4);
-  const { clipPolygon: clipOverride, ...projOptions } = options ?? {};
-  const clip = clipOverride ?? SCANDINAVIAN_ZONE_3_CLIP_POLYGON;
-  const intervals = new MBSIntervals();
-  const inner = new ProjectedGridSystem({
-    ...projOptions,
-    crs: SCANDINAVIAN_ZONE_3_CRS,
-    extent: extentFromPolygon(clip, 50_000),
-    formatter: new MBSFormatter(SCANDINAVIAN_ZONE_3_SCHEME),
-    intervals,
-  });
-  return new PolygonClippedGridSystem({
-    source: inner,
-    clipPolygon: { rings: [clip], crs: SCANDINAVIAN_ZONE_3_CRS },
-    cellSnapInterval: (resolution, viewProjection) =>
-      intervals.getInterval(resolution, viewProjection),
-  });
+  return createMBSGridSystem(
+    SCANDINAVIAN_ZONE_3_CRS,
+    SCANDINAVIAN_ZONE_3_PROJ4,
+    SCANDINAVIAN_ZONE_3_SCHEME,
+    SCANDINAVIAN_ZONE_3_CLIP_POLYGON,
+    options,
+  );
 }

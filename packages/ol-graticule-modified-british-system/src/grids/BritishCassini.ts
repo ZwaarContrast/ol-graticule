@@ -5,12 +5,9 @@
  * the full credit.
  */
 
-import { PolygonClippedGridSystem, extentFromPolygon } from '@zwaarcontrast/ol-graticule';
-import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
-import type { ProjectedGridSystemOptions } from '@zwaarcontrast/ol-graticule-projected';
-import { MBSFormatter } from '../formatters/MBSFormatter.js';
+import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
 import { BRITISH_CASSINI_SCHEME } from '../formatters/schemes.js';
-import { MBSIntervals } from '../intervals/MBSIntervals.js';
+import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
 
 /**
  * British Cassini, Cassini-Soldner on the OS Cassini-Delamere origin
@@ -38,32 +35,16 @@ export const BRITISH_CASSINI_CLIP_POLYGON: [number, number][] = [
   [190436, -89732], [291778, -91016], [294070, 295645], [195665, 293235],
 ];
 
-export type BritishCassiniGridSystemOptions = Omit<
-  ProjectedGridSystemOptions,
-  'crs' | 'proj4Def' | 'extent' | 'formatter' | 'intervals'
-> & {
-  /** Override the default AOI; coordinates in Cassini metres ({@link BRITISH_CASSINI_CRS}). */
-  clipPolygon?: [number, number][] | undefined;
-};
+export type BritishCassiniGridSystemOptions = MBSGridSystemOptions;
 
 export function createBritishCassiniGridSystem(
   options?: BritishCassiniGridSystemOptions,
 ): PolygonClippedGridSystem {
-  registerCRS(BRITISH_CASSINI_CRS, BRITISH_CASSINI_PROJ4);
-  const { clipPolygon: clipOverride, ...projOptions } = options ?? {};
-  const clip = clipOverride ?? BRITISH_CASSINI_CLIP_POLYGON;
-  const intervals = new MBSIntervals();
-  const inner = new ProjectedGridSystem({
-    ...projOptions,
-    crs: BRITISH_CASSINI_CRS,
-    extent: extentFromPolygon(clip, 50_000),
-    formatter: new MBSFormatter(BRITISH_CASSINI_SCHEME),
-    intervals,
-  });
-  return new PolygonClippedGridSystem({
-    source: inner,
-    clipPolygon: { rings: [clip], crs: BRITISH_CASSINI_CRS },
-    cellSnapInterval: (resolution, viewProjection) =>
-      intervals.getInterval(resolution, viewProjection),
-  });
+  return createMBSGridSystem(
+    BRITISH_CASSINI_CRS,
+    BRITISH_CASSINI_PROJ4,
+    BRITISH_CASSINI_SCHEME,
+    BRITISH_CASSINI_CLIP_POLYGON,
+    options,
+  );
 }
