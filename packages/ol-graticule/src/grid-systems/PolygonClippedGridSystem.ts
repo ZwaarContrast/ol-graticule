@@ -52,9 +52,8 @@ interface ViewState {
   index: PolygonEdgeIndex;
   polyCrsRings: [number, number][][];
   polyCrsIndex: PolygonEdgeIndex;
-  maxSegmentLength: number | null;
+  isSnap: boolean;
   viewToPolygon: TransformFunction;
-  polygonToView: TransformFunction;
 }
 
 /** Wraps a GridSystem to clip its features and labels against a polygon. */
@@ -112,36 +111,12 @@ export class PolygonClippedGridSystem implements GridSystem {
 
       const flat = geom.getFlatCoordinates();
       const stride = geom.getStride();
-      let coords: number[];
-      let coordOffset: number;
-      let coordEnd: number;
-      let coordStride: number;
-
-      if (view.maxSegmentLength !== null) {
-        coords = densifyPolylineFlatViaPolygonCrs_(
-          flat,
-          0,
-          flat.length,
-          stride,
-          view.viewToPolygon,
-          view.polygonToView,
-          view.maxSegmentLength,
-        );
-        coordOffset = 0;
-        coordEnd = coords.length;
-        coordStride = 2;
-      } else {
-        coords = flat;
-        coordOffset = 0;
-        coordEnd = flat.length;
-        coordStride = stride;
-      }
 
       const clipped = clipPolylineToPolygon(
-        coords,
-        coordOffset,
-        coordEnd,
-        coordStride,
+        flat,
+        0,
+        flat.length,
+        stride,
         view.index,
         this.clipScratch_,
       );
@@ -153,8 +128,7 @@ export class PolygonClippedGridSystem implements GridSystem {
       }
     }
 
-    const isSnap = view.maxSegmentLength !== null;
-    if (this.emitBoundary_ && !isSnap && extentOverlaps_(extent, view.index.ringExtent)) {
+    if (this.emitBoundary_ && !view.isSnap && extentOverlaps_(extent, view.index.ringExtent)) {
       for (let r = 0; r < view.projectedRings.length; r++) {
         out.push(this.buildBoundaryFeature_(view.projectedRings[r]!));
       }
@@ -286,10 +260,7 @@ export class PolygonClippedGridSystem implements GridSystem {
       polyCrsRings: clipRingsInPolygonCrs,
       polyCrsIndex: new PolygonEdgeIndex(clipRingsInPolygonCrs),
       viewToPolygon: getTransform(viewProjection, this.polygonCrs_),
-      polygonToView: getTransform(this.polygonCrs_, viewProjection),
-      maxSegmentLength: snapInterval !== undefined
-        ? snapInterval / Math.max(this.ringStepsPerEdge_, 1)
-        : null,
+      isSnap: snapInterval !== undefined,
     };
     this.viewCache_.set(key, state);
     return state;
@@ -391,51 +362,6 @@ function projectRingList_(
   return out;
 }
 
-function densifyPolylineFlatViaPolygonCrs_(
-  flat: ReadonlyArray<number>,
-  offset: number,
-  end: number,
-  stride: number,
-  viewToPoly: TransformFunction,
-  polyToView: TransformFunction,
-  maxSegmentLength: number,
-): number[] {
-  const count = (end - offset) / stride;
-  if (count < 2 || !(maxSegmentLength > 0)) {
-    const passthrough: number[] = [];
-    for (let i = offset; i < end; i += stride) {
-      passthrough.push(flat[i]!, flat[i + 1]!);
-    }
-    return passthrough;
-  }
-  const out: number[] = [];
-  out.push(flat[offset]!, flat[offset + 1]!);
-  for (let i = 0; i < count - 1; i++) {
-    const o0 = offset + i * stride;
-    const o1 = o0 + stride;
-    const p0View: [number, number] = [flat[o0]!, flat[o0 + 1]!];
-    const p1View: [number, number] = [flat[o1]!, flat[o1 + 1]!];
-    const p0Poly = viewToPoly(p0View, undefined, 2);
-    const p1Poly = viewToPoly(p1View, undefined, 2);
-    const dx = p1Poly[0]! - p0Poly[0]!;
-    const dy = p1Poly[1]! - p0Poly[1]!;
-    const dist = Math.hypot(dx, dy);
-    const segments = Math.max(1, Math.ceil(dist / maxSegmentLength));
-    for (let k = 1; k < segments; k++) {
-      const t = k / segments;
-      const ix = p0Poly[0]! + t * dx;
-      const iy = p0Poly[1]! + t * dy;
-      const proj = polyToView([ix, iy], undefined, 2);
-      const px = proj[0];
-      const py = proj[1];
-      if (px !== undefined && py !== undefined && isFinite(px) && isFinite(py)) {
-        out.push(px, py);
-      }
-    }
-    out.push(p1View[0], p1View[1]);
-  }
-  return out;
-}
 
 function inflateRectilinearRing_(
   ring: ReadonlyArray<readonly [number, number]>,
