@@ -22,12 +22,46 @@ interface NominatimResult {
   /** Decimal degrees, WGS84. */
   lat: number;
   lon: number;
-  /** Human-readable label from Nominatim, e.g. "Leiden, Zuid-Holland, NL". */
+  /** Short "place, country" label, e.g. "Valkenburg ZH, Netherlands". */
   displayName: string;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
+}
+
+/**
+ * Condense a Nominatim hit to a short "place, country" label. Nominatim's
+ * `display_name` is a long comma-separated address chain (e.g. "Valkenburg
+ * ZH, 1B, J. Pellenbargweg, …, South Holland, Netherlands"). Prefer the
+ * structured `name` / `address.country` fields (addressdetails=1), falling
+ * back to the first and last segments of `display_name`.
+ */
+function shortLabel(result: Record<string, unknown>): string {
+  const displayName =
+    typeof result['display_name'] === 'string' ? result['display_name'] : '';
+  const parts = displayName
+    .split(',')
+    .map((p) => p.trim())
+    .filter((p) => p.length > 0);
+
+  const rawName = result['name'];
+  const name =
+    typeof rawName === 'string' && rawName.length > 0
+      ? rawName
+      : (parts[0] ?? '');
+
+  const address = isRecord(result['address']) ? result['address'] : undefined;
+  const rawCountry = address?.['country'];
+  const country =
+    typeof rawCountry === 'string' && rawCountry.length > 0
+      ? rawCountry
+      : parts.length > 1
+        ? parts[parts.length - 1]
+        : '';
+
+  if (name && country && name !== country) return `${name}, ${country}`;
+  return name || country || displayName;
 }
 
 /**
@@ -65,7 +99,9 @@ export async function tryNominatimFallback(
   setStatus(`📍 ${hit.displayName}`, false);
 }
 
-async function nominatimLookup(query: string): Promise<NominatimResult | undefined> {
+async function nominatimLookup(
+  query: string,
+): Promise<NominatimResult | undefined> {
   const trimmed = query.trim();
   if (trimmed.length === 0) return undefined;
 
@@ -78,11 +114,13 @@ async function nominatimLookup(query: string): Promise<NominatimResult | undefin
   url.searchParams.set('q', trimmed);
   url.searchParams.set('format', 'json');
   url.searchParams.set('limit', '1');
-  url.searchParams.set('addressdetails', '0');
+  url.searchParams.set('addressdetails', '1');
 
   let response: Response;
   try {
-    response = await fetch(url.toString(), { headers: { Accept: 'application/json' } });
+    response = await fetch(url.toString(), {
+      headers: { Accept: 'application/json' },
+    });
   } catch {
     return undefined;
   }
@@ -99,14 +137,15 @@ async function nominatimLookup(query: string): Promise<NominatimResult | undefin
   if (!isRecord(first)) return undefined;
   const latStr = first['lat'];
   const lonStr = first['lon'];
-  const displayName = first['display_name'];
-  if (typeof latStr !== 'string' || typeof lonStr !== 'string') return undefined;
+  if (typeof latStr !== 'string' || typeof lonStr !== 'string')
+    return undefined;
   const lat = Number.parseFloat(latStr);
   const lon = Number.parseFloat(lonStr);
   if (!Number.isFinite(lat) || !Number.isFinite(lon)) return undefined;
+  const label = shortLabel(first);
   return {
     lat,
     lon,
-    displayName: typeof displayName === 'string' ? displayName : trimmed,
+    displayName: label.length > 0 ? label : trimmed,
   };
 }
