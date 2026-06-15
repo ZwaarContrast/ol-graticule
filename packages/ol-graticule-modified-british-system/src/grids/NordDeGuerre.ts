@@ -6,12 +6,10 @@
  * README for the full credit.
  */
 
-import { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
-import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
-import type { ProjectedGridSystemOptions } from '@zwaarcontrast/ol-graticule-projected';
-import { MBSFormatter } from '../formatters/MBSFormatter.js';
+import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
+import { registerCRS } from '@zwaarcontrast/ol-graticule-projected';
 import { NORD_DE_GUERRE_SCHEME } from '../formatters/schemes.js';
-import { MBSIntervals } from '../intervals/MBSIntervals.js';
+import { assembleMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
 
 /** Nord de Guerre CRS (EPSG:27500), French Lambert Conformal Conic, false E/N 500 000 / 300 000 m. */
 export const NORD_DE_GUERRE_CRS = 'EPSG:27500';
@@ -76,12 +74,7 @@ export const NORD_DE_GUERRE_CLIP_POLYGON: [number, number][] = [
   [787222, 909849], [793852, 1011105], [990966, 1004936],
 ];
 
-export type NordDeGuerreGridSystemOptions = Omit<
-  ProjectedGridSystemOptions,
-  'crs' | 'proj4Def' | 'extent' | 'formatter' | 'intervals'
-> & {
-  /** Override the default MBS coverage polygon; coordinates in Nord de Guerre metres (EPSG:27500). */
-  clipPolygon?: [number, number][] | undefined;
+export type NordDeGuerreGridSystemOptions = MBSGridSystemOptions & {
   /**
    * Override the Helmert shift baked into the registered proj4 string
    * for datum transformation between EPSG:27500 and WGS84.
@@ -116,21 +109,11 @@ export function createNordDeGuerreGridSystem(
     );
   }
   registerCRS(NORD_DE_GUERRE_CRS, buildNordDeGuerreProj4(towgs84Effective));
-  const intervals = new MBSIntervals();
-  const inner = new ProjectedGridSystem({
-    ...projOptions,
-    crs: NORD_DE_GUERRE_CRS,
-    extent: NORD_DE_GUERRE_EXTENT,
-    formatter: new MBSFormatter(NORD_DE_GUERRE_SCHEME),
-    intervals,
-  });
-  return new PolygonClippedGridSystem({
-    source: inner,
-    clipPolygon: {
-      rings: [clipOverride ?? NORD_DE_GUERRE_CLIP_POLYGON],
-      crs: NORD_DE_GUERRE_CRS,
-    },
-    cellSnapInterval: (resolution, viewProjection) =>
-      intervals.getInterval(resolution, viewProjection),
-  });
+  return assembleMBSGridSystem(
+    NORD_DE_GUERRE_CRS,
+    NORD_DE_GUERRE_SCHEME,
+    clipOverride ?? NORD_DE_GUERRE_CLIP_POLYGON,
+    projOptions,
+    NORD_DE_GUERRE_EXTENT,
+  );
 }

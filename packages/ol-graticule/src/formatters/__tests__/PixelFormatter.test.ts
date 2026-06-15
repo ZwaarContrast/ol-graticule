@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import fc from 'fast-check';
 import { PixelFormatter } from '../PixelFormatter.js';
 import { ParseError } from '../../util/ParseError.js';
 
@@ -87,6 +88,28 @@ describe('PixelFormatter', () => {
     it('throws ParseError on empty or three-token input', () => {
       expect(() => f.parseCoordinate('')).toThrow(ParseError);
       expect(() => f.parseCoordinate('1 2 3')).toThrow(ParseError);
+    });
+  });
+
+  describe('robustness', () => {
+    it('resolves pathological whitespace input quickly (ReDoS guard)', () => {
+      const evil = '1' + ' '.repeat(50_000) + 'z';
+      const start = Date.now();
+      expect(() => formatter.parse(evil)).toThrow(ParseError);
+      expect(Date.now() - start).toBeLessThan(1000);
+    });
+
+    it('returns a finite number or throws ParseError for any input', () => {
+      fc.assert(
+        fc.property(fc.string(), (s) => {
+          try {
+            expect(Number.isFinite(formatter.parse(s))).toBe(true);
+          } catch (e) {
+            expect(e).toBeInstanceOf(ParseError);
+          }
+        }),
+        { numRuns: 1000 },
+      );
     });
   });
 });

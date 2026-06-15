@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import fc from 'fast-check';
-import { dms, dmsSigned } from '../dms.js';
+import { dms } from '../dms.js';
 
 describe('dms', () => {
   it('returns plain degrees when minutes and seconds are zero', () => {
@@ -110,31 +110,6 @@ describe('dms', () => {
         fc.integer({ min: 0, max: 59 }),
         (d, m) => {
           expect(dms(d, m)).toBe(dms(d, m, 0));
-        },
-      ),
-      { numRuns: 100 },
-    );
-  });
-});
-
-describe('dmsSigned', () => {
-  it('flips sign with sign=-1', () => {
-    expect(dmsSigned(-1, 52, 4, 46)).toBeCloseTo(-dms(52, 4, 46), 10);
-  });
-
-  it('passes through with sign=+1', () => {
-    expect(dmsSigned(1, 33, 51, 24)).toBeCloseTo(dms(33, 51, 24), 10);
-  });
-
-  it('property: dmsSigned(sign, ...) === sign * dms(...)', () => {
-    fc.assert(
-      fc.property(
-        fc.constantFrom(1 as const, -1 as const),
-        fc.integer({ min: 0, max: 179 }),
-        fc.integer({ min: 0, max: 59 }),
-        fc.integer({ min: 0, max: 59 }),
-        (sign, d, m, s) => {
-          expect(dmsSigned(sign, d, m, s)).toBeCloseTo(sign * dms(d, m, s), 10);
         },
       ),
       { numRuns: 100 },

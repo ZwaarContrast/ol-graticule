@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [main]
 
+# Default to read-only; jobs that need more (coverage) opt in explicitly.
+permissions:
+  contents: read
+
 # Cancel superseded runs on the same branch (saves minutes on fast follow-up pushes).
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}

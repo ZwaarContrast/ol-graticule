@@ -6,12 +6,9 @@
  * package README for the full credit.
  */
 
-import { PolygonClippedGridSystem, extentFromPolygon } from '@zwaarcontrast/ol-graticule';
-import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
-import type { ProjectedGridSystemOptions } from '@zwaarcontrast/ol-graticule-projected';
-import { MBSFormatter } from '../formatters/MBSFormatter.js';
+import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
 import { WAR_OFFICE_CASSINI_SCHEME } from '../formatters/schemes.js';
-import { MBSIntervals } from '../intervals/MBSIntervals.js';
+import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
 
 /**
  * War Office Cassini Grid ("WOFO" / "Purple Grid"), WWII British Army
@@ -39,32 +36,16 @@ export const WAR_OFFICE_CASSINI_CLIP_POLYGON: [number, number][] = [
   [96027, 203969], [195496, 204528], [195945, 596925], [95099, 595915],
 ];
 
-export type WarOfficeCassiniGridSystemOptions = Omit<
-  ProjectedGridSystemOptions,
-  'crs' | 'proj4Def' | 'extent' | 'formatter' | 'intervals'
-> & {
-  /** Override the default AOI; coordinates in WOFO metres ({@link WAR_OFFICE_CASSINI_CRS}). */
-  clipPolygon?: [number, number][] | undefined;
-};
+export type WarOfficeCassiniGridSystemOptions = MBSGridSystemOptions;
 
 export function createWarOfficeCassiniGridSystem(
   options?: WarOfficeCassiniGridSystemOptions,
 ): PolygonClippedGridSystem {
-  registerCRS(WAR_OFFICE_CASSINI_CRS, WAR_OFFICE_CASSINI_PROJ4);
-  const { clipPolygon: clipOverride, ...projOptions } = options ?? {};
-  const clip = clipOverride ?? WAR_OFFICE_CASSINI_CLIP_POLYGON;
-  const intervals = new MBSIntervals();
-  const inner = new ProjectedGridSystem({
-    ...projOptions,
-    crs: WAR_OFFICE_CASSINI_CRS,
-    extent: extentFromPolygon(clip, 50_000),
-    formatter: new MBSFormatter(WAR_OFFICE_CASSINI_SCHEME),
-    intervals,
-  });
-  return new PolygonClippedGridSystem({
-    source: inner,
-    clipPolygon: { rings: [clip], crs: WAR_OFFICE_CASSINI_CRS },
-    cellSnapInterval: (resolution, viewProjection) =>
-      intervals.getInterval(resolution, viewProjection),
-  });
+  return createMBSGridSystem(
+    WAR_OFFICE_CASSINI_CRS,
+    WAR_OFFICE_CASSINI_PROJ4,
+    WAR_OFFICE_CASSINI_SCHEME,
+    WAR_OFFICE_CASSINI_CLIP_POLYGON,
+    options,
+  );
 }

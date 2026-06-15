@@ -5,12 +5,9 @@
  * the full credit.
  */
 
-import { PolygonClippedGridSystem, extentFromPolygon } from '@zwaarcontrast/ol-graticule';
-import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
-import type { ProjectedGridSystemOptions } from '@zwaarcontrast/ol-graticule-projected';
-import { MBSFormatter } from '../formatters/MBSFormatter.js';
+import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
 import { IBERIAN_PENINSULA_SCHEME } from '../formatters/schemes.js';
-import { MBSIntervals } from '../intervals/MBSIntervals.js';
+import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
 
 /**
  * Iberian Peninsula MBS theatre, tangent Lambert Conformal Conic at
@@ -38,32 +35,16 @@ export const IBERIAN_PENINSULA_CLIP_POLYGON: [number, number][] = [
   [604069, 92719], [603965, -6123], [-5712, -7663],
 ];
 
-export type IberianPeninsulaGridSystemOptions = Omit<
-  ProjectedGridSystemOptions,
-  'crs' | 'proj4Def' | 'extent' | 'formatter' | 'intervals'
-> & {
-  /** Override the default AOI; coordinates in projected metres ({@link IBERIAN_PENINSULA_CRS}). */
-  clipPolygon?: [number, number][] | undefined;
-};
+export type IberianPeninsulaGridSystemOptions = MBSGridSystemOptions;
 
 export function createIberianPeninsulaGridSystem(
   options?: IberianPeninsulaGridSystemOptions,
 ): PolygonClippedGridSystem {
-  registerCRS(IBERIAN_PENINSULA_CRS, IBERIAN_PENINSULA_PROJ4);
-  const { clipPolygon: clipOverride, ...projOptions } = options ?? {};
-  const clip = clipOverride ?? IBERIAN_PENINSULA_CLIP_POLYGON;
-  const intervals = new MBSIntervals();
-  const inner = new ProjectedGridSystem({
-    ...projOptions,
-    crs: IBERIAN_PENINSULA_CRS,
-    extent: extentFromPolygon(clip, 50_000),
-    formatter: new MBSFormatter(IBERIAN_PENINSULA_SCHEME),
-    intervals,
-  });
-  return new PolygonClippedGridSystem({
-    source: inner,
-    clipPolygon: { rings: [clip], crs: IBERIAN_PENINSULA_CRS },
-    cellSnapInterval: (resolution, viewProjection) =>
-      intervals.getInterval(resolution, viewProjection),
-  });
+  return createMBSGridSystem(
+    IBERIAN_PENINSULA_CRS,
+    IBERIAN_PENINSULA_PROJ4,
+    IBERIAN_PENINSULA_SCHEME,
+    IBERIAN_PENINSULA_CLIP_POLYGON,
+    options,
+  );
 }

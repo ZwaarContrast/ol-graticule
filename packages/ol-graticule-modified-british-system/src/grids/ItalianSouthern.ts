@@ -5,12 +5,9 @@
  * the full credit.
  */
 
-import { PolygonClippedGridSystem, extentFromPolygon } from '@zwaarcontrast/ol-graticule';
-import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
-import type { ProjectedGridSystemOptions } from '@zwaarcontrast/ol-graticule-projected';
-import { MBSFormatter } from '../formatters/MBSFormatter.js';
+import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
 import { ITALIAN_SOUTHERN_SCHEME } from '../formatters/schemes.js';
-import { MBSIntervals } from '../intervals/MBSIntervals.js';
+import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
 
 /**
  * Italian Southern Grid, Lambert Conformal Conic with standard parallels
@@ -36,32 +33,16 @@ export const ITALIAN_SOUTHERN_CLIP_POLYGON: [number, number][] = [
   [494002, 398087], [283213, 395123], [118365, 395380], [95872, 395351],
 ];
 
-export type ItalianSouthernGridSystemOptions = Omit<
-  ProjectedGridSystemOptions,
-  'crs' | 'proj4Def' | 'extent' | 'formatter' | 'intervals'
-> & {
-  /** Override the default AOI; coordinates in projected metres ({@link ITALIAN_SOUTHERN_CRS}). */
-  clipPolygon?: [number, number][] | undefined;
-};
+export type ItalianSouthernGridSystemOptions = MBSGridSystemOptions;
 
 export function createItalianSouthernGridSystem(
   options?: ItalianSouthernGridSystemOptions,
 ): PolygonClippedGridSystem {
-  registerCRS(ITALIAN_SOUTHERN_CRS, ITALIAN_SOUTHERN_PROJ4);
-  const { clipPolygon: clipOverride, ...projOptions } = options ?? {};
-  const clip = clipOverride ?? ITALIAN_SOUTHERN_CLIP_POLYGON;
-  const intervals = new MBSIntervals();
-  const inner = new ProjectedGridSystem({
-    ...projOptions,
-    crs: ITALIAN_SOUTHERN_CRS,
-    extent: extentFromPolygon(clip, 50_000),
-    formatter: new MBSFormatter(ITALIAN_SOUTHERN_SCHEME),
-    intervals,
-  });
-  return new PolygonClippedGridSystem({
-    source: inner,
-    clipPolygon: { rings: [clip], crs: ITALIAN_SOUTHERN_CRS },
-    cellSnapInterval: (resolution, viewProjection) =>
-      intervals.getInterval(resolution, viewProjection),
-  });
+  return createMBSGridSystem(
+    ITALIAN_SOUTHERN_CRS,
+    ITALIAN_SOUTHERN_PROJ4,
+    ITALIAN_SOUTHERN_SCHEME,
+    ITALIAN_SOUTHERN_CLIP_POLYGON,
+    options,
+  );
 }

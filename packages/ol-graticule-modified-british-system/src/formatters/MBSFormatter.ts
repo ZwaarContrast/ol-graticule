@@ -100,7 +100,7 @@ export class MBSFormatter implements LabelFormatter {
     if (text.trim().length === 0) throw new ParseError(text, 'empty input');
     const trimmed = text.trim();
 
-    const compound = trimmed.match(/^([a-zA-Z])\s*([a-zA-Z])\s*([\d\s]*)$/);
+    const compound = trimmed.match(/^([a-zA-Z])\s*([a-zA-Z])([\d\s]*)$/);
     if (compound) {
       return this.parseCompound_(text, compound[1]!, compound[2]!, compound[3]!);
     }
