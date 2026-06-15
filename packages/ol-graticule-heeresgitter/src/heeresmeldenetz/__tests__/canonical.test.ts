@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import fc from 'fast-check';
 
 import {
   HMN_LABEL_PATTERN,
@@ -140,5 +141,25 @@ describe('parseHmnTokens', () => {
     expect(parseHmnTokens('PE 5b 5')).toBeUndefined();
     expect(parseHmnTokens('PE 5b 555')).toBeUndefined();
     expect(parseHmnTokens('PE 5b ab')).toBeUndefined();
+  });
+
+  it('resolves pathological whitespace input quickly (ReDoS guard)', () => {
+    const evil = 'AA' + ' '.repeat(50_000) + '!';
+    const start = performance.now();
+    expect(parseHmnTokens(evil)).toBeUndefined();
+    expect(performance.now() - start).toBeLessThan(1000);
+  });
+
+  it('never throws and returns well-formed tokens (or undefined) for any input', () => {
+    fc.assert(
+      fc.property(fc.string(), (s) => {
+        const t = parseHmnTokens(s);
+        if (t !== undefined) {
+          expect(t.kx).toBeGreaterThanOrEqual(0);
+          expect(t.ky).toBeGreaterThanOrEqual(0);
+        }
+      }),
+      { numRuns: 1000 },
+    );
   });
 });

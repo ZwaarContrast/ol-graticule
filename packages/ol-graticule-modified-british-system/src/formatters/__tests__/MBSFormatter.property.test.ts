@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import fc from 'fast-check';
+import { ParseError } from '@zwaarcontrast/ol-graticule';
 import { MBSFormatter } from '../MBSFormatter.js';
 import {
   BRITISH_CASSINI_SCHEME,
@@ -62,6 +63,32 @@ describe.each(SCHEMES)('%s — round-trip property', (label, scheme) => {
         expect(lower[1]).toBeCloseTo(upper[1], 6);
       }),
       { numRuns: 50 },
+    );
+  });
+});
+
+describe('parseCoordinate — robustness', () => {
+  const formatter = new MBSFormatter(NORD_DE_GUERRE_SCHEME);
+
+  it('resolves pathological whitespace input quickly (ReDoS guard)', () => {
+    const evil = 'AA' + '\t'.repeat(50_000) + '!';
+    const start = performance.now();
+    expect(() => formatter.parseCoordinate(evil)).toThrow(ParseError);
+    expect(performance.now() - start).toBeLessThan(1000);
+  });
+
+  it('returns a finite pair or throws ParseError for any input', () => {
+    fc.assert(
+      fc.property(fc.string(), (s) => {
+        try {
+          const [e, n] = formatter.parseCoordinate(s);
+          expect(Number.isFinite(e)).toBe(true);
+          expect(Number.isFinite(n)).toBe(true);
+        } catch (err) {
+          expect(err).toBeInstanceOf(ParseError);
+        }
+      }),
+      { numRuns: 1000 },
     );
   });
 });
