@@ -18,6 +18,7 @@ import { createNordDeGuerreGridSystem } from '@zwaarcontrast/ol-graticule-modifi
 import { KriegsmarineGridSystem } from '@zwaarcontrast/ol-graticule-marinequadratkarte';
 import { LuftwaffeGridSystem } from '@zwaarcontrast/ol-graticule-luftwaffe-planquadrat';
 import Stroke from 'ol/style/Stroke';
+import { hoverLens } from './shared';
 
 interface Scene {
   label: string;
@@ -100,6 +101,7 @@ function buildGraticule(scene: Scene): UniversalGraticule {
         minor: new Stroke({ color: blueprintMinor, width: 0.4 }),
       },
       cellLabel: dimCellLabel,
+      hoverLens,
     },
     maxLines: 250,
   });

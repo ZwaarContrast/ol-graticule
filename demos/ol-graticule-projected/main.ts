@@ -9,7 +9,7 @@ import {
   CursorPositionControl,
 } from '@zwaarcontrast/ol-graticule';
 import { ProjectedGridSystem } from '@zwaarcontrast/ol-graticule-projected';
-import { gridLine, edgeLabelText, cursorStyle } from '../shared';
+import { gridLine, edgeLabelText, cursorStyle, hoverLens } from '../shared';
 import { createCoordinateInput } from '../coordinateInput';
 
 // UTM zone 33N is only valid within ~6° of its central meridian (15°E).
@@ -31,7 +31,7 @@ const map = new Map({
     new TileLayer({ source: new OSM() }),
     new UniversalGraticule({
       gridSystem,
-      style: { line: { major: gridLine }, edgeLabel: edgeLabelText },
+      style: { line: { major: gridLine }, edgeLabel: edgeLabelText, hoverLens },
     }),
   ],
   controls: [new CursorPositionControl({ gridSystem, style: cursorStyle })],

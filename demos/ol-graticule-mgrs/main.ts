@@ -14,6 +14,7 @@ import {
   edgeLabelText,
   cellLabelHandler,
   cursorStyle,
+  hoverLens,
 } from '../shared';
 import { createCoordinateInput } from '../coordinateInput';
 
@@ -29,6 +30,7 @@ const map = new Map({
         line: { major: gridLine },
         edgeLabel: edgeLabelText,
         cellLabel: cellLabelHandler,
+        hoverLens,
       },
       // The MGRS grid is dense at low zoom levels, there can be
       // 60 UTM zones × ~10 visible row letters × 2 axes = 1200+

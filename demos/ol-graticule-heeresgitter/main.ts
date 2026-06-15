@@ -25,7 +25,7 @@ import {
   parseHmn,
   parseHmnGeo,
 } from '@zwaarcontrast/ol-graticule-heeresgitter';
-import { cursorStyle } from '../shared';
+import { cursorStyle, hoverLens } from '../shared';
 import { tryNominatimFallback } from '../nominatim';
 
 // DHG: fine black grid, matching the printed kilometre grid on the sheets.
@@ -80,6 +80,7 @@ const dhgLayer = new UniversalGraticule({
     // wartime grid, so reusing the major stroke keeps the seam unobtrusive.
     line: { major: dhgLine, minor: dhgMinorLine, boundary: dhgLine },
     edgeLabel: dhgEdgeLabelHandler,
+    hoverLens,
   },
   maxLines: 600,
 });
@@ -89,6 +90,7 @@ const hmnLayer = new UniversalGraticule({
   style: {
     line: { major: hmnLine, boundary: hmnLine },
     cellLabel: hmnCellLabelHandler,
+    hoverLens,
   },
   maxLines: 1600,
 });
@@ -98,6 +100,7 @@ const hmnGeoLayer = new UniversalGraticule({
   style: {
     line: { major: hmnGeoLine, boundary: hmnGeoLine },
     cellLabel: hmnGeoCellLabelHandler,
+    hoverLens,
   },
   maxLines: 1600,
 });

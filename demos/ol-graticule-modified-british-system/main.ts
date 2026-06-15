@@ -40,6 +40,7 @@ import {
   edgeLabelText,
   cellLabelHandler,
   cursorStyle,
+  hoverLens,
 } from '../shared';
 import { createCoordinateInput, type CoordinateInputHandle } from '../coordinateInput';
 
@@ -144,6 +145,7 @@ function applyTheatre(key: string): void {
       line: { major: gridLine },
       edgeLabel: edgeLabelText,
       cellLabel: cellLabelHandler,
+      hoverLens,
     },
     maxLines: 500,
   });

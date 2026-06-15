@@ -9,7 +9,7 @@ import {
   CursorPositionControl,
 } from '@zwaarcontrast/ol-graticule';
 import { KriegsmarineGridSystem } from '@zwaarcontrast/ol-graticule-marinequadratkarte';
-import { gridLine, cellLabelHandler, cursorStyle } from '../shared';
+import { gridLine, cellLabelHandler, cursorStyle, hoverLens } from '../shared';
 import { createCoordinateInput } from '../coordinateInput';
 
 const gridSystem = new KriegsmarineGridSystem();
@@ -20,7 +20,7 @@ const map = new Map({
     new TileLayer({ source: new OSM() }),
     new UniversalGraticule({
       gridSystem,
-      style: { line: { major: gridLine }, cellLabel: cellLabelHandler },
+      style: { line: { major: gridLine }, cellLabel: cellLabelHandler, hoverLens },
       // Kriegsmarine emits many short cell-boundary segments rather than
       // a handful of full-viewport lines, so the default cap (100 * 2)
       // truncates horizontals at world zoom. 500 is plenty of headroom.

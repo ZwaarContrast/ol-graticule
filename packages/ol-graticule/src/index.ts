@@ -62,6 +62,9 @@ export type {
   GraticuleLineStyle,
   GraticuleEdgeLabelStyle,
   GraticuleCellLabelStyle,
+  GraticuleHoverLens,
+  HoverLensOptions,
+  ResolvedHoverLens,
   EdgeLabelSlot,
   EdgeLabelContext,
   EdgeLabelStyleHandler,
@@ -81,6 +84,7 @@ export {
   createDefaultEdgeLabelHandler,
   createDefaultCellLabelHandler,
   resolveLineStyle,
+  resolveHoverLens,
 } from './style.js';
 
 export { SteppingIntervalStrategy } from './util/SteppingIntervalStrategy.js';

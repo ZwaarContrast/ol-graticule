@@ -8,7 +8,7 @@ import {
   GeographicGridSystem,
   CursorPositionControl,
 } from '@zwaarcontrast/ol-graticule';
-import { gridLine, edgeLabelText, cursorStyle } from '../shared';
+import { gridLine, edgeLabelText, cursorStyle, hoverLens } from '../shared';
 import { createCoordinateInput } from '../coordinateInput';
 
 const gridSystem = new GeographicGridSystem();
@@ -19,7 +19,7 @@ const map = new Map({
     new TileLayer({ source: new OSM() }),
     new UniversalGraticule({
       gridSystem,
-      style: { line: { major: gridLine }, edgeLabel: edgeLabelText },
+      style: { line: { major: gridLine }, edgeLabel: edgeLabelText, hoverLens },
     }),
   ],
   controls: [new CursorPositionControl({ gridSystem, style: cursorStyle })],

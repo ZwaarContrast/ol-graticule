@@ -14,7 +14,7 @@ import {
   parseRef,
 } from '@zwaarcontrast/ol-graticule-luftwaffe-planquadrat';
 import type { LuftwaffeSystem } from '@zwaarcontrast/ol-graticule-luftwaffe-planquadrat';
-import { gridLine, cursorStyle } from '../shared';
+import { gridLine, cursorStyle, hoverLens } from '../shared';
 import { createCoordinateInput } from '../coordinateInput';
 
 const snapCellLabelHandler = createDefaultCellLabelHandler({
@@ -78,7 +78,7 @@ function setActiveSystem(system: LuftwaffeSystem): void {
 function buildGraticule(): UniversalGraticule {
   return new UniversalGraticule({
     gridSystem,
-    style: { line: { major: gridLine }, cellLabel: snapCellLabelHandler },
+    style: { line: { major: gridLine }, cellLabel: snapCellLabelHandler, hoverLens },
     maxLines: 600,
   });
 }

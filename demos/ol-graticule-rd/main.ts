@@ -13,7 +13,7 @@ import {
   RD_NEW_CRS,
   RD_NEW_EXTENT,
 } from '@zwaarcontrast/ol-graticule-rd';
-import { gridLine, edgeLabelText, cursorStyle } from '../shared';
+import { gridLine, edgeLabelText, cursorStyle, hoverLens } from '../shared';
 import { createCoordinateInput } from '../coordinateInput';
 
 const gridSystem = createRDNewGridSystem();
@@ -24,7 +24,7 @@ const map = new Map({
     new TileLayer({ source: new OSM() }),
     new UniversalGraticule({
       gridSystem,
-      style: { line: { major: gridLine }, edgeLabel: edgeLabelText },
+      style: { line: { major: gridLine }, edgeLabel: edgeLabelText, hoverLens },
     }),
   ],
   controls: [new CursorPositionControl({ gridSystem, style: cursorStyle })],

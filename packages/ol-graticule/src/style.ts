@@ -14,6 +14,55 @@ export type GraticuleLineStyle =
   | { major: Stroke; minor?: Stroke; boundary?: Stroke }
   | StyleLike;
 
+/**
+ * Pointer "lens": as the cursor moves over the grid, every line swells towards
+ * it and tapers away in all directions, focusing attention on the cell under
+ * the pointer. Drawn on top of the normal grid lines, so the base grid is the
+ * floor and the lens only ever adds emphasis.
+ */
+export interface HoverLensOptions {
+  /** Falloff radius in CSS px; beyond this a line is back to its base width. Default 120. */
+  radius?: number;
+  /**
+   * Fraction of the local grid cell size at which the donut holes reach zero —
+   * a hole fades in as the cursor comes within `approachFraction × cellSize` of
+   * a crossing. Scaling by cell size keeps the trigger area proportional at
+   * every zoom. Default 0.6.
+   */
+  approachFraction?: number;
+  /**
+   * Fallback trigger distance in CSS px, used only when the cell size can't be
+   * measured (fewer than two grid lines on screen). Default 56.
+   */
+  approach?: number;
+  /**
+   * Clear "donut hole" radius in CSS px around the intersection that stays free
+   * of swell, so the thickened lines never cover the exact point the user is
+   * aiming at. The swell rises softly outside this and fades to {@link radius}.
+   * Default 16.
+   */
+  clearRadius?: number;
+  /** Extra stroke width in CSS px at the swell's peak. Default 4. */
+  boost?: number;
+  /** CSS colour of the swell. Defaults to the (major) line colour. */
+  color?: string;
+}
+
+/** Hover-lens config: options to enable, or `false`/omitted to disable. */
+export type GraticuleHoverLens = HoverLensOptions | false;
+
+/** Hover-lens config with every field filled in. */
+export interface ResolvedHoverLens {
+  radius: number;
+  approachFraction: number;
+  approach: number;
+  clearRadius: number;
+  boost: number;
+  color: string;
+}
+
+const DEFAULT_LENS_COLOR = 'rgba(0, 0, 0, 0.6)';
+
 export interface EdgeLabelContext {
   /** Label emitted by the grid system for this position. */
   label: GridLabel;
@@ -77,6 +126,8 @@ export interface GraticuleStyle {
   edgeLabel?: GraticuleEdgeLabelStyle;
   /** Cell labels; omit for defaults, `false` to suppress. */
   cellLabel?: GraticuleCellLabelStyle;
+  /** Pointer lens that swells grid lines towards the cursor; omit to disable. */
+  hoverLens?: GraticuleHoverLens;
 }
 
 /** Styling for {@link CursorPositionControl}. */
@@ -301,6 +352,44 @@ export function resolveLineStyle(input: GraticuleLineStyle | undefined): StyleLi
   }
 
   return config;
+}
+
+/**
+ * Resolve a {@link GraticuleHoverLens} to a fully-filled config, or `null` when
+ * disabled. `lineStyle` supplies the default lens colour (the major line ink).
+ */
+export function resolveHoverLens(
+  input: GraticuleHoverLens | undefined,
+  lineStyle: GraticuleLineStyle | undefined,
+): ResolvedHoverLens | null {
+  if (input === undefined || input === false) return null;
+  return {
+    radius: input.radius ?? 120,
+    approachFraction: input.approachFraction ?? 0.6,
+    approach: input.approach ?? 56,
+    clearRadius: input.clearRadius ?? 16,
+    boost: input.boost ?? 4,
+    color: input.color ?? defaultLensColor(lineStyle),
+  };
+}
+
+function defaultLensColor(lineStyle: GraticuleLineStyle | undefined): string {
+  if (lineStyle instanceof Stroke) {
+    return colorToCss(lineStyle.getColor()) ?? DEFAULT_LENS_COLOR;
+  }
+  if (lineStyle !== undefined && isMajorMinor(lineStyle)) {
+    return colorToCss(lineStyle.major.getColor()) ?? DEFAULT_LENS_COLOR;
+  }
+  return DEFAULT_LENS_COLOR;
+}
+
+function colorToCss(color: ReturnType<Stroke['getColor']>): string | null {
+  if (typeof color === 'string') return color;
+  if (Array.isArray(color) && color.length >= 3) {
+    const [r, g, b, a] = color;
+    return `rgba(${r}, ${g}, ${b}, ${a ?? 1})`;
+  }
+  return null;
 }
 
 function isMajorMinor(

@@ -9,7 +9,7 @@ import {
   PixelGridSystem,
   CursorPositionControl,
 } from '@zwaarcontrast/ol-graticule';
-import { gridLine, edgeLabelText, cursorStyle } from '../shared';
+import { gridLine, edgeLabelText, cursorStyle, hoverLens } from '../shared';
 import { createCoordinateInput } from '../coordinateInput';
 
 const WIDTH = 2000;
@@ -91,7 +91,7 @@ const map = new Map({
     }),
     new UniversalGraticule({
       gridSystem,
-      style: { line: { major: gridLine }, edgeLabel: edgeLabelText },
+      style: { line: { major: gridLine }, edgeLabel: edgeLabelText, hoverLens },
     }),
   ],
   controls: [new CursorPositionControl({ gridSystem, style: cursorStyle })],

@@ -11,7 +11,7 @@ import Stroke from 'ol/style/Stroke';
 import Fill from 'ol/style/Fill';
 import Text from 'ol/style/Text';
 import { createDefaultCellLabelHandler } from '@zwaarcontrast/ol-graticule';
-import type { CursorStyle } from '@zwaarcontrast/ol-graticule';
+import type { CursorStyle, HoverLensOptions } from '@zwaarcontrast/ol-graticule';
 
 export const palette = {
   ink: 'rgba(15, 23, 42, 0.85)',
@@ -26,6 +26,13 @@ export const gridLine = new Stroke({
   width: 1.5,
   lineDash: [6, 4],
 });
+
+/** Pointer lens that swells grid lines toward the cursor; colour follows the line ink. */
+export const hoverLens: HoverLensOptions = {
+  radius: 160,
+  clearRadius: 16,
+  boost: 4,
+};
 
 /** Cream text with an ink halo, readable on any OSM tile. */
 export const edgeLabelText = new Text({

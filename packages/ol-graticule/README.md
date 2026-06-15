@@ -132,6 +132,7 @@ new UniversalGraticule({
     }),
     // cellLabel: false    // suppress cell codes on MBS / Kriegsmarine grids
     // cellLabel: createDefaultCellLabelHandler({ fontFamily: 'Inter' })
+    hoverLens: { radius: 120, boost: 4 }, // swell lines toward the cursor
   },
 });
 ```
@@ -146,6 +147,14 @@ new UniversalGraticule({
   `false` to suppress; or a `CellLabelStyleHandler` for custom rendering.
   Tweak the defaults with
   `createDefaultCellLabelHandler({ fontFamily, fadeStops, … })`.
+- **`hoverLens`**, omit or `false` to disable; pass `HoverLensOptions` to turn
+  on a pointer lens that swells grid lines toward the cursor and tapers them
+  away, keeping a clear hole at the crossing under the pointer. Tune `radius`,
+  `boost` (peak extra width), `clearRadius`, `color`, and the cell-relative
+  `approachFraction`. Toggle it at runtime with
+  `graticule.setHoverLens({ … })` (or `setHoverLens(false)` to turn it off).
+
+![Hover lens swelling the grid lines toward the cursor over the Noordoostpolder](https://github.com/ZwaarContrast/ol-graticule/raw/main/packages/ol-graticule/images/hover-lens.jpg)
 
 The `CursorPositionControl` has its own small `style` shape:
 
