@@ -94,9 +94,9 @@ describe('PixelFormatter', () => {
   describe('robustness', () => {
     it('resolves pathological whitespace input quickly (ReDoS guard)', () => {
       const evil = '1' + ' '.repeat(50_000) + 'z';
-      const start = performance.now();
+      const start = Date.now();
       expect(() => formatter.parse(evil)).toThrow(ParseError);
-      expect(performance.now() - start).toBeLessThan(1000);
+      expect(Date.now() - start).toBeLessThan(1000);
     });
 
     it('returns a finite number or throws ParseError for any input', () => {

@@ -72,9 +72,9 @@ describe('parseCoordinate — robustness', () => {
 
   it('resolves pathological whitespace input quickly (ReDoS guard)', () => {
     const evil = 'AA' + '\t'.repeat(50_000) + '!';
-    const start = performance.now();
+    const start = Date.now();
     expect(() => formatter.parseCoordinate(evil)).toThrow(ParseError);
-    expect(performance.now() - start).toBeLessThan(1000);
+    expect(Date.now() - start).toBeLessThan(1000);
   });
 
   it('returns a finite pair or throws ParseError for any input', () => {

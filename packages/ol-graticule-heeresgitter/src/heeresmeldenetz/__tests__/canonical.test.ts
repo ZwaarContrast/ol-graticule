@@ -145,9 +145,9 @@ describe('parseHmnTokens', () => {
 
   it('resolves pathological whitespace input quickly (ReDoS guard)', () => {
     const evil = 'AA' + ' '.repeat(50_000) + '!';
-    const start = performance.now();
+    const start = Date.now();
     expect(parseHmnTokens(evil)).toBeUndefined();
-    expect(performance.now() - start).toBeLessThan(1000);
+    expect(Date.now() - start).toBeLessThan(1000);
   });
 
   it('never throws and returns well-formed tokens (or undefined) for any input', () => {
