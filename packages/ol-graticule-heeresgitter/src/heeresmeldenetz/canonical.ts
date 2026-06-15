@@ -14,7 +14,7 @@ import type { Arbeitstrapez } from './types.js';
  * Captures: kleinCol, kleinRow, meldetrapez, arbeitstrapez, tenths.
  */
 export const HMN_LABEL_PATTERN =
-  /^\s*([A-HJ-Z])([A-HJ-Z])\s*(?:([1-9])(?:\s*([a-d])(?:\s*(\d{2}))?)?)?\s*$/i;
+  /^\s*([A-HJ-Z])([A-HJ-Z])(?:\s*([1-9])(?:\s*([a-d])(?:\s*(\d{2}))?)?)?\s*$/i;
 
 /**
  * Format an HMN label from its decomposed pieces. Output:
