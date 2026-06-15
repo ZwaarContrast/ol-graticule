@@ -17,7 +17,7 @@ export class PixelFormatter implements LabelFormatter {
 
   parse(text: string, _axis?: 'x' | 'y'): number {
     if (text.trim().length === 0) throw new ParseError(text, 'empty input');
-    const cleaned = text.trim().replace(/\s*px$/i, '').trim();
+    const cleaned = text.trim().replace(/px$/i, '').trim();
     if (!/^[+-]?\d+(?:\.\d+)?$/.test(cleaned)) {
       throw new ParseError(text, 'invalid pixel value');
     }
