@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import proj4 from 'proj4';
 import { register } from 'ol/proj/proj4';
+import LineString from 'ol/geom/LineString';
 import { ProjectedGridSystem } from '../ProjectedGridSystem.js';
 import { isAxisFormatted } from '@zwaarcontrast/ol-graticule';
 import type { Extent } from 'ol/extent';
@@ -84,19 +85,17 @@ describe('ProjectedGridSystem', () => {
       }
     });
 
-    it('densifies lines with intermediate points', () => {
+    it('collapses straight lines to 2 points (lat/lon graticule is straight in Web Mercator)', () => {
       const system = new ProjectedGridSystem({ crs: 'EPSG:4326', densificationPoints: 50 });
       const features = system.getFeatures(extent, resolution, 'EPSG:3857');
 
-      const majorLine = features.find(f => f.get('gridLineType') === 'major');
-      expect(majorLine).toBeDefined();
-
-      const geometry = majorLine!.getGeometry() as import('ol/geom/LineString').default;
-      const coords = geometry.getCoordinates();
-      // Adaptive densification: at least 5 points (minimum 4 + 1), at most
-      // densificationPoints + 1, scaled to the extent span / interval ratio.
-      expect(coords.length).toBeGreaterThanOrEqual(5);
-      expect(coords.length).toBeLessThanOrEqual(51);
+      const majorLines = features.filter(f => f.get('gridLineType') === 'major');
+      expect(majorLines.length).toBeGreaterThan(0);
+      for (const line of majorLines) {
+        const geometry = line.getGeometry();
+        if (!(geometry instanceof LineString)) throw new Error('expected LineString');
+        expect(geometry.getCoordinates().length).toBe(2);
+      }
     });
   });
 
@@ -234,16 +233,31 @@ describe('ProjectedGridSystem', () => {
   });
 
   describe('custom options', () => {
-    it('respects custom densificationPoints', () => {
-      const system = new ProjectedGridSystem({ crs: 'EPSG:4326', densificationPoints: 10 });
-      const extent: Extent = [0, 5621521, 1113195, 7361866];
-      const features = system.getFeatures(extent, 1000, 'EPSG:3857');
+    it('caps a curved line at densificationPoints (cap, not fixed count)', () => {
+      // UTM zone 33N viewed far from its 15°E central meridian over a wide
+      // extent: constant-easting/northing lines genuinely curve in Web
+      // Mercator, so adaptive densification climbs until the cap binds.
+      proj4.defs('EPSG:32633', '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +type=crs');
+      register(proj4);
+      const wide: Extent = [-2_000_000, 4_000_000, 4_000_000, 9_000_000];
 
-      const majorLine = features.find(f => f.get('gridLineType') === 'major');
-      expect(majorLine).toBeDefined();
+      const longestMajor = (densificationPoints: number): number => {
+        const system = new ProjectedGridSystem({ crs: 'EPSG:32633', densificationPoints });
+        const major = system.getFeatures(wide, 1000, 'EPSG:3857')
+          .filter(f => f.get('gridLineType') === 'major');
+        let max = 0;
+        for (const f of major) {
+          const g = f.getGeometry();
+          if (g instanceof LineString) max = Math.max(max, g.getCoordinates().length);
+        }
+        return max;
+      };
 
-      const geometry = majorLine!.getGeometry() as import('ol/geom/LineString').default;
-      expect(geometry.getCoordinates().length).toBe(11);
+      const capped = longestMajor(4);
+      const generous = longestMajor(50);
+      expect(generous).toBeGreaterThan(2);      // curved → densifies beyond a chord
+      expect(capped).toBeLessThanOrEqual(5);    // never exceeds cap + 1
+      expect(capped).toBeLessThan(generous);    // the cap actually binds
     });
 
     it('respects custom targetScreenPx', () => {

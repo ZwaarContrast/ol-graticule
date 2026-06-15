@@ -20,7 +20,7 @@ import {
   RenderCache,
   TransformCache,
   emitFlatLineFeatures,
-  densifyCount,
+  adaptiveAxisTs,
   isOnMajorLine,
   measureTargetResolution,
   normalizeLon,
@@ -93,8 +93,10 @@ interface RenderContext {
   degPerPx: number;
   /** Deepest visible level; lines are drawn at this spacing. */
   deepestLevel: number;
-  /** Densification count per line. */
-  npts: number;
+  /** Parameter samples for vertical lines (constant lon, sweeping lat). */
+  xTs: number[];
+  /** Parameter samples for horizontal lines (constant lat, sweeping lon). */
+  yTs: number[];
 }
 
 export class LuftwaffeGridSystem implements GridSystem {
@@ -129,8 +131,8 @@ export class LuftwaffeGridSystem implements GridSystem {
     const deepest = this.levels_[ctx.deepestLevel]!;
     const specs: FlatLineSpec[] = [];
 
-    pushAxisSpecs(specs, ctx, this.levels_, deepest, ctx.npts, 'h');
-    pushAxisSpecs(specs, ctx, this.levels_, deepest, ctx.npts, 'v');
+    pushAxisSpecs(specs, ctx, this.levels_, deepest, 'h', ctx.yTs);
+    pushAxisSpecs(specs, ctx, this.levels_, deepest, 'v', ctx.xTs);
 
     const features: Feature<Geometry>[] = [];
     emitFlatLineFeatures(features, this.projScratch_, specs, transformFn);
@@ -284,9 +286,10 @@ export class LuftwaffeGridSystem implements GridSystem {
         deepestLevel = depth;
       }
 
-      const finest = this.levels_[deepestLevel]!;
-      const npts = densifyCount(geoExtent, finest.latSpan, this.densificationPoints_);
-      return { geoExtent, degPerPx, deepestLevel, npts };
+      const cap = this.densificationPoints_;
+      const xTs = adaptiveAxisTs('x', geoExtent, transformFn, resolution, cap);
+      const yTs = adaptiveAxisTs('y', geoExtent, transformFn, resolution, cap);
+      return { geoExtent, degPerPx, deepestLevel, xTs, yTs };
     });
   }
 }
@@ -336,8 +339,8 @@ function pushAxisSpecs(
   ctx: RenderContext,
   levels: LevelDef[],
   finest: LevelDef,
-  npts: number,
   axis: 'h' | 'v',
+  ts: number[],
 ): void {
   const [minLon, minLat, maxLon, maxLat] = ctx.geoExtent;
   if (axis === 'h') {
@@ -350,7 +353,7 @@ function pushAxisSpecs(
       out.push({
         startX: minLon, startY: lat,
         endX: maxLon,   endY: lat,
-        npts,
+        ts,
         props: { gridAxis: 'y', gridValue: lat, gridDepth: depth, gridLineType: depth === 0 ? 'major' : 'minor' },
       });
     }
@@ -363,7 +366,7 @@ function pushAxisSpecs(
       out.push({
         startX: lon, startY: minLat,
         endX: lon,   endY: maxLat,
-        npts,
+        ts,
         props: { gridAxis: 'x', gridValue: lon, gridDepth: depth, gridLineType: depth === 0 ? 'major' : 'minor' },
       });
     }

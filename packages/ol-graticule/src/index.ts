@@ -94,7 +94,8 @@ export { normalizeLon, extentFromPolygon, transformExtentSampled } from './util/
 export {
   isOnMajorLine,
   buildStraightGridLine,
-  densifyCount,
+  adaptiveAxisTs,
+  uniformTs,
   measureTargetResolution,
   emitFlatLineFeatures,
   pushAxisGridLineSpecs,

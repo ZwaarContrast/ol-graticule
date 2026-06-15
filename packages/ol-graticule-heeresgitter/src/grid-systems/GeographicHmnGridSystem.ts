@@ -26,7 +26,7 @@ import {
   BoundedCache,
   ProjectionScratch,
   RenderCache,
-  densifyCount,
+  adaptiveAxisTs,
   emitFlatLineFeatures,
   measureTargetResolution,
   pushAxisGridLineSpecs,
@@ -98,8 +98,10 @@ interface RenderContext {
   tier: Tier;
   /** EPSG:4326 → view projection transform. */
   toView: TransformFunction;
-  /** Vertices per grid line for densification. */
-  npts: number;
+  /** Parameter samples for vertical lines (constant lon, sweeping lat). */
+  xTs: number[];
+  /** Parameter samples for horizontal lines (constant lat, sweeping lon). */
+  yTs: number[];
   /** Cell size in screen pixels, used as a label fade hint. */
   cellSizePx: number;
 }
@@ -257,10 +259,11 @@ export class GeographicHmnGridSystem implements GridSystem {
       // `cellSizePx` is the cell's on-screen size in pixels, used as a label
       // fade hint and matching the units of the `fadeStops` thresholds.
       const cellDegLat = tier.latSec / ARCSEC_PER_DEG;
-      const cellDegLon = tier.lonSec / ARCSEC_PER_DEG;
-      const npts = densifyCount(target, Math.max(cellDegLat, cellDegLon), this.densificationPoints_) + 1;
+      const cap = this.densificationPoints_;
+      const xTs = adaptiveAxisTs('x', target, toView, resolution, cap);
+      const yTs = adaptiveAxisTs('y', target, toView, resolution, cap);
       const cellSizePx = cellDegLat / targetResolution;
-      return { target, tier, toView, npts, cellSizePx };
+      return { target, tier, toView, xTs, yTs, cellSizePx };
     });
   }
 
@@ -298,10 +301,10 @@ export class GeographicHmnGridSystem implements GridSystem {
 
     const specs: FlatLineSpec[] = [];
     pushAxisGridLineSpecs(
-      specs, 'x', startLon, endLon + lonTol, lonStepDeg, tMinLat, tMaxLat, ctx.npts, type, skipX,
+      specs, 'x', startLon, endLon + lonTol, lonStepDeg, tMinLat, tMaxLat, ctx.xTs, type, skipX,
     );
     pushAxisGridLineSpecs(
-      specs, 'y', startLat, endLat + latTol, latStepDeg, tMinLon, tMaxLon, ctx.npts, type, skipY,
+      specs, 'y', startLat, endLat + latTol, latStepDeg, tMinLon, tMaxLon, ctx.yTs, type, skipY,
     );
     emitFlatLineFeatures(out, this.projScratch_, specs, ctx.toView);
   }

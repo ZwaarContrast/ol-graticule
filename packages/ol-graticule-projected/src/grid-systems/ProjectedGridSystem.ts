@@ -27,7 +27,7 @@ import {
   TransformCache,
   emitFlatLineFeatures,
   isOnMajorLine,
-  densifyCount,
+  adaptiveAxisTs,
   measureTargetResolution,
   parsePairViaFormatter,
   pushAxisGridLineSpecs,
@@ -57,8 +57,8 @@ export interface ProjectedGridSystemOptions {
   /** Override the default label formatter (auto-detected from CRS units) */
   formatter?: LabelFormatter | undefined;
   /**
-   * Number of intermediate points to insert per grid line for curved rendering.
-   * Higher = smoother curves, lower = better performance. Default: 100.
+   * Maximum points per grid line. Densification is adaptive: straight lines
+   * collapse to 2 points, curved lines climb toward this cap. Default: 512.
    */
   densificationPoints?: number | undefined;
   /** Target minimum screen pixels between grid lines (default: 100) */
@@ -90,7 +90,10 @@ interface RenderContext {
   interval: number;
   minorInterval: number | undefined;
   transformFn: TransformFunction;
-  densification: number;
+  /** Parameter samples for vertical lines (constant x, sweeping y). */
+  xTs: number[];
+  /** Parameter samples for horizontal lines (constant y, sweeping x). */
+  yTs: number[];
 }
 
 // Skip minor lines that land on a major line. Projected CRS intervals can
@@ -102,6 +105,7 @@ export class ProjectedGridSystem implements GridSystem {
   private readonly crs_: string;
   private readonly intervals_: IntervalStrategy;
   private readonly formatter_: LabelFormatter;
+  /** Max uniform segments per grid line (cap on adaptive densification). */
   private readonly densificationPoints_: number;
   /** CRS-space extent override (see {@link ProjectedGridSystemOptions.extent}). */
   private readonly extent_: Extent | undefined;
@@ -114,7 +118,7 @@ export class ProjectedGridSystem implements GridSystem {
 
   constructor(options: ProjectedGridSystemOptions) {
     this.crs_ = options.crs;
-    this.densificationPoints_ = options.densificationPoints ?? 20;
+    this.densificationPoints_ = options.densificationPoints ?? 512;
     this.extent_ = options.extent;
     this.emitBoundary_ = options.emitBoundary ?? (options.extent !== undefined);
 
@@ -164,9 +168,9 @@ export class ProjectedGridSystem implements GridSystem {
     if (!ctx) return [];
     const features: Feature<Geometry>[] = [];
 
-    this.generateLines_(features, ctx.targetExtent, ctx.interval, 'major', ctx.transformFn, ctx.densification);
+    this.generateLines_(features, ctx, ctx.interval, 'major');
     if (ctx.minorInterval !== undefined) {
-      this.generateLines_(features, ctx.targetExtent, ctx.minorInterval, 'minor', ctx.transformFn, ctx.densification, ctx.interval);
+      this.generateLines_(features, ctx, ctx.minorInterval, 'minor', ctx.interval);
     }
     if (this.emitBoundary_) {
       this.generateBoundary_(features, ctx);
@@ -205,18 +209,22 @@ export class ProjectedGridSystem implements GridSystem {
     transformBatchCached(flat, flat, 2, transformFn, this.transformCache_);
 
     for (let i = 0; i < xVals.length; i++) {
-      labels.push({
+      const value = xVals[i]!;
+      const label: GridLabel = {
         point: new Point([flat[i * 2]!, flat[i * 2 + 1]!]),
-        text: this.formatter_.format(xVals[i]!, 'x'),
+        text: this.formatter_.format(value, 'x'),
         axis: 'x',
-      });
+      };
+      labels.push(label);
     }
     for (let i = 0; i < yVals.length; i++) {
-      labels.push({
+      const value = yVals[i]!;
+      const label: GridLabel = {
         point: new Point([flat[yBase + i * 2]!, flat[yBase + i * 2 + 1]!]),
-        text: this.formatter_.format(yVals[i]!, 'y'),
+        text: this.formatter_.format(value, 'y'),
         axis: 'y',
-      });
+      };
+      labels.push(label);
     }
     return labels;
   }
@@ -353,22 +361,22 @@ export class ProjectedGridSystem implements GridSystem {
       const interval = this.intervals_.getInterval(targetResolution, viewProjection);
       const minorInterval = this.intervals_.getMinorInterval?.(interval);
 
-      const densification = densifyCount(targetExtent, interval, this.densificationPoints_);
+      const cap = this.densificationPoints_;
+      const xTs = adaptiveAxisTs('x', targetExtent, crsToView, resolution, cap);
+      const yTs = adaptiveAxisTs('y', targetExtent, crsToView, resolution, cap);
 
-      return { targetExtent, interval, minorInterval, transformFn: crsToView, densification };
+      return { targetExtent, interval, minorInterval, transformFn: crsToView, xTs, yTs };
     });
   }
 
   private generateLines_(
     features: Feature<Geometry>[],
-    targetExtent: Extent,
+    ctx: RenderContext,
     interval: number,
     type: 'major' | 'minor',
-    transformFn: TransformFunction,
-    densification: number,
     majorInterval?: number | undefined,
   ): void {
-    const [tMinX, tMinY, tMaxX, tMaxY] = targetExtent;
+    const [tMinX, tMinY, tMaxX, tMaxY] = ctx.targetExtent;
     const startX = Math.ceil(tMinX / interval) * interval;
     const endX = Math.floor(tMaxX / interval) * interval;
     const startY = Math.ceil(tMinY / interval) * interval;
@@ -379,11 +387,10 @@ export class ProjectedGridSystem implements GridSystem {
     const skipMinor = (v: number): boolean =>
       type === 'minor' && majorInterval !== undefined && isOnMajorLine(v, majorInterval, epsilon);
 
-    const npts = densification + 1;
     const specs: FlatLineSpec[] = [];
-    pushAxisGridLineSpecs(specs, 'x', startX, endX, interval, tMinY, tMaxY, npts, type, skipMinor);
-    pushAxisGridLineSpecs(specs, 'y', startY, endY, interval, tMinX, tMaxX, npts, type, skipMinor);
-    emitFlatLineFeatures(features, this.projScratch_, specs, transformFn);
+    pushAxisGridLineSpecs(specs, 'x', startX, endX, interval, tMinY, tMaxY, ctx.xTs, type, skipMinor);
+    pushAxisGridLineSpecs(specs, 'y', startY, endY, interval, tMinX, tMaxX, ctx.yTs, type, skipMinor);
+    emitFlatLineFeatures(features, this.projScratch_, specs, ctx.transformFn);
   }
 
   private generateBoundary_(features: Feature<Geometry>[], ctx: RenderContext): void {
@@ -391,29 +398,30 @@ export class ProjectedGridSystem implements GridSystem {
     if (!crsExtent) return;
     const [cMinX, cMinY, cMaxX, cMaxY] = crsExtent;
     const [tMinX, tMinY, tMaxX, tMaxY] = ctx.targetExtent;
-    const npts = ctx.densification + 1;
+    // Vertical edges (constant x) sweep y like x-axis lines; horizontal edges
+    // (constant y) sweep x like y-axis lines.
     const specs: FlatLineSpec[] = [];
     if (tMinX === cMinX) {
       specs.push({
-        startX: cMinX, startY: tMinY, endX: cMinX, endY: tMaxY, npts,
+        startX: cMinX, startY: tMinY, endX: cMinX, endY: tMaxY, ts: ctx.xTs,
         props: { gridValue: cMinX, gridAxis: 'x', gridLineType: 'boundary' },
       });
     }
     if (tMaxX === cMaxX) {
       specs.push({
-        startX: cMaxX, startY: tMinY, endX: cMaxX, endY: tMaxY, npts,
+        startX: cMaxX, startY: tMinY, endX: cMaxX, endY: tMaxY, ts: ctx.xTs,
         props: { gridValue: cMaxX, gridAxis: 'x', gridLineType: 'boundary' },
       });
     }
     if (tMinY === cMinY) {
       specs.push({
-        startX: tMinX, startY: cMinY, endX: tMaxX, endY: cMinY, npts,
+        startX: tMinX, startY: cMinY, endX: tMaxX, endY: cMinY, ts: ctx.yTs,
         props: { gridValue: cMinY, gridAxis: 'y', gridLineType: 'boundary' },
       });
     }
     if (tMaxY === cMaxY) {
       specs.push({
-        startX: tMinX, startY: cMaxY, endX: tMaxX, endY: cMaxY, npts,
+        startX: tMinX, startY: cMaxY, endX: tMaxX, endY: cMaxY, ts: ctx.yTs,
         props: { gridValue: cMaxY, gridAxis: 'y', gridLineType: 'boundary' },
       });
     }

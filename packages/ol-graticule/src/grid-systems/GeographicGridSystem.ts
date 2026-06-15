@@ -12,7 +12,7 @@ import { RenderCache } from '../util/renderCache.js';
 import {
   emitFlatLineFeatures,
   isOnMajorLine,
-  densifyCount,
+  adaptiveAxisTs,
   measureTargetResolution,
   pushAxisGridLineSpecs,
   type FlatLineSpec,
@@ -41,7 +41,10 @@ interface RenderContext {
   interval: number;
   minorInterval: number | undefined;
   transformFn: TransformFunction;
-  n: number;
+  /** Parameter samples for vertical lines (constant lon, sweeping lat). */
+  xTs: number[];
+  /** Parameter samples for horizontal lines (constant lat, sweeping lon). */
+  yTs: number[];
   startX: number;
   endX: number;
   startY: number;
@@ -150,14 +153,20 @@ export class GeographicGridSystem implements GridSystem {
       const targetResolution = measureTargetResolution(target, transformFn, resolution) ?? fallback;
       const interval = this.intervals_.getInterval(targetResolution, viewProjection);
       const minorInterval = this.intervals_.getMinorInterval?.(interval);
-      const n = densifyCount(target, interval, this.densificationPoints_);
+
+      // Place points only where lines curve in view: in a Mercator view lat/lon
+      // lines are axis-aligned and collapse to 2 points; oblique or wide views
+      // bend them.
+      const cap = this.densificationPoints_;
+      const xTs = adaptiveAxisTs('x', target, transformFn, resolution, cap);
+      const yTs = adaptiveAxisTs('y', target, transformFn, resolution, cap);
 
       const startX = Math.ceil(target[0] / interval) * interval;
       const endX = Math.floor(target[2] / interval) * interval;
       const startY = Math.ceil(target[1] / interval) * interval;
       const endY = Math.floor(target[3] / interval) * interval;
 
-      return { target, interval, minorInterval, transformFn, n, startX, endX, startY, endY };
+      return { target, interval, minorInterval, transformFn, xTs, yTs, startX, endX, startY, endY };
     });
   }
 
@@ -168,7 +177,7 @@ export class GeographicGridSystem implements GridSystem {
     type: 'major' | 'minor',
     majorInterval?: number,
   ): void {
-    const { transformFn, n, target } = ctx;
+    const { transformFn, xTs, yTs, target } = ctx;
     const [tMinX, tMinY, tMaxX, tMaxY] = target;
     const startX = Math.ceil(tMinX / interval) * interval;
     const endX = Math.floor(tMaxX / interval) * interval;
@@ -179,11 +188,10 @@ export class GeographicGridSystem implements GridSystem {
     const onMajor = (v: number): boolean =>
       majorInterval !== undefined && isOnMajorLine(v, majorInterval, epsilon);
 
-    const npts = n + 1;
     const specs: FlatLineSpec[] = [];
     const skip = type === 'minor' ? onMajor : undefined;
-    pushAxisGridLineSpecs(specs, 'x', startX, endX, interval, tMinY, tMaxY, npts, type, skip);
-    pushAxisGridLineSpecs(specs, 'y', startY, endY, interval, tMinX, tMaxX, npts, type, skip);
+    pushAxisGridLineSpecs(specs, 'x', startX, endX, interval, tMinY, tMaxY, xTs, type, skip);
+    pushAxisGridLineSpecs(specs, 'y', startY, endY, interval, tMinX, tMaxX, yTs, type, skip);
     emitFlatLineFeatures(features, this.projScratch_, specs, transformFn);
   }
 }

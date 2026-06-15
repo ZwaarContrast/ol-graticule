@@ -50,14 +50,16 @@ describe('GeographicGridSystem', () => {
       }
     });
 
-    it('densifies lines into curved polylines for non-affine projections', () => {
+    it('collapses straight lines to 2 points (graticule is axis-aligned in Web Mercator)', () => {
       const system = new GeographicGridSystem({ densificationPoints: 20 });
       const features = system.getFeatures(EUROPE_3857, RES_3857, 'EPSG:3857');
-      const major = features.find((f) => f.get('gridLineType') === 'major')!;
-      const coords = (major.getGeometry() as LineString).getCoordinates();
-      // Densification clamps between 5 (min 4 + 1) and densificationPoints + 1.
-      expect(coords.length).toBeGreaterThanOrEqual(5);
-      expect(coords.length).toBeLessThanOrEqual(21);
+      const major = features.filter((f) => f.get('gridLineType') === 'major');
+      expect(major.length).toBeGreaterThan(0);
+      for (const f of major) {
+        const geometry = f.getGeometry();
+        if (!(geometry instanceof LineString)) throw new Error('expected LineString');
+        expect(geometry.getCoordinates().length).toBe(2);
+      }
     });
 
     it('produces straight 2-point lines on an identity 4326 view', () => {

@@ -1,5 +1,5 @@
 import LineString from 'ol/geom/LineString';
-import { createOrUpdateFromFlatCoordinates, intersects } from 'ol/extent';
+import { createOrUpdateFromFlatCoordinates, intersects, buffer } from 'ol/extent';
 import type { Extent } from 'ol/extent';
 import type { ProjectionLike } from 'ol/proj';
 import type Feature from 'ol/Feature';
@@ -33,6 +33,8 @@ export function findOffScreenFeatures(
   viewProjection: ProjectionLike,
 ): OffScreenFeature[] {
   const features = grid.getFeatures(extent, resolution, viewProjection);
+  // 2px slack for sub-pixel boundary lines.
+  const visible = buffer(extent, resolution * 2);
   const out: OffScreenFeature[] = [];
   for (const f of features) {
     const geom = f.getGeometry();
@@ -41,7 +43,7 @@ export function findOffScreenFeatures(
     const stride = geom.getStride();
     if (flat.length < stride) continue;
     const bbox = createOrUpdateFromFlatCoordinates(flat, 0, flat.length, stride);
-    if (!intersects(bbox, extent)) {
+    if (!intersects(bbox, visible)) {
       out.push({
         bbox,
         gridLineType: maybeString_(f.get('gridLineType')),

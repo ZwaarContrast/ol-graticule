@@ -25,7 +25,7 @@ import {
   RenderCache,
   SteppingIntervalStrategy,
   TransformCache,
-  densifyCount,
+  adaptiveAxisTs,
   emitFlatLineFeatures,
   measureTargetResolution,
   pushAxisGridLineSpecs,
@@ -329,7 +329,10 @@ interface RenderContext {
   target: Extent;
   interval: number;
   toView: TransformFunction;
-  npts: number;
+  /** Parameter samples for vertical lines (constant easting, sweeping northing). */
+  xTs: number[];
+  /** Parameter samples for horizontal lines (constant northing, sweeping easting). */
+  yTs: number[];
 }
 
 class DhgZoneRenderer implements GridSystem {
@@ -467,8 +470,10 @@ class DhgZoneRenderer implements GridSystem {
 
       const targetResolution = measureTargetResolution(target, toView, resolution) ?? resolution;
       const interval = this.intervals_.getInterval(targetResolution);
-      const npts = densifyCount(target, interval, this.densificationPoints_) + 1;
-      return { target, interval, toView, npts };
+      const cap = this.densificationPoints_;
+      const xTs = adaptiveAxisTs('x', target, toView, resolution, cap);
+      const yTs = adaptiveAxisTs('y', target, toView, resolution, cap);
+      return { target, interval, toView, xTs, yTs };
     });
   }
 
@@ -481,8 +486,8 @@ class DhgZoneRenderer implements GridSystem {
     const endN = Math.floor(tMaxN / interval) * interval;
 
     const specs: FlatLineSpec[] = [];
-    pushAxisGridLineSpecs(specs, 'x', startE, endE, interval, tMinN, tMaxN, ctx.npts, 'major');
-    pushAxisGridLineSpecs(specs, 'y', startN, endN, interval, tMinE, tMaxE, ctx.npts, 'major');
+    pushAxisGridLineSpecs(specs, 'x', startE, endE, interval, tMinN, tMaxN, ctx.xTs, 'major');
+    pushAxisGridLineSpecs(specs, 'y', startN, endN, interval, tMinE, tMaxE, ctx.yTs, 'major');
     emitFlatLineFeatures(out, this.projScratch_, specs, ctx.toView);
   }
 }

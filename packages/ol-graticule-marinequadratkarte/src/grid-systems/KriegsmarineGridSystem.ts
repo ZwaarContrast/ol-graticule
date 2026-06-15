@@ -21,6 +21,7 @@ import {
   RenderCache,
   TransformCache,
   emitFlatLineFeatures,
+  uniformTs,
   transformBatchCached,
 } from '@zwaarcontrast/ol-graticule';
 import {
@@ -145,7 +146,7 @@ export class KriegsmarineGridSystem implements GridSystem {
         const dx = probe[o + 2]! - probe[o]!;
         const dy = probe[o + 3]! - probe[o + 1]!;
         const pxSize = Math.sqrt(dx * dx + dy * dy) / resolution;
-        const npts = densityForPxSize(pxSize) + 1;
+        const ts = uniformTs(densityForPxSize(pxSize));
         const props = {
           gridSquare: e.squareIds[0],
           gridSquares: e.squareIds,
@@ -155,19 +156,19 @@ export class KriegsmarineGridSystem implements GridSystem {
           built[i] = {
             startX: e.lon!, startY: e.latLo!,
             endX: e.lon!, endY: e.latHi!,
-            npts, props,
+            ts, props,
           };
         } else if (e.axis === 'h') {
           built[i] = {
             startX: e.lonLo!, startY: e.lat!,
             endX: e.lonHi!, endY: e.lat!,
-            npts, props,
+            ts, props,
           };
         } else {
           built[i] = {
             startX: e.p1![1], startY: e.p1![0],
             endX: e.p2![1], endY: e.p2![0],
-            npts, props,
+            ts, props,
             xInterp: interpolateLon,
           };
         }

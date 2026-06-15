@@ -26,7 +26,7 @@ import {
   ProjectionScratch,
   RenderCache,
   TransformCache,
-  densifyCount,
+  adaptiveAxisTs,
   emitFlatLineFeatures,
   measureTargetResolution,
   pushAxisGridLineSpecs,
@@ -223,8 +223,10 @@ interface RenderContext {
   interval: number;
   /** crs → viewProj transform. */
   toView: TransformFunction;
-  /** Vertices per grid line for densification. */
-  npts: number;
+  /** Parameter samples for vertical lines (constant easting, sweeping northing). */
+  xTs: number[];
+  /** Parameter samples for horizontal lines (constant northing, sweeping easting). */
+  yTs: number[];
   /** Cell size in screen pixels, used as a label fade hint. */
   cellSizePx: number;
 }
@@ -346,11 +348,13 @@ class HmnZoneRenderer implements GridSystem {
       const targetResolution = measureTargetResolution(target, toView, resolution) ?? resolution;
       const interval = this.intervals_.getInterval(targetResolution);
 
-      const npts = densifyCount(target, interval, this.densificationPoints_) + 1;
+      const cap = this.densificationPoints_;
+      const xTs = adaptiveAxisTs('x', target, toView, resolution, cap);
+      const yTs = adaptiveAxisTs('y', target, toView, resolution, cap);
 
       const cellSizePx = interval / resolution;
 
-      return { target, interval, toView, npts, cellSizePx };
+      return { target, interval, toView, xTs, yTs, cellSizePx };
     });
   }
 
@@ -376,8 +380,8 @@ class HmnZoneRenderer implements GridSystem {
       : undefined;
 
     const specs: FlatLineSpec[] = [];
-    pushAxisGridLineSpecs(specs, 'x', startE, endE, interval, tMinN, tMaxN, ctx.npts, type, skipE);
-    pushAxisGridLineSpecs(specs, 'y', startN, endN, interval, tMinE, tMaxE, ctx.npts, type, skipN);
+    pushAxisGridLineSpecs(specs, 'x', startE, endE, interval, tMinN, tMaxN, ctx.xTs, type, skipE);
+    pushAxisGridLineSpecs(specs, 'y', startN, endN, interval, tMinE, tMaxE, ctx.yTs, type, skipN);
     emitFlatLineFeatures(out, this.projScratch_, specs, ctx.toView);
   }
 }
