@@ -12,7 +12,7 @@ export class BoundedCache<K, V> {
   }
 
   set(key: K, value: V): void {
-    if (this.map_.size >= this.max_) this.map_.clear();
+    if (!this.map_.has(key) && this.map_.size >= this.max_) this.map_.clear();
     this.map_.set(key, value);
   }
 }

@@ -79,4 +79,15 @@ describe('LruCache', () => {
     expect(() => new LruCache<string, number>(0)).toThrow();
     expect(() => new LruCache<string, number>(-1)).toThrow();
   });
+
+  it('evicts a literal undefined oldest key on overflow', () => {
+    const c = new LruCache<number | undefined, number>(2);
+    c.set(undefined, 1);
+    c.set(1, 2);
+    c.set(2, 3);
+    expect(c.size).toBe(2);
+    expect(c.get(undefined)).toBeUndefined();
+    expect(c.get(1)).toBe(2);
+    expect(c.get(2)).toBe(3);
+  });
 });

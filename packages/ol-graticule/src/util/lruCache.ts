@@ -22,8 +22,8 @@ export class LruCache<K, V> {
     if (this.map_.has(key)) {
       this.map_.delete(key);
     } else if (this.map_.size >= this.max_) {
-      const oldest = this.map_.keys().next().value;
-      if (oldest !== undefined) this.map_.delete(oldest);
+      const oldest = this.map_.keys().next();
+      if (!oldest.done) this.map_.delete(oldest.value);
     }
     this.map_.set(key, value);
   }

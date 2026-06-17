@@ -35,12 +35,12 @@ describe('BoundedCache', () => {
     expect(c.get('d')).toBe(4);
   });
 
-  it('clears bulk before set when already at capacity (size === max)', () => {
+  it('updating an existing key at capacity does not wipe the cache', () => {
     const c = new BoundedCache<string, number>(2);
     c.set('a', 1);
     c.set('b', 2);
     c.set('a', 11);
     expect(c.get('a')).toBe(11);
-    expect(c.get('b')).toBeUndefined();
+    expect(c.get('b')).toBe(2);
   });
 });
