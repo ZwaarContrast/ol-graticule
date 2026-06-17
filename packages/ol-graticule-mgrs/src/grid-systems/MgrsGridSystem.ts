@@ -74,8 +74,6 @@ interface ProjectedTransforms {
 /** Static per-(zone, band) data. */
 interface GzdStatic {
   utmExtent: Extent | null;
-  /** Integer 100 km UTM tile bounds for this band's UTM coverage. */
-  tileBounds: { eMin: number; eMax: number; nMin: number; nMax: number } | null;
   cellLabels: ReadonlyArray<{
     lonLat: readonly [number, number];
     /** Two-letter cell id, e.g. "WL". */
@@ -316,7 +314,7 @@ export class MgrsGridSystem implements GridSystem {
     const density = interiorDensity_(interval, this.densification_);
     for (const gzd of gzds) {
       const stat = this.getGzdStatic_(gzd);
-      if (!stat.utmExtent || !stat.tileBounds) continue;
+      if (!stat.utmExtent) continue;
       const tx = this.transformsFor_(gzd);
       const bvUtm = computeBandViewportUtm_(gzd, ctx.geoExtent, tx.toProj);
       if (!bvUtm) continue;
@@ -330,10 +328,7 @@ export class MgrsGridSystem implements GridSystem {
 
       const zoneKey = gzd.zone === 0 ? `0|${gzd.band}` : `${gzd.zone}`;
 
-      // Directly enumerate visible lines from the viewport UTM bbox so each
-      // line is generated exactly once, with a sweep that spans only the
-      // visible perpendicular range. At deep zoom we touch ~viewport_size /
-      // interval lines per GZD instead of the full-tile 100_000 / interval.
+      // Enumerate visible lines from the viewport UTM bbox, each once.
       const eStart = Math.ceil(eLo / interval) * interval;
       const eEnd = Math.floor(eHi / interval) * interval;
       for (let e = eStart; e <= eEnd; e += interval) {
@@ -546,12 +541,11 @@ export class MgrsGridSystem implements GridSystem {
     if (cached) return cached;
     const tx = this.transformsFor_(gzd);
     const utmExtent = sampleUtmExtent_(gzd, tx.toProj);
-    const tileBounds = utmExtent === null ? null : computeTileBounds_(utmExtent);
     const cellLabels =
       utmExtent === null
         ? []
         : computeCellLabels_(gzd, tx.fromProj, utmExtent);
-    const built: GzdStatic = { utmExtent, tileBounds, cellLabels };
+    const built: GzdStatic = { utmExtent, cellLabels };
     this.gzdStaticCache_.set(key, built);
     return built;
   }
@@ -757,16 +751,6 @@ function computeCellLabels_(
     }
   }
   return out;
-}
-
-/** Compute the inclusive integer 100 km tile bounds covering a UTM extent. */
-function computeTileBounds_(utmExtent: Extent): GzdStatic['tileBounds'] {
-  return {
-    eMin: Math.floor(utmExtent[0] / 100_000),
-    eMax: Math.floor(utmExtent[2] / 100_000),
-    nMin: Math.floor(utmExtent[1] / 100_000),
-    nMax: Math.floor(utmExtent[3] / 100_000),
-  };
 }
 
 /** Compute the lat/lon-clipped, projected-to-UTM viewport extent for one (zone, band). Returns `null` on no overlap. */

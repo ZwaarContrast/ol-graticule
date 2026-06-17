@@ -300,8 +300,6 @@ export class PolygonClippedGridSystem implements GridSystem {
     return pointInRing(x, y, this.sourceRingOpen_);
   }
 
-
-
   private buildBoundaryFeature_(ring: [number, number][]): Feature<Geometry> {
     return new Feature<Geometry>({
       geometry: new LineString([...ring, ring[0]!]),
@@ -361,7 +359,6 @@ function projectRingList_(
   }
   return out;
 }
-
 
 function inflateRectilinearRing_(
   ring: ReadonlyArray<readonly [number, number]>,

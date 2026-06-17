@@ -74,6 +74,6 @@ export function simpleRhumbDivision(
 
 /** Round to a given number of decimal places. */
 export function roundTo(digits: number, value: number): number {
-  const factor = Math.pow(10, digits);
+  const factor = 10 ** digits;
   return Math.round(value * factor) / factor;
 }

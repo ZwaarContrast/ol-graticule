@@ -165,8 +165,7 @@ function parseNumericPair_(text: string): [number, number] {
   const unitMatch = trimmed.match(/(km|m)\s*$/i);
   let unit: 'km' | 'm' = 'km';
   if (unitMatch) {
-    const tag = unitMatch[1]!.toLowerCase();
-    if (tag === 'km' || tag === 'm') unit = tag;
+    unit = unitMatch[1]!.toLowerCase() === 'km' ? 'km' : 'm';
   }
   const numericPart = unitMatch ? trimmed.slice(0, unitMatch.index).trim() : trimmed;
 

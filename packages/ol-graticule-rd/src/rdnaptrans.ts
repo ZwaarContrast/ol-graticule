@@ -25,10 +25,9 @@ let registered = false;
  */
 export function registerRDNAPTRANS2018(): void {
   if (registered) return;
-  const binary = atob(RDTRANS2018_BASE64);
-  const buffer = new ArrayBuffer(binary.length);
-  const bytes = new Uint8Array(buffer);
-  for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+  const buffer = Uint8Array.from(atob(RDTRANS2018_BASE64), (c) =>
+    c.charCodeAt(0),
+  ).buffer;
   proj4.nadgrid(RDNAPTRANS2018_GRID_NAME, buffer);
   registered = true;
 }

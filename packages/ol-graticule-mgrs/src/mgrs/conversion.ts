@@ -233,6 +233,10 @@ export function parseMgrsRef(text: string): ParsedMgrs {
 
 const ROW_CYCLE_M = 2_000_000;
 
+function isUpsBand(band: string): band is 'Y' | 'Z' | 'A' | 'B' {
+  return band === 'Y' || band === 'Z' || band === 'A' || band === 'B';
+}
+
 /**
  * Inverse of {@link lonLatToMgrsParts} + {@link formatMgrs}: returns the
  * `[lon, lat]` cell centre at the given precision. Bare GZD (no square) →
@@ -247,11 +251,11 @@ export function mgrsPartsToLonLat(
   if (square === '') return gzdCentre_(zone, band);
 
   if (zone === 0) {
-    if (band !== 'Y' && band !== 'Z' && band !== 'A' && band !== 'B') return undefined;
+    if (!isUpsBand(band)) return undefined;
     const cellE = upsColumnLetterToEasting(band, square[0]!);
     const cellN = upsRowLetterToNorthing(band, square[1]!);
     if (cellE === undefined || cellN === undefined) return undefined;
-    const cellSize = precision === 0 ? 100_000 : 10 ** (5 - precision);
+    const cellSize = 10 ** (5 - precision);
     return upsToLonLat(
       cellE + easting + cellSize / 2,
       cellN + northing + cellSize / 2,
@@ -271,7 +275,7 @@ export function mgrsPartsToLonLat(
   const baseCycle = Math.round((approx.northing - cycleIdx * 100_000) / ROW_CYCLE_M);
   const cellN = baseCycle * ROW_CYCLE_M + cycleIdx * 100_000;
 
-  const cellSize = precision === 0 ? 100_000 : 10 ** (5 - precision);
+  const cellSize = 10 ** (5 - precision);
   return utmToLonLat(
     zone,
     cellE + easting + cellSize / 2,
@@ -282,7 +286,7 @@ export function mgrsPartsToLonLat(
 
 function gzdCentre_(zone: number, band: string): [number, number] | undefined {
   if (zone === 0) {
-    if (band !== 'Y' && band !== 'Z' && band !== 'A' && band !== 'B') return undefined;
+    if (!isUpsBand(band)) return undefined;
     const b = upsZoneLonLatBounds(band);
     return [(b.lon[0] + b.lon[1]) / 2, (b.lat[0] + b.lat[1]) / 2];
   }

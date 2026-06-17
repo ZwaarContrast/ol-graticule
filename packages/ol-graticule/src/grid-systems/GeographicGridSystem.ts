@@ -32,7 +32,7 @@ export interface GeographicGridSystemOptions {
   formatter?: LabelFormatter | undefined;
   /** Target minimum screen pixels between grid lines (default: 100) */
   targetScreenPx?: number | undefined;
-  /** Intermediate points per grid line for curved rendering (default: 50). */
+  /** Intermediate points per grid line for curved rendering (default: 20). */
   densificationPoints?: number | undefined;
 }
 

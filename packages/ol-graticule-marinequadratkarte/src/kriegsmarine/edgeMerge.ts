@@ -205,7 +205,7 @@ function mergeIntervals(edges: RawEdge[]): Interval[] {
 
   for (let i = 1; i < edges.length; i++) {
     const e = edges[i]!;
-    if (e.lo <= cur.hi + 1e-9) { // Using epsilon for touching edges
+    if (e.lo <= cur.hi + 1e-9) {
       if (e.hi > cur.hi) cur.hi = e.hi;
       if (e.depth > cur.depth) cur.depth = e.depth;
       cur.squareIds.push(e.squareId);

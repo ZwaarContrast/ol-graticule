@@ -20,18 +20,12 @@ export class DegreeFormatter implements LabelFormatter {
     const cached = cache.get(value);
     if (cached !== undefined) return cached;
 
-    let result: string;
-    switch (this.degreeFormat_) {
-      case 'dms':
-        result = this.formatDMS(value, axis);
-        break;
-      case 'dd':
-        result = this.formatDD(value, axis);
-        break;
-      case 'ddm':
-        result = this.formatDDM(value, axis);
-        break;
-    }
+    const result =
+      this.degreeFormat_ === 'dms'
+        ? this.formatDMS(value, axis)
+        : this.degreeFormat_ === 'dd'
+          ? this.formatDD(value, axis)
+          : this.formatDDM(value, axis);
     cache.set(value, result);
     return result;
   }
@@ -67,8 +61,6 @@ export class DegreeFormatter implements LabelFormatter {
     let degrees = Math.floor(abs);
     let minutes = (abs - degrees) * 60;
 
-    // Use toFixed(2) for speed; formatDecimal's trailing-zero stripping is
-    // expensive and less idiomatic for DDM than fixed precision.
     let minutesStr = minutes.toFixed(2);
     if (minutesStr === '60.00') {
       minutesStr = '00.00';

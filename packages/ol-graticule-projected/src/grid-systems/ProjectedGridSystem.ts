@@ -96,9 +96,7 @@ interface RenderContext {
   yTs: number[];
 }
 
-// Skip minor lines that land on a major line. Projected CRS intervals can
-// include awkward fractions that drift in floating-point when stepped through
-//, we need a generous threshold.
+// Minor lines within half an interval of a major line are dropped (FP drift slack).
 const MAJOR_SKIP_EPSILON_RATIO = 0.5;
 
 export class ProjectedGridSystem implements GridSystem {
@@ -155,7 +153,6 @@ export class ProjectedGridSystem implements GridSystem {
         // International foot: exactly 0.3048.
         if (Math.abs(mpu - 0.30480060960121924) < 1e-10) displayUnit = 'us-ft';
         else if (Math.abs(mpu - 0.3048) < 1e-5) displayUnit = 'ft';
-        // else: keep 'm'.
       }
 
       this.intervals_ = options.intervals ?? new MetricIntervals(targetScreenPx);
