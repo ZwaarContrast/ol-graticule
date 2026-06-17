@@ -37,7 +37,6 @@ import { formatEasting, formatNorthing } from '../dhg/encode.js';
 import { DEFAULT_DATUM_SHIFT, registerZone } from '../dhg/projection.js';
 import {
   stripClipPolygon,
-  zoneIntersectsValidity,
   pointInsideValidity,
   VALIDITY_EAST_LON,
   VALIDITY_NORTH_LAT,
@@ -46,7 +45,13 @@ import {
 } from '../dhg/stripPolygon.js';
 import type { DatumShift } from '../dhg/types.js';
 import { FALSE_EASTING, STRIP_OVERLAP_DEG, zoneByKennziffer, zoneForLon } from '../dhg/zones.js';
-import { DHG_WORLD_BOX, cursorKey, projectionKey, sampleCornerLons } from './sharedViewport.js';
+import {
+  DHG_WORLD_BOX,
+  activeZonesFor,
+  cursorKey,
+  projectionKey,
+  toFiniteLonLat,
+} from './sharedViewport.js';
 
 const KM = 1_000;
 const DHG_INTERVALS = [KM, 2 * KM, 6 * KM, 30 * KM, 150 * KM];
@@ -181,17 +186,11 @@ export class DhgGridSystem implements GridSystem {
     coordinate: [number, number],
     viewProjection: ProjectionLike,
   ): FormattedCoordinate {
-    const lonLat = transform(coordinate, viewProjection, 'EPSG:4326');
-    const lon = lonLat[0];
-    const lat = lonLat[1];
-    if (
-      lon === undefined || lat === undefined ||
-      !Number.isFinite(lon) || !Number.isFinite(lat) ||
-      !pointInsideValidity(lon, lat)
-    ) {
+    const lonLat = toFiniteLonLat(coordinate, viewProjection);
+    if (!lonLat || !pointInsideValidity(lonLat[0], lonLat[1])) {
       return { x: '-', y: '-' };
     }
-    const zone = zoneForLon(lon);
+    const zone = zoneForLon(lonLat[0]);
     const renderer = this.rendererFor_(zone.kennziffer);
     return renderer.formatCoordinate(coordinate, viewProjection);
   }
@@ -205,12 +204,8 @@ export class DhgGridSystem implements GridSystem {
     coordinate: [number, number],
     viewProjection: ProjectionLike,
   ): boolean {
-    const lonLat = transform(coordinate, viewProjection, 'EPSG:4326');
-    const lon = lonLat[0];
-    const lat = lonLat[1];
-    if (lon === undefined || lat === undefined) return false;
-    if (!Number.isFinite(lon) || !Number.isFinite(lat)) return false;
-    return pointInsideValidity(lon, lat);
+    const lonLat = toFiniteLonLat(coordinate, viewProjection);
+    return lonLat !== null && pointInsideValidity(lonLat[0], lonLat[1]);
   }
 
   get zoneBoundaryMode(): DhgZoneBoundaryMode {
@@ -224,30 +219,7 @@ export class DhgGridSystem implements GridSystem {
   }
 
   private computeActiveZones_(extent: Extent, viewProjection: ProjectionLike): number[] {
-    const overlapDeg = this.zoneBoundary_ === 'overlap' ? STRIP_OVERLAP_DEG : 0;
-    if (this.zoneBoundary_ === 'single') {
-      const centreZone = this.centreZone_(extent, viewProjection);
-      return zoneIntersectsValidity(centreZone, overlapDeg) ? [centreZone.kennziffer] : [];
-    }
-    const lons = sampleCornerLons(extent, viewProjection);
-    if (lons.length === 0) return [];
-    const minLon = Math.min(...lons);
-    const maxLon = Math.max(...lons);
-    const result: number[] = [];
-    for (let k = 1; k <= 60; k++) {
-      const zone = zoneByKennziffer(k);
-      if (!zoneIntersectsValidity(zone, overlapDeg)) continue;
-      const west = zone.cm - 3 - overlapDeg;
-      const east = zone.cm + 3 + overlapDeg;
-      if (east > minLon && west < maxLon) result.push(k);
-    }
-    return result;
-  }
-
-  private centreZone_(extent: Extent, viewProjection: ProjectionLike) {
-    const centre = getCenter(extent);
-    const [centreLon] = transform(centre, viewProjection, 'EPSG:4326');
-    return zoneForLon(centreLon ?? 0);
+    return activeZonesFor(extent, viewProjection, this.zoneBoundary_);
   }
 
   /** Strip outline (6° rectangle, clipped to validity envelope) projected to view CRS. */

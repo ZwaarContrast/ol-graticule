@@ -10,8 +10,8 @@ import Point from 'ol/geom/Point';
 import type { Extent } from 'ol/extent';
 import type { Geometry } from 'ol/geom';
 import type { ProjectionLike, TransformFunction } from 'ol/proj';
-import { getCenter, getIntersection, isEmpty } from 'ol/extent';
-import { getTransform, transform } from 'ol/proj';
+import { getIntersection, isEmpty } from 'ol/extent';
+import { getTransform } from 'ol/proj';
 
 import type {
   FlatLineSpec,
@@ -35,10 +35,15 @@ import {
 } from '@zwaarcontrast/ol-graticule';
 
 import { DEFAULT_DATUM_SHIFT, registerZone } from '../dhg/projection.js';
-import { stripClipPolygon, zoneIntersectsValidity, pointInsideValidity } from '../dhg/stripPolygon.js';
+import { stripClipPolygon, pointInsideValidity } from '../dhg/stripPolygon.js';
 import type { DatumShift } from '../dhg/types.js';
-import { FALSE_EASTING, STRIP_OVERLAP_DEG, zoneByKennziffer, zoneForLon } from '../dhg/zones.js';
-import { DHG_WORLD_BOX, cursorKey, sampleCornerLons } from './sharedViewport.js';
+import { FALSE_EASTING, STRIP_OVERLAP_DEG, zoneByKennziffer } from '../dhg/zones.js';
+import {
+  DHG_WORLD_BOX,
+  activeZonesFor,
+  cursorKey,
+  toFiniteLonLat,
+} from './sharedViewport.js';
 import {
   HmnIntervalStrategy,
   hmnHierarchicalLabel,
@@ -141,18 +146,12 @@ export class HmnGridSystem implements GridSystem {
     const cacheKey = cursorKey(coordinate, viewProjection);
     const cached = this.cursorCache_.get(cacheKey);
     if (cached !== undefined) return cached;
-    const lonLat = transform(coordinate, viewProjection, 'EPSG:4326');
-    const lon = lonLat[0];
-    const lat = lonLat[1];
+    const lonLat = toFiniteLonLat(coordinate, viewProjection);
     let result: FormattedCoordinate;
-    if (
-      lon === undefined || lat === undefined ||
-      !Number.isFinite(lon) || !Number.isFinite(lat) ||
-      !pointInsideValidity(lon, lat)
-    ) {
+    if (!lonLat || !pointInsideValidity(lonLat[0], lonLat[1])) {
       result = { combined: '-' };
     } else {
-      const ref = encodeHmn([lat, lon], { depth: this.maxDepth_, datumShift: this.datumShift_ });
+      const ref = encodeHmn([lonLat[1], lonLat[0]], { depth: this.maxDepth_, datumShift: this.datumShift_ });
       result = { combined: ref.canonical };
     }
     this.cursorCache_.set(cacheKey, result);
@@ -163,12 +162,8 @@ export class HmnGridSystem implements GridSystem {
     coordinate: [number, number],
     viewProjection: ProjectionLike,
   ): boolean {
-    const lonLat = transform(coordinate, viewProjection, 'EPSG:4326');
-    const lon = lonLat[0];
-    const lat = lonLat[1];
-    if (lon === undefined || lat === undefined) return false;
-    if (!Number.isFinite(lon) || !Number.isFinite(lat)) return false;
-    return pointInsideValidity(lon, lat);
+    const lonLat = toFiniteLonLat(coordinate, viewProjection);
+    return lonLat !== null && pointInsideValidity(lonLat[0], lonLat[1]);
   }
 
   private activeZones_(extent: Extent, viewProjection: ProjectionLike): number[] {
@@ -178,26 +173,7 @@ export class HmnGridSystem implements GridSystem {
   }
 
   private computeActiveZones_(extent: Extent, viewProjection: ProjectionLike): number[] {
-    const overlapDeg = this.zoneBoundary_ === 'overlap' ? STRIP_OVERLAP_DEG : 0;
-    if (this.zoneBoundary_ === 'single') {
-      const centre = getCenter(extent);
-      const [centreLon] = transform(centre, viewProjection, 'EPSG:4326');
-      const centreZone = zoneForLon(centreLon ?? 0);
-      return zoneIntersectsValidity(centreZone, overlapDeg) ? [centreZone.kennziffer] : [];
-    }
-    const lons = sampleCornerLons(extent, viewProjection);
-    if (lons.length === 0) return [];
-    const minLon = Math.min(...lons);
-    const maxLon = Math.max(...lons);
-    const result: number[] = [];
-    for (let k = 1; k <= 60; k++) {
-      const zone = zoneByKennziffer(k);
-      if (!zoneIntersectsValidity(zone, overlapDeg)) continue;
-      const west = zone.cm - 3 - overlapDeg;
-      const east = zone.cm + 3 + overlapDeg;
-      if (east > minLon && west < maxLon) result.push(k);
-    }
-    return result;
+    return activeZonesFor(extent, viewProjection, this.zoneBoundary_);
   }
 
   /** Datum shift this instance was constructed with. */
