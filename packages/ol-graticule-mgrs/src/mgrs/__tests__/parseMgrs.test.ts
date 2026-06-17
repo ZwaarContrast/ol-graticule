@@ -224,6 +224,17 @@ describe('mgrsPartsToLonLat — known reference points', () => {
     expect(back.band).toBe('U');
     expect(back.square).toBe('FT');
   });
+
+  it('rejects a polar (zone 0) reference whose band is not a UPS band', () => {
+    // Zone 0 is UPS; only Y/Z/A/B are valid there. 'M' is a UTM band letter,
+    // not a UPS one, so the reference must not resolve.
+    expect(
+      mgrsPartsToLonLat(
+        { zone: 0, band: 'M', square: 'AB', easting: 0, northing: 0 },
+        5,
+      ),
+    ).toBeUndefined();
+  });
 });
 
 describe('parse ↔ format round-trip (property)', () => {

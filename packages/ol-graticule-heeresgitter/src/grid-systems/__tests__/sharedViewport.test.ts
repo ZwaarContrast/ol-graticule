@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
+import { viewportExtentAt } from '@zwaarcontrast/test-utils';
 
 import {
   DHG_WORLD_BOX,
+  activeZonesFor,
   cursorKey,
   projectionKey,
   sampleCornerLons,
+  toFiniteLonLat,
 } from '../sharedViewport.js';
+import { zoneForLon } from '../../dhg/zones.js';
 
 describe('DHG_WORLD_BOX', () => {
   it('covers the operational theatre in DHG metres', () => {
@@ -67,5 +71,57 @@ describe('sampleCornerLons', () => {
     const lons = sampleCornerLons(point, 'EPSG:3857');
     expect(lons).toHaveLength(4);
     for (const lon of lons) expect(lon).toBeCloseTo(0, 3);
+  });
+});
+
+describe('toFiniteLonLat', () => {
+  it('returns [lon, lat] for a finite view coordinate', () => {
+    // EPSG:3857 metres for ~9°E on the equator.
+    const ll = toFiniteLonLat([1_001_875.417, 0], 'EPSG:3857');
+    if (ll === null) throw new Error('expected a coordinate, got null');
+    expect(ll[0]).toBeCloseTo(9, 4);
+    expect(ll[1]).toBeCloseTo(0, 6);
+  });
+
+  it('returns null when the transform yields a non-finite coordinate', () => {
+    expect(toFiniteLonLat([NaN, NaN], 'EPSG:3857')).toBeNull();
+    expect(toFiniteLonLat([Number.POSITIVE_INFINITY, 0], 'EPSG:3857')).toBeNull();
+  });
+});
+
+describe('activeZonesFor', () => {
+  const BERLIN: [number, number] = [13.4, 52.5];
+  const berlinZone = zoneForLon(13.4).kennziffer;
+
+  it('single mode returns only the centre zone', () => {
+    const { extent } = viewportExtentAt(BERLIN, 8);
+    expect(activeZonesFor(extent, 'EPSG:3857', 'single')).toEqual([berlinZone]);
+  });
+
+  it('tiled mode over a tight view includes the centre zone', () => {
+    const { extent } = viewportExtentAt(BERLIN, 14);
+    expect(activeZonesFor(extent, 'EPSG:3857', 'tiled')).toContain(berlinZone);
+  });
+
+  it('tiled mode over a wide view returns multiple ascending zones', () => {
+    const { extent } = viewportExtentAt(BERLIN, 4);
+    const zones = activeZonesFor(extent, 'EPSG:3857', 'tiled');
+    expect(zones.length).toBeGreaterThan(1);
+    expect(zones).toContain(berlinZone);
+    expect([...zones].sort((a, b) => a - b)).toEqual(zones);
+  });
+
+  it('overlap mode covers at least as many zones as tiled', () => {
+    const { extent } = viewportExtentAt(BERLIN, 6);
+    const tiled = activeZonesFor(extent, 'EPSG:3857', 'tiled');
+    const overlap = activeZonesFor(extent, 'EPSG:3857', 'overlap');
+    expect(overlap.length).toBeGreaterThanOrEqual(tiled.length);
+  });
+
+  it('returns no zones for a view outside the DHG validity envelope', () => {
+    // Mid-Pacific: lon ≈ 150°, well east of the 84°E validity bound.
+    const { extent } = viewportExtentAt([150, 0], 6);
+    expect(activeZonesFor(extent, 'EPSG:3857', 'tiled')).toEqual([]);
+    expect(activeZonesFor(extent, 'EPSG:3857', 'single')).toEqual([]);
   });
 });

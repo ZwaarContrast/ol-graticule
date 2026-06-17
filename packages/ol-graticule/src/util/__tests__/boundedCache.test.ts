@@ -35,12 +35,19 @@ describe('BoundedCache', () => {
     expect(c.get('d')).toBe(4);
   });
 
-  it('updating an existing key at capacity does not wipe the cache', () => {
+  it('updates in place at capacity, but a new key still bulk-clears', () => {
     const c = new BoundedCache<string, number>(2);
     c.set('a', 1);
     c.set('b', 2);
+    // Updating an existing key while full evicts nothing: both survive.
     c.set('a', 11);
     expect(c.get('a')).toBe(11);
     expect(c.get('b')).toBe(2);
+    // A genuinely new key while full triggers the bulk-clear: 'a' and 'b' are
+    // both dropped and the new key is left alone (bulk-clear, not single-evict).
+    c.set('c', 3);
+    expect(c.get('a')).toBeUndefined();
+    expect(c.get('b')).toBeUndefined();
+    expect(c.get('c')).toBe(3);
   });
 });
