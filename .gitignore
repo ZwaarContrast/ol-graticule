@@ -11,3 +11,11 @@ demos/dist
 /demos/e2e/profile-results
 /demos/test-results
 /demos/playwright-report
+
+# Map research assets and working screenshots kept at the repo root.
+# Package images/ directories stay tracked.
+/*.jpg
+/*.jpeg
+/*.png
+/*.pdf
+/*.mpk
