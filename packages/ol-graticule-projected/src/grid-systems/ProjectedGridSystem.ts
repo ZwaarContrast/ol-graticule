@@ -1,4 +1,5 @@
-import type Feature from 'ol/Feature';
+import Feature from 'ol/Feature';
+import LineString from 'ol/geom/LineString';
 import Point from 'ol/geom/Point';
 import { get as getProjection } from 'ol/proj';
 import { transform, getTransform } from 'ol/proj';
@@ -35,6 +36,7 @@ import {
   transformExtentSampled,
 } from '@zwaarcontrast/ol-graticule';
 import { registerCRS } from '../registerCRS.js';
+import { LineTransformCache, type LinePolyline } from './lineTransformCache.js';
 
 export interface ProjectedGridSystemOptions {
   /** The target CRS code, e.g. 'EPSG:4326', 'EPSG:27500', 'EPSG:32633' */
@@ -89,15 +91,26 @@ interface RenderContext {
   targetExtent: Extent;
   interval: number;
   minorInterval: number | undefined;
+  /** Interval on which cell labels are enumerated; falls back to `interval`. */
+  cellInterval: number;
   transformFn: TransformFunction;
   /** Parameter samples for vertical lines (constant x, sweeping y). */
   xTs: number[];
   /** Parameter samples for horizontal lines (constant y, sweeping x). */
   yTs: number[];
+  /** Zoom band (floor-log2 of view resolution); NaN when uncacheable. */
+  band: number;
+  /** View resolution at the band's fine edge; drives cached-line sampling. */
+  bandResolution: number;
 }
 
 // Minor lines within half an interval of a major line are dropped (FP drift slack).
 const MAJOR_SKIP_EPSILON_RATIO = 0.5;
+
+// A cached line is sampled over the viewport perp-span grown by this fraction on
+// each side, so the viewport can pan ~one span in either direction before the
+// window is exceeded and the line re-projected. 1.0 → a 3x-viewport window.
+const WINDOW_MARGIN_RATIO = 1.0;
 
 export class ProjectedGridSystem implements GridSystem {
   private readonly crs_: string;
@@ -113,6 +126,8 @@ export class ProjectedGridSystem implements GridSystem {
   private readonly ctxCache_ = new RenderCache<RenderContext | null>();
   private readonly projScratch_ = new ProjectionScratch();
   private readonly transformCache_ = new TransformCache();
+  /** Per-line transformed-polyline cache; reused across pan within a zoom band. */
+  private readonly lineCache_ = new LineTransformCache();
 
   constructor(options: ProjectedGridSystemOptions) {
     this.crs_ = options.crs;
@@ -164,6 +179,23 @@ export class ProjectedGridSystem implements GridSystem {
     const ctx = this.renderContext_(extent, resolution, viewProjection);
     if (!ctx) return [];
     const features: Feature<Geometry>[] = [];
+
+    // Cached path: bounded CRS + a finite zoom band, so each line's transformed
+    // polyline can be memoised per (axis, gridValue, band) and re-sliced across
+    // pan instead of re-running proj4 every frame. Unbounded CRS (no full extent
+    // to window over) falls back to the per-frame transform.
+    const crsExtent = this.effectiveExtent_();
+    if (crsExtent && Number.isFinite(ctx.band)) {
+      this.lineCache_.ensureProjection(projectionKey(viewProjection));
+      this.generateLinesCached_(features, ctx, crsExtent, ctx.interval, 'major');
+      if (ctx.minorInterval !== undefined) {
+        this.generateLinesCached_(features, ctx, crsExtent, ctx.minorInterval, 'minor', ctx.interval);
+      }
+      if (this.emitBoundary_) {
+        this.generateBoundary_(features, ctx);
+      }
+      return features;
+    }
 
     this.generateLines_(features, ctx, ctx.interval, 'major');
     if (ctx.minorInterval !== undefined) {
@@ -232,27 +264,27 @@ export class ProjectedGridSystem implements GridSystem {
     if (!ctx) return [];
 
     const [tMinX, tMinY, tMaxX, tMaxY] = ctx.targetExtent;
-    const { interval, transformFn } = ctx;
+    const { cellInterval, transformFn } = ctx;
     const labels: GridCellLabel[] = [];
 
     // Cell size in pixels, measured at the first cell's bottom edge.
     const [c1x, c1y] = transformFn([tMinX, tMinY], undefined, 2);
-    const [c2x, c2y] = transformFn([tMinX + interval, tMinY], undefined, 2);
+    const [c2x, c2y] = transformFn([tMinX + cellInterval, tMinY], undefined, 2);
     const cellSizePx = Math.hypot((c2x ?? 0) - (c1x ?? 0), (c2y ?? 0) - (c1y ?? 0)) / resolution;
 
-    const startX = Math.floor(tMinX / interval) * interval;
-    const startY = Math.floor(tMinY / interval) * interval;
-    const nCellsX = Math.ceil((tMaxX - startX) / interval);
-    const nCellsY = Math.ceil((tMaxY - startY) / interval);
+    const startX = Math.floor(tMinX / cellInterval) * cellInterval;
+    const startY = Math.floor(tMinY / cellInterval) * cellInterval;
+    const nCellsX = Math.ceil((tMaxX - startX) / cellInterval);
+    const nCellsY = Math.ceil((tMaxY - startY) / cellInterval);
 
     const texts: string[] = [];
     const flat: number[] = [];
     for (let ix = 0; ix < nCellsX; ix++) {
-      const x = startX + ix * interval;
+      const x = startX + ix * cellInterval;
       for (let iy = 0; iy < nCellsY; iy++) {
-        const y = startY + iy * interval;
-        const midX = x + interval / 2;
-        const midY = y + interval / 2;
+        const y = startY + iy * cellInterval;
+        const midX = x + cellInterval / 2;
+        const midY = y + cellInterval / 2;
         const text = this.formatter_.formatCellLabel(midX, midY);
         if (!text) continue;
         texts.push(text);
@@ -357,12 +389,22 @@ export class ProjectedGridSystem implements GridSystem {
 
       const interval = this.intervals_.getInterval(targetResolution, viewProjection);
       const minorInterval = this.intervals_.getMinorInterval?.(interval);
+      const cellInterval =
+        this.intervals_.getCellInterval?.(targetResolution, viewProjection) ?? interval;
 
       const cap = this.densificationPoints_;
       const xTs = adaptiveAxisTs('x', targetExtent, crsToView, resolution, cap);
       const yTs = adaptiveAxisTs('y', targetExtent, crsToView, resolution, cap);
 
-      return { targetExtent, interval, minorInterval, transformFn: crsToView, xTs, yTs };
+      // Sampling density is stable within a factor-2 zoom band.
+      const band =
+        Number.isFinite(resolution) && resolution > 0 ? Math.floor(Math.log2(resolution)) : NaN;
+      const bandResolution = Number.isFinite(band) ? 2 ** band : resolution;
+
+      return {
+        targetExtent, interval, minorInterval, cellInterval,
+        transformFn: crsToView, xTs, yTs, band, bandResolution,
+      };
     });
   }
 
@@ -388,6 +430,90 @@ export class ProjectedGridSystem implements GridSystem {
     pushAxisGridLineSpecs(specs, 'x', startX, endX, interval, tMinY, tMaxY, ctx.xTs, type, skipMinor);
     pushAxisGridLineSpecs(specs, 'y', startY, endY, interval, tMinX, tMaxX, ctx.yTs, type, skipMinor);
     emitFlatLineFeatures(features, this.projScratch_, specs, ctx.transformFn);
+  }
+
+  /** Cached counterpart of {@link generateLines_}: one polyline per line, reused. */
+  private generateLinesCached_(
+    features: Feature<Geometry>[],
+    ctx: RenderContext,
+    crsExtent: Extent,
+    interval: number,
+    type: 'major' | 'minor',
+    majorInterval?: number | undefined,
+  ): void {
+    const [tMinX, tMinY, tMaxX, tMaxY] = ctx.targetExtent;
+    const epsilon = interval * MAJOR_SKIP_EPSILON_RATIO;
+    const skipMinor = (v: number): boolean =>
+      type === 'minor' && majorInterval !== undefined && isOnMajorLine(v, majorInterval, epsilon);
+
+    // Vertical lines (constant x): grid values sweep x, the line sweeps y.
+    this.cachedAxis_(
+      features, ctx, 'x', type, skipMinor, interval,
+      tMinX, tMaxX, tMinY, tMaxY, crsExtent[1], crsExtent[3],
+    );
+    // Horizontal lines (constant y): grid values sweep y, the line sweeps x.
+    this.cachedAxis_(
+      features, ctx, 'y', type, skipMinor, interval,
+      tMinY, tMaxY, tMinX, tMaxX, crsExtent[0], crsExtent[2],
+    );
+  }
+
+  /**
+   * Emit every grid line of one axis from the cache. `gvMin..gvMax` is the
+   * visible grid-value range (the constant axis), `vMin..vMax` the viewport span
+   * of the swept (perp) axis, `extMin..extMax` the CRS validity on the perp axis.
+   * A line not covered by its cached window (new line, band change, or a pan past
+   * the margin) is re-sampled over a viewport-plus-margin window and re-projected.
+   */
+  private cachedAxis_(
+    features: Feature<Geometry>[],
+    ctx: RenderContext,
+    axis: 'x' | 'y',
+    type: 'major' | 'minor',
+    skip: (v: number) => boolean,
+    interval: number,
+    gvMin: number, gvMax: number,
+    vMin: number, vMax: number,
+    extMin: number, extMax: number,
+  ): void {
+    const start = Math.ceil(gvMin / interval) * interval;
+    const end = Math.floor(gvMax / interval) * interval;
+    if (start > end) return;
+
+    // Window + shared densification samples, computed once per axis on first miss.
+    let wMin = 0;
+    let wMax = 0;
+    let ts: number[] | null = null;
+    const ensureWindow = (): number[] => {
+      if (ts === null) {
+        const margin = (vMax - vMin) * WINDOW_MARGIN_RATIO;
+        wMin = Math.max(extMin, vMin - margin);
+        wMax = Math.min(extMax, vMax + margin);
+        if (wMax <= wMin) {
+          wMin = Math.max(extMin, vMin);
+          wMax = Math.min(extMax, vMax);
+        }
+        const windowExtent: Extent =
+          axis === 'x' ? [gvMin, wMin, gvMax, wMax] : [wMin, gvMin, wMax, gvMax];
+        ts = adaptiveAxisTs(
+          axis, windowExtent, ctx.transformFn, ctx.bandResolution, this.densificationPoints_,
+        );
+      }
+      return ts;
+    };
+
+    for (let v = start; v <= end; v += interval) {
+      if (skip(v)) continue;
+      const key = `${axis}${v}`;
+      let entry = this.lineCache_.get(key, ctx.band, vMin, vMax);
+      if (entry === undefined) {
+        // ensureWindow() populates wMin/wMax, so call it before reading them.
+        const windowTs = ensureWindow();
+        entry = buildLineWindow(axis, v, ctx.band, wMin, wMax, windowTs, ctx.transformFn);
+        this.lineCache_.set(key, entry);
+      }
+      features.push(sliceLineFeature(entry, axis, v, type, vMin, vMax));
+    }
   }
 
   private generateBoundary_(features: Feature<Geometry>[], ctx: RenderContext): void {
@@ -426,5 +552,73 @@ export class ProjectedGridSystem implements GridSystem {
       emitFlatLineFeatures(features, this.projScratch_, specs, ctx.transformFn);
     }
   }
+}
+
+/** Stable string key for a view projection, for cache invalidation. */
+function projectionKey(projection: ProjectionLike): string {
+  return typeof projection === 'string' ? projection : (projection?.getCode() ?? '');
+}
+
+/**
+ * Sample line `(axis, gridValue)` across `[wMin, wMax]` at `ts` and project it
+ * once into a {@link LinePolyline}. `perps` (the CRS perp positions) are kept so
+ * a later frame can slice the polyline to a narrower viewport without re-probing.
+ */
+function buildLineWindow(
+  axis: 'x' | 'y',
+  gridValue: number,
+  band: number,
+  wMin: number,
+  wMax: number,
+  ts: number[],
+  transformFn: TransformFunction,
+): LinePolyline {
+  const n = ts.length;
+  const perps = new Array<number>(n);
+  const coords = new Array<number>(n * 2);
+  const span = wMax - wMin;
+  for (let i = 0; i < n; i++) {
+    const p = wMin + ts[i]! * span;
+    perps[i] = p;
+    if (axis === 'x') {
+      coords[i * 2] = gridValue;
+      coords[i * 2 + 1] = p;
+    } else {
+      coords[i * 2] = p;
+      coords[i * 2 + 1] = gridValue;
+    }
+  }
+  transformFn(coords, coords, 2);
+  return { band, pMin: wMin, pMax: wMax, perps, coords };
+}
+
+/**
+ * Slice a cached polyline to the samples spanning `[vMin, vMax]` (one point kept
+ * beyond each edge so the line reaches the viewport border) and wrap it in a
+ * grid-line feature. `perps` is ascending, so the bounds are a linear walk.
+ */
+function sliceLineFeature(
+  entry: LinePolyline,
+  axis: 'x' | 'y',
+  gridValue: number,
+  type: 'major' | 'minor',
+  vMin: number,
+  vMax: number,
+): Feature<Geometry> {
+  const { perps, coords } = entry;
+  const n = perps.length;
+  let lo = 0;
+  while (lo + 1 < n && perps[lo + 1]! <= vMin) lo++;
+  let hi = n - 1;
+  while (hi - 1 >= 0 && perps[hi - 1]! >= vMax) hi--;
+  if (hi < lo) hi = lo;
+  const sliced = coords.slice(lo * 2, (hi + 1) * 2);
+  const feature = new Feature<Geometry>({
+    gridValue,
+    gridAxis: axis,
+    gridLineType: type,
+  });
+  feature.setGeometry(new LineString(sliced, 'XY'));
+  return feature;
 }
 

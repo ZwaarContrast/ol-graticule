@@ -143,4 +143,13 @@ export interface IntervalStrategy {
 
   /** Minor (subdivision) interval; omit to disable minor lines. */
   getMinorInterval?(majorInterval: number): number | undefined;
+
+  /**
+   * Interval on which cell labels are enumerated, when it differs from the line
+   * interval. Omit to place one label per major-line cell. Grids whose label
+   * cells are a fixed size (e.g. a 100 km lettered cell over a finer km grid)
+   * return that fixed interval so the label is not repeated across sub-cells at
+   * deep zoom.
+   */
+  getCellInterval?(resolution: number, viewProjection?: ProjectionLike): number;
 }
