@@ -2,9 +2,10 @@
 
 WWII Wehrmacht map reference grids for
 [`@zwaarcontrast/ol-graticule`](../ol-graticule): the **Deutsches
-Heeresgitter** (DHG) metric kilometre grid plus the **Heeresmeldenetz**
-(HMN) orange letter-cell overprint, in both planar and geographic
-variants.
+Heeresgitter** (DHG) metric kilometre grid, the **Deutsches
+Reichsgitter** (DRG) 3°-strip grid it replaced, plus the
+**Heeresmeldenetz** (HMN) orange letter-cell overprint, in both planar
+and geographic variants.
 
 ![DHG kilometre grid with orange Heeresmeldenetz Kleinquadrat + Meldetrapez cells over Katwijk, Noordwijk, Leiden and the North Sea](https://github.com/ZwaarContrast/ol-graticule/raw/main/packages/ol-graticule-heeresgitter/images/preview.jpg)
 
@@ -69,6 +70,14 @@ typically carries both grids superimposed:
 Both are derived from the same projection, so HMN cells align with DHG
 kilometre lines.
 
+Sheets printed before the DHG was standardised carry the **DRG**
+instead: the same Gauß-Krüger family on the national 3° strips.
+
+| Grid | Strips | Kennziffer | Rechtswert of the CM |
+|---|---|---|---|
+| **DRG** Deutsches Reichsgitter | 3° wide | `CM / 3°` | `Kennziffer × 1 000 000 + 500 000` |
+| **DHG** Deutsches Heeresgitter | 6° wide | `(CM + 3°) / 6°` | `500 000`, Kennziffer quoted separately |
+
 ### DHG projection (Gauß-Krüger on Bessel 1841)
 
 | Parameter | Value |
@@ -92,6 +101,44 @@ Inline grid ticks may show only the last two km digits (short form).
 **Validity envelope.** The DHG was only specified for zones 55–14
 (longitude −36° to +84°) and IMW rows SI–R (latitude −32° to +72°). The
 renderer uses these as its hard clip envelope.
+
+### DRG projection (Gauß-Krüger on the national 3° strips)
+
+| Parameter | Value |
+|---|---|
+| Reference ellipsoid | Bessel 1841 |
+| Projection | Gauß-Krüger (transverse Mercator) |
+| Strip width | 3° |
+| Scale factor on CM | 1.0 |
+| False easting | `Kennziffer × 1 000 000 + 500 000` m |
+| False northing | 0 (Hochwert = meridian arc from equator) |
+| Strip overlap | 10' on each side beyond the nominal 3° |
+
+Zone numbering is `n = L_m / 3°`, so Kennziffer 2 = CM 6°E, 3 = CM 9°E,
+4 = CM 12°E, 5 = CM 15°E. Strips 2–5 are the German ones and match
+EPSG:31466–31469.
+
+The Kennziffer is not quoted apart from the coordinate the way it is on
+DHG sheets: it is carried as the *leading digit of the Rechtswert*. A
+grid line labelled `2512` is strip 2, Rechtswert 512 km. Point
+references are given in metres, Rechtswert first, and may be shortened
+by dropping the leading pair. From the *Planzeiger* note on sheet 5503
+Elsenborn:
+
+> Der Rechtswert ist stets zuerst zu nennen. Die Punktangabe erfolgt in
+> Metern. Nicht ablesbare Werte sind bis zur Angabe des vollen Meters
+> durch Nullen zu ersetzen.
+>
+> Beispiel: Punkt p liegt in Metern:
+> „Rechts" ⁴⁵27000 + 200 = ⁴⁵27200 = (kurz:) 27200
+> „Hoch" ⁵⁷96000 + 450 = ⁵⁷96450 = (kurz:) 96450
+>
+> \* Kennziffer des Meridianstreifens
+
+There is no validity envelope: unlike the DHG, the DRG was a national
+survey grid rather than a theatre-wide specification, so the renderer
+clips each strip to its own band and nothing more. It draws only at
+large scale (see `maxRenderResolution`).
 
 ### HMN (planar) hierarchy
 
@@ -160,6 +207,17 @@ Romfo example and a Den Haag cross-check.
 | `densificationPoints` | `number` | `60` | Vertices per grid line for non-affine view projections. |
 | `datumShift` | `DatumShift` | Potsdam | Override the WGS 84 → Bessel-Potsdam Helmert transform. |
 
+## DRG options
+
+| Option | Type | Default | What it does |
+|---|---|---|---|
+| `zoneBoundary` | `'tiled'` \| `'overlap'` \| `'single'` | `'tiled'` | Behaviour at 3° strip seams. `tiled` cuts hard at each edge. `overlap` re-draws the 20' overlap band the way a sheet straddling a boundary prints two grids. `single` renders only the strip nearest the viewport centre. |
+| `labelForm` | `'long'` \| `'short'` | `'long'` | `long` prints the full km value with its Kennziffer digit (`"2512"`). `short` prints the sheet's *kurz* form, last two digits only (`"12"`). |
+| `maxRenderResolution` | `number` (m/px) | `2000` | Above this nothing is drawn. This is a large-scale sheet grid, not a world overview. |
+| `targetScreenPx` | `number` | `80` | Target pixel spacing between adjacent grid lines; drives the 1/2/5/10/25/50/100 km interval ladder. |
+| `densificationPoints` | `number` | `60` | Vertices per grid line for non-affine view projections. |
+| `datumShift` | `DatumShift` | Potsdam | Override the WGS 84 → Bessel-Potsdam Helmert transform. |
+
 ## HMN options
 
 | Option | Type | Default | What it does |
@@ -193,6 +251,32 @@ encodeDhgText([52.0, 28 + 20 / 60]);               // Owrutsch NW corner
 Input order is `[latitude, longitude]`. `encodeDhg` picks the zone
 whose central meridian is nearest the longitude; pass an explicit
 `kennziffer` to force a specific zone.
+
+### DRG: `(lat, lon)` to printed Rechtswert / Hochwert
+
+```ts
+import { encodeDrg, encodeDrgText, parseDrg, formatDrgEasting }
+  from '@zwaarcontrast/ol-graticule-heeresgitter';
+
+const coord = encodeDrg([50.4, 6 + 10 / 60]);      // sheet 5503 SW corner
+// -> { kennziffer: 2, easting: 2511892.., northing: 5584914.. }
+
+formatDrgEasting(coord);                            // -> "2512" (corner label)
+formatDrgEasting(coord, { form: 'short' });         // -> "12"   (inline tick)
+formatDrgEasting(coord, { unit: 'm' });             // -> "2511892"
+
+encodeDrgText([50.4514, 6.2076]);                   // Elsenborn
+// -> "2514... 5590..."   (strip 2, Rechtswert / Hochwert in metres)
+
+parseDrg('2512200 5585450');
+// -> { coord: { kennziffer: 2, easting: 2512200, northing: 5585450 }, ... }
+```
+
+The sheet's printed *graticule* is Potsdam/Bessel, not WGS 84.
+`encodeDrg` takes WGS 84 input and applies the Helmert shift, which
+moves a corner by roughly 130 m in this region. Pass an identity
+`datumShift` to `drgForwardInZone` to read a sheet's own lat/lon values
+literally.
 
 ### HMN: `(lat, lon)` to letter-cell reference
 
@@ -250,7 +334,6 @@ a single global Helmert (Potsdam datum); override per call via
 - **UTM-REF / Deutscher Heeresblattschnitt**, the 1944 prototype that
   later became MGRS. Covered by
   [`@zwaarcontrast/ol-graticule-mgrs`](../ol-graticule-mgrs).
-- **DRG (Deutsches Reichsgitter)**, the civilian 3°-strip predecessor.
 
 ## Primary-source validation
 
@@ -272,6 +355,11 @@ Den Haag cross-check against an Atlantikwall sector overprint.
   ([open-access PDF via Austria-Forum][buchroithner-pdf]): the explicit
   spec for both HMN variants, citing *RdLuObdL ChAusbW
   VorschLmAbtRLM/LIn12 76/40*.
+- **Sheet 5503 (3207 alt) Elsenborn**, *Topographische Karte 1:25 000
+  (4-cm-Karte), Planblatt A*, Geheim, Sonderdruck der Heeresplankammer,
+  Ausgabe A 1939, Stand 1.10.1939: the DRG projection parameters, the
+  *Planzeiger* reference rules, and the 2512–2523 / 5585–5595 km grid
+  used as the regression fixture.
 - **Powell & Mühr**, *Capturing the Complex Histories of German World
   War II Captured Maps* (UC Berkeley Library): provenance for the
   captured-map collection.
