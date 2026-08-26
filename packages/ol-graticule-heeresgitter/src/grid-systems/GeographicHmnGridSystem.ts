@@ -13,7 +13,7 @@ import Point from 'ol/geom/Point';
 import type { Extent } from 'ol/extent';
 import type { Geometry } from 'ol/geom';
 import type { ProjectionLike, TransformFunction } from 'ol/proj';
-import { transformExtent, getTransform, transform } from 'ol/proj';
+import { transformExtent, getTransform } from 'ol/proj';
 
 import type {
   FlatLineSpec,
@@ -32,7 +32,7 @@ import {
   pushAxisGridLineSpecs,
 } from '@zwaarcontrast/ol-graticule';
 
-import { cursorKey } from './sharedViewport.js';
+import { cursorKey, toFiniteLonLat } from './sharedViewport.js';
 import { encodeHmnGeo } from '../heeresmeldenetz-geographic/encode.js';
 import { hmnGeoHierarchicalLabel } from '../heeresmeldenetz-geographic/formatter.js';
 import {
@@ -136,7 +136,6 @@ export class GeographicHmnGridSystem implements GridSystem {
     if (!ctx) return [];
 
     const features: Feature<Geometry>[] = [];
-    // Kleintrapez (major) always drawn.
     this.emitLinesAt_(features, ctx, TIER_KLEIN, 'major');
     if (ctx.tier.depth >= 3 && this.maxDepth_ >= 3) {
       this.emitLinesAt_(features, ctx, TIER_MELDE, 'minor');
@@ -215,17 +214,12 @@ export class GeographicHmnGridSystem implements GridSystem {
     const cached = this.cursorCache_.get(cacheKey);
     if (cached !== undefined) return cached;
 
-    const lonLat = transform(coordinate, viewProjection, 'EPSG:4326');
-    const lon = lonLat[0];
-    const lat = lonLat[1];
+    const lonLat = toFiniteLonLat(coordinate, viewProjection);
     let result: FormattedCoordinate;
-    if (
-      lon === undefined || lat === undefined ||
-      !Number.isFinite(lon) || !Number.isFinite(lat)
-    ) {
+    if (!lonLat) {
       result = { combined: '-' };
     } else {
-      const ref = encodeHmnGeo([lat, lon], { depth: this.maxDepth_ === 2 ? 2 : this.maxDepth_ === 3 ? 3 : 4 });
+      const ref = encodeHmnGeo([lonLat[1], lonLat[0]], { depth: this.maxDepth_ });
       result = { combined: ref.canonical };
     }
     this.cursorCache_.set(cacheKey, result);
@@ -236,12 +230,8 @@ export class GeographicHmnGridSystem implements GridSystem {
     coordinate: [number, number],
     viewProjection: ProjectionLike,
   ): boolean {
-    const lonLat = transform(coordinate, viewProjection, 'EPSG:4326');
-    const lon = lonLat[0];
-    const lat = lonLat[1];
-    if (lon === undefined || lat === undefined) return false;
-    if (!Number.isFinite(lon) || !Number.isFinite(lat)) return false;
-    return lat > -85 && lat < 85;
+    const lonLat = toFiniteLonLat(coordinate, viewProjection);
+    return lonLat !== null && lonLat[1] > -85 && lonLat[1] < 85;
   }
 
   /** Currently-configured max depth. */
@@ -292,13 +282,7 @@ export class GeographicHmnGridSystem implements GridSystem {
     const startLat = latAnchor + Math.ceil((tMinLat - latAnchor) / latStepDeg) * latStepDeg;
     const endLat = latAnchor + Math.floor((tMaxLat - latAnchor) / latStepDeg) * latStepDeg;
 
-    // Why a tolerance: the anchor/step values are non-terminating fractions
-    // (e.g. latStep = 240/3600 = 0.06̄) and IEEE 754 can't represent them
-    // exactly. The loop `for (let v = start; v <= end; v += interval)` in
-    // `pushAxisGridLineSpecs` accumulates a few ULPs of drift per iteration,
-    // and `endLat` (computed independently) lands on a slightly different
-    // float. The last line drops when `v` ends up ~1e-14 above `endLat`.
-    // Half a step is plenty of slack and well below the next intended line.
+    // Small relative tolerance absorbs float drift so the last line isn't dropped.
     const lonTol = lonStepDeg * 1e-6;
     const latTol = latStepDeg * 1e-6;
 

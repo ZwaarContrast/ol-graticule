@@ -36,6 +36,48 @@ export {
 
 export type { DatumShift, DhgCoord, DhgZone, LatLon } from './dhg/types.js';
 
+// Gauß-Krüger 3°-Streifen: the Reich sheet grid that preceded the 6° DHG.
+export { DrgGridSystem } from './grid-systems/DrgGridSystem.js';
+export type { DrgGridSystemOptions, DrgZoneBoundaryMode } from './grid-systems/DrgGridSystem.js';
+
+export {
+  encodeDrg,
+  encodeDrgText,
+  decodeDrg,
+  parseDrg,
+  formatEasting as formatDrgEasting,
+  formatNorthing as formatDrgNorthing,
+} from './drg/codec.js';
+export type { DrgFormatOptions, ParsedDrg } from './drg/codec.js';
+
+export {
+  ALL_ZONES as DRG_ALL_ZONES,
+  cmForKennziffer as drgCmForKennziffer,
+  kennzifferForCm as drgKennzifferForCm,
+  falseEastingFor as drgFalseEastingFor,
+  zoneByKennziffer as drgZoneByKennziffer,
+  zoneForLon as drgZoneForLon,
+  zonesContainingLon as drgZonesContainingLon,
+  STRIP_HALF_WIDTH_DEG as DRG_STRIP_HALF_WIDTH_DEG,
+  STRIP_OVERLAP_DEG as DRG_STRIP_OVERLAP_DEG,
+  ZONE_EASTING_STEP as DRG_ZONE_EASTING_STEP,
+  FALSE_EASTING as DRG_FALSE_EASTING,
+  MAX_KENNZIFFER as DRG_MAX_KENNZIFFER,
+} from './drg/zones.js';
+
+export {
+  drgCrsCode,
+  forward as drgForward,
+  forwardInZone as drgForwardInZone,
+  inverse as drgInverse,
+  registerAllZones as registerAllDrgZones,
+  registerZone as registerDrgZone,
+  resetDrgDatumShift,
+  setDrgDatumShift,
+} from './drg/projection.js';
+
+export type { DrgCoord, DrgZone } from './drg/types.js';
+
 // HMN (Heeresmeldenetz): orange letter-pair overprint built on top of DHG.
 export { HmnGridSystem } from './grid-systems/HmnGridSystem.js';
 export type { HmnGridSystemOptions } from './grid-systems/HmnGridSystem.js';

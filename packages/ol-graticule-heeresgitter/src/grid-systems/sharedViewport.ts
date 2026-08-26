@@ -5,8 +5,11 @@
  */
 
 import type { Extent } from 'ol/extent';
+import { getCenter } from 'ol/extent';
 import type { ProjectionLike } from 'ol/proj';
 import { transform } from 'ol/proj';
+import { STRIP_OVERLAP_DEG, zoneByKennziffer, zoneForLon } from '../dhg/zones.js';
+import { zoneIntersectsValidity } from '../dhg/stripPolygon.js';
 
 /**
  * Loose bbox around every plausible DHG metre coordinate. Used to discard
@@ -24,6 +27,53 @@ export function projectionKey(projection: ProjectionLike): string {
 /** Cache key for cursor-formatted coordinates: projection + integer-rounded `(x, y)`. */
 export function cursorKey(coordinate: [number, number], projection: ProjectionLike): string {
   return `${projectionKey(projection)}|${Math.round(coordinate[0])}|${Math.round(coordinate[1])}`;
+}
+
+/** Transform a view coordinate to `[lon, lat]` in EPSG:4326, or `null` if either is non-finite. */
+export function toFiniteLonLat(
+  coordinate: [number, number],
+  viewProjection: ProjectionLike,
+): [number, number] | null {
+  const lonLat = transform(coordinate, viewProjection, 'EPSG:4326');
+  const lon = lonLat[0];
+  const lat = lonLat[1];
+  if (lon === undefined || lat === undefined) return null;
+  if (!Number.isFinite(lon) || !Number.isFinite(lat)) return null;
+  return [lon, lat];
+}
+
+/**
+ * Kennziffer of every DHG strip the view extent touches. In `single` mode the
+ * single centre strip; otherwise every strip whose (optionally overlap-widened)
+ * span intersects the extent's longitude range and the validity envelope.
+ */
+export function activeZonesFor(
+  extent: Extent,
+  viewProjection: ProjectionLike,
+  mode: 'tiled' | 'overlap' | 'single',
+): number[] {
+  const overlapDeg = mode === 'overlap' ? STRIP_OVERLAP_DEG : 0;
+  if (mode === 'single') {
+    const centre = getCenter(extent);
+    const [centreLon] = transform(centre, viewProjection, 'EPSG:4326');
+    const centreZone = zoneForLon(centreLon ?? 0);
+    return zoneIntersectsValidity(centreZone, overlapDeg)
+      ? [centreZone.kennziffer]
+      : [];
+  }
+  const lons = sampleCornerLons(extent, viewProjection);
+  if (lons.length === 0) return [];
+  const minLon = Math.min(...lons);
+  const maxLon = Math.max(...lons);
+  const result: number[] = [];
+  for (let k = 1; k <= 60; k++) {
+    const zone = zoneByKennziffer(k);
+    if (!zoneIntersectsValidity(zone, overlapDeg)) continue;
+    const west = zone.cm - 3 - overlapDeg;
+    const east = zone.cm + 3 + overlapDeg;
+    if (east > minLon && west < maxLon) result.push(k);
+  }
+  return result;
 }
 
 /** Longitudes of the four viewport corners, with non-finite values filtered out. */

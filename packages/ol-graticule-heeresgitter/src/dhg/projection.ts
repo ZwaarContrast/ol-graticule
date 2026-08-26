@@ -8,34 +8,18 @@
  */
 
 import proj4 from 'proj4';
-import { registerCRS } from '@zwaarcontrast/ol-graticule-projected';
 
+import { DEFAULT_DATUM_SHIFT, datumShiftKey, registerZoneCrs } from '../gaussKrueger.js';
 import type { DatumShift, DhgCoord, DhgZone, LatLon } from './types.js';
 import { ALL_ZONES, zoneByKennziffer, zoneForLon } from './zones.js';
 
-/**
- * Default WGS 84 to Bessel Potsdam Helmert parameters (BKG / EPSG:1777
- * "Deutsches Hauptdreiecksnetz to WGS 84 (3)"). Accurate to ~5 m globally.
- */
-export const DEFAULT_DATUM_SHIFT: DatumShift = {
-  translation: [598.1, 73.7, 418.2],
-  rotation: [0.202, 0.045, -2.455],
-  scale: 6.7,
-};
+export { DEFAULT_DATUM_SHIFT };
 
 let activeDatumShift: DatumShift = DEFAULT_DATUM_SHIFT;
-const registeredCodes = new Set<string>();
-
-function shiftKey(shift: DatumShift): string {
-  if (shift === DEFAULT_DATUM_SHIFT) return '';
-  const [tx, ty, tz] = shift.translation;
-  const [rx, ry, rz] = shift.rotation;
-  return `:${tx}_${ty}_${tz}_${rx}_${ry}_${rz}_${shift.scale}`;
-}
 
 /** EPSG-like code identifying a DHG zone for a given datum shift in the proj4 registry. */
 export function dhgCrsCode(kennziffer: number, shift: DatumShift = activeDatumShift): string {
-  return `DHG:Z${String(kennziffer).padStart(2, '0')}${shiftKey(shift)}`;
+  return `DHG:Z${String(kennziffer).padStart(2, '0')}${datumShiftKey(shift)}`;
 }
 
 function proj4DefFor(zone: DhgZone, shift: DatumShift): string {
@@ -71,11 +55,7 @@ export function resetDhgDatumShift(): void {
 
 /** Register a zone's CRS with proj4 and OpenLayers under the shift-specific code. Idempotent. */
 export function registerZone(zone: DhgZone, shift: DatumShift = activeDatumShift): string {
-  const code = dhgCrsCode(zone.kennziffer, shift);
-  if (registeredCodes.has(code)) return code;
-  registerCRS(code, proj4DefFor(zone, shift));
-  registeredCodes.add(code);
-  return code;
+  return registerZoneCrs(dhgCrsCode(zone.kennziffer, shift), () => proj4DefFor(zone, shift));
 }
 
 /** Register every DHG zone under the given shift (defaults to the active shift). */
