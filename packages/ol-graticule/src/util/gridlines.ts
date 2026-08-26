@@ -56,7 +56,8 @@ export function adaptiveAxisTs(
   transformFn: TransformFunction,
   resolution: number,
   cap: number,
-  maxDevPx = 0.25,
+  // Max view-space deviation of the densified polyline from the true curve.
+  maxDevPx = 0.5,
 ): number[] {
   const tol = maxDevPx * resolution;
   const sag = probeAxisSag(axis, extent, transformFn);
