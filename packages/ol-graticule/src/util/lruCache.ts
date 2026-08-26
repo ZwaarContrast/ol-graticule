@@ -8,8 +8,10 @@ export class LruCache<K, V> {
     this.max_ = max;
   }
 
-  /** Look up a key; on hit, touch it to the MRU end. */
+  /** Look up a key; while at capacity, touch it to the MRU end. */
   get(key: K): V | undefined {
+    // Below capacity nothing is ever evicted, so skip MRU promotion.
+    if (this.map_.size < this.max_) return this.map_.get(key);
     const v = this.map_.get(key);
     if (v === undefined && !this.map_.has(key)) return undefined;
     this.map_.delete(key);
