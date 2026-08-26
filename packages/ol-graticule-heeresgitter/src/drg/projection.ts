@@ -7,27 +7,18 @@
  */
 
 import proj4 from 'proj4';
-import { registerCRS } from '@zwaarcontrast/ol-graticule-projected';
 
-import { DEFAULT_DATUM_SHIFT } from '../dhg/projection.js';
+import { DEFAULT_DATUM_SHIFT, datumShiftKey, registerZoneCrs } from '../gaussKrueger.js';
 import type { DatumShift, DrgCoord, DrgZone, LatLon } from './types.js';
 import { ALL_ZONES, zoneByKennziffer, zoneForLon } from './zones.js';
 
 export { DEFAULT_DATUM_SHIFT };
 
 let activeDatumShift: DatumShift = DEFAULT_DATUM_SHIFT;
-const registeredCodes = new Set<string>();
-
-function shiftKey(shift: DatumShift): string {
-  if (shift === DEFAULT_DATUM_SHIFT) return '';
-  const [tx, ty, tz] = shift.translation;
-  const [rx, ry, rz] = shift.rotation;
-  return `:${tx}_${ty}_${tz}_${rx}_${ry}_${rz}_${shift.scale}`;
-}
 
 /** CRS code identifying a 3° strip for a given datum shift in the proj4 registry. */
 export function drgCrsCode(kennziffer: number, shift: DatumShift = activeDatumShift): string {
-  return `DRG:Z${String(kennziffer).padStart(2, '0')}${shiftKey(shift)}`;
+  return `DRG:Z${String(kennziffer).padStart(2, '0')}${datumShiftKey(shift)}`;
 }
 
 function proj4DefFor(zone: DrgZone, shift: DatumShift): string {
@@ -59,11 +50,7 @@ export function resetDrgDatumShift(): void {
 
 /** Register a strip's CRS with proj4 and OpenLayers. Idempotent. */
 export function registerZone(zone: DrgZone, shift: DatumShift = activeDatumShift): string {
-  const code = drgCrsCode(zone.kennziffer, shift);
-  if (registeredCodes.has(code)) return code;
-  registerCRS(code, proj4DefFor(zone, shift));
-  registeredCodes.add(code);
-  return code;
+  return registerZoneCrs(drgCrsCode(zone.kennziffer, shift), () => proj4DefFor(zone, shift));
 }
 
 /** Register every supported strip under the given shift. */
