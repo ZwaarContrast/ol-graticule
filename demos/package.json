@@ -8,7 +8,7 @@
     "preview": "vite preview",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install chromium",
-    "test:profile": "PROFILE_BUILD=1 playwright test profile.spec.ts"
+    "test:profile": "PROFILE_BUILD=1 playwright test --config=playwright.profile.config.ts"
   },
   "dependencies": {
     "@zwaarcontrast/ol-graticule": "*",
