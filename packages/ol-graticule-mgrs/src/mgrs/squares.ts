@@ -1,8 +1,8 @@
 /** 100,000-metre square identifier letters for MGRS (modern WGS84 "AA" scheme). */
 
 const COLUMN_SETS = ['ABCDEFGH', 'JKLMNPQR', 'STUVWXYZ'] as const;
-export const ROW_LETTERS = 'ABCDEFGHJKLMNPQRSTUV';
-export const ROW_CYCLE = ROW_LETTERS.length;
+const ROW_LETTERS = 'ABCDEFGHJKLMNPQRSTUV';
+const ROW_CYCLE = ROW_LETTERS.length;
 
 /** Column letter set for a given UTM zone number (1-60). */
 export function columnSetForZone(zone: number): string {
