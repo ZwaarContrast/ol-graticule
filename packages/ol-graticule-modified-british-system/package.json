@@ -41,7 +41,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc --build",
+    "build": "node ../../node_modules/typescript-7/bin/tsc --build",
     "type-check": "tsc --build --noEmit",
     "dev": "tsc --build --watch",
     "test": "vitest run",
@@ -59,7 +59,7 @@
     "@zwaarcontrast/ol-graticule": "*",
     "@zwaarcontrast/ol-graticule-projected": "*",
     "@zwaarcontrast/test-utils": "*",
-    "typescript": "^5.7.2",
+    "typescript": "~6.0.3",
     "vitest": "^4.0.17"
   }
 }

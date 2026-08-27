@@ -19,8 +19,8 @@
     "demos"
   ],
   "scripts": {
-    "build": "tsc --build",
-    "type-check": "tsc --build --noEmit",
+    "build": "node node_modules/typescript-7/bin/tsc --build",
+    "type-check": "node node_modules/typescript-7/bin/tsc --build --noEmit",
     "test": "vitest run",
     "test:coverage": "vitest run --coverage",
     "lint": "eslint .",
@@ -33,7 +33,7 @@
     "release": "npm run build && changeset publish",
     "demo:dev": "npm run dev --workspace=ol-graticule-demos",
     "demo:build": "npm run build && npm run build --workspace=ol-graticule-demos",
-    "clean": "tsc --build --clean && rm -rf packages/*/node_modules demos/node_modules demos/dist node_modules",
+    "clean": "node node_modules/typescript-7/bin/tsc --build --clean && rm -rf packages/*/node_modules demos/node_modules demos/dist node_modules",
     "bench": "npm run bench --workspaces --if-present",
     "test:e2e": "npm run test:e2e --workspace=ol-graticule-demos"
   },
@@ -44,14 +44,14 @@
     "@typescript-eslint/eslint-plugin": "^8.18.2",
     "@typescript-eslint/parser": "^8.18.2",
     "@vitest/coverage-v8": "^4.0.17",
-    "esbuild": "^0.28.1",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^9.1.0",
     "fast-check": "^4.8.0",
     "happy-dom": "^20.9.0",
-    "knip": "^5.0.0",
+    "knip": "^6.29.0",
     "prettier": "^3.4.2",
-    "typescript": "^5.7.2",
+    "typescript": "~6.0.3",
+    "typescript-7": "npm:typescript@^7.0.2",
     "vitest": "^4.0.17"
   }
 }
