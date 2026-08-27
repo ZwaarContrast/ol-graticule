@@ -1,7 +1,7 @@
 import type { Page } from '@playwright/test';
 
 const BLOCKED_TILE_HOSTS = [
-  'basemaps.cartocdn.com',
+  'services.arcgisonline.com',
   'tile.openstreetmap.org',
   'a.tile.openstreetmap.org',
   'b.tile.openstreetmap.org',
