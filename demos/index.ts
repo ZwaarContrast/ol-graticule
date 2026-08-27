@@ -110,9 +110,10 @@ if (!target) throw new Error('#bg-map missing');
 
 const baseLayer = new TileLayer({
   source: new XYZ({
-    url: 'https://basemaps.cartocdn.com/dark_nolabels/{z}/{x}/{y}.png',
+    url: 'https://services.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
     crossOrigin: 'anonymous',
-    attributions: '© OpenStreetMap contributors © CARTO',
+    maxZoom: 16,
+    attributions: 'Tiles © Esri, HERE, Garmin, © OpenStreetMap contributors',
   }),
   opacity: 0.42,
 });
