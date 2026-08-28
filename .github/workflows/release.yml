@@ -54,7 +54,7 @@ jobs:
       - run: npm run build
 
       - name: Create Release PR or publish to npm
-        uses: changesets/action@v1
+        uses: changesets/action@v2
         with:
           # When there are pending changesets: opens/updates a "Version Packages"
           # PR that bumps versions and updates CHANGELOG.md via your
