@@ -7,7 +7,6 @@ coverage
 .claude
 demos/dist
 .playwright-cli
-/demos/e2e/demos.spec.ts-snapshots
 /demos/e2e/profile-results
 /demos/test-results
 /demos/playwright-report
@@ -19,3 +18,10 @@ demos/dist
 /*.png
 /*.pdf
 /*.mpk
+
+# Visual-regression baselines are the Linux ones CI generates (see the e2e job).
+# Regenerate locally with the same image:
+#   docker run --rm -v "$PWD":/w -w /w --ipc=host mcr.microsoft.com/playwright:v1.60.0-noble \
+#     bash -lc 'npm ci && npm run build && npm run test:e2e -- --update-snapshots'
+/demos/e2e/demos.spec.ts-snapshots/*-darwin.png
+/demos/e2e/demos.spec.ts-snapshots/*-win32.png

@@ -65,6 +65,30 @@ jobs:
 
       - run: npm test
 
+  e2e:
+    name: Visual regression
+    runs-on: ubuntu-latest
+    # Pinned to the image matching @playwright/test so the committed snapshots,
+    # which are generated in this same image, render identically.
+    container:
+      image: mcr.microsoft.com/playwright:v1.60.0-noble
+    steps:
+      - uses: actions/checkout@v6
+      # No setup-node: the image ships Node 24, which is what the committed
+      # baselines were generated on. Swapping it would diverge from them.
+      - run: npm ci
+      - run: npm run build
+      - run: npm run test:e2e
+      - name: Upload diffs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            demos/playwright-report
+            demos/test-results
+          retention-days: 7
+
   coverage:
     name: Coverage
     runs-on: ubuntu-latest

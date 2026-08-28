@@ -24,8 +24,8 @@ export interface HoverLensOptions {
   /** Falloff radius in CSS px; beyond this a line is back to its base width. Default 120. */
   radius?: number;
   /**
-   * Fraction of the local grid cell size at which the donut holes reach zero —
-   * a hole fades in as the cursor comes within `approachFraction × cellSize` of
+   * Fraction of the local grid cell size at which the donut holes reach zero.
+   * A hole fades in as the cursor comes within `approachFraction × cellSize` of
    * a crossing. Scaling by cell size keeps the trigger area proportional at
    * every zoom. Default 0.6.
    */
@@ -78,7 +78,23 @@ export interface EdgeLabelContext {
   xLabelOffset: number;
   /** Pixel offset for y-axis labels from the edge, inward. */
   yLabelOffset: number;
+  /**
+   * When set, `label.point` already holds the final anchor (both axes), placed
+   * at the visible border crossing. Handlers must use it verbatim instead of
+   * snapping the cross-axis coordinate to the axis-aligned extent edge, which is
+   * only correct when the view is unrotated.
+   */
+  preplaced?: boolean;
+  /**
+   * The viewport edge the placer anchored this label to. Under rotation a label
+   * can land on an edge that does not match its axis (a latitude label on the
+   * top edge), so style by this, not by `label.axis`, to keep it on-screen.
+   */
+  edge?: EdgeLabelEdge;
 }
+
+/** A viewport edge an edge label can be anchored to. */
+export type EdgeLabelEdge = 'top' | 'bottom' | 'left' | 'right';
 
 /** Pooled edge-label slot mutated in place each frame. */
 export interface EdgeLabelSlot {
@@ -130,12 +146,39 @@ export interface GraticuleStyle {
   hoverLens?: GraticuleHoverLens;
 }
 
+/**
+ * How the graticule composites against the layers beneath it, as a CSS
+ * `mix-blend-mode`. `'difference'` keeps one line colour legible over any
+ * basemap.
+ */
+export type GraticuleBlendMode =
+  | 'multiply'
+  | 'screen'
+  | 'overlay'
+  | 'darken'
+  | 'lighten'
+  | 'color-dodge'
+  | 'color-burn'
+  | 'hard-light'
+  | 'soft-light'
+  | 'difference'
+  | 'exclusion'
+  | 'hue'
+  | 'saturation'
+  | 'color'
+  | 'luminosity';
+
 /** Styling for {@link CursorPositionControl}. */
 export interface CursorStyle {
   /** CSS color for the indicator background. */
   color?: string;
   /** CSS applied directly to each `<span>` label. */
   labelCss?: string;
+  /**
+   * Extend the axis-mode indicator's short tick into a full guide line running
+   * from the frame edge to the pointer (default: false). Rotation-independent.
+   */
+  guideLine?: boolean;
 }
 
 export const DEFAULT_LINE_STROKE = new Stroke({
@@ -187,26 +230,55 @@ export function createDefaultEdgeLabelHandler(
 
       slot.text.setText(label.text);
 
-      if (label.axis === 'x') {
-        const atTop = ctx.xLabelPosition === 'top';
-        const off = ctx.xLabelOffset;
-        geom.setCoordinates([coords[0]!, atTop ? maxY : minY]);
-        slot.text.setTextBaseline(atTop ? 'top' : 'bottom');
-        slot.text.setTextAlign('center');
-        slot.text.setOffsetX(0);
-        slot.text.setOffsetY(atTop ? off : -off);
+      const cx = coords[0] ?? 0;
+      const cy = coords[1] ?? 0;
+      const atTop = ctx.xLabelPosition === 'top';
+      const atLeft = ctx.yLabelPosition === 'left';
+      if (ctx.preplaced) {
+        geom.setCoordinates([cx, cy]);
+      } else if (label.axis === 'x') {
+        geom.setCoordinates([cx, atTop ? maxY : minY]);
       } else {
-        const atLeft = ctx.yLabelPosition === 'left';
-        const off = ctx.yLabelOffset;
-        geom.setCoordinates([atLeft ? minX : maxX, coords[1]!]);
-        slot.text.setTextBaseline('middle');
-        slot.text.setTextAlign(atLeft ? 'left' : 'right');
-        slot.text.setOffsetX(atLeft ? off : -off);
-        slot.text.setOffsetY(0);
+        geom.setCoordinates([atLeft ? minX : maxX, cy]);
       }
+
+      // Style by the edge actually anchored to (rotation may move a label off its
+      // axis's usual edge); fall back to the axis's configured side.
+      const edge = ctx.edge ?? (label.axis === 'x'
+        ? (atTop ? 'top' : 'bottom')
+        : (atLeft ? 'left' : 'right'));
+      styleForEdge(slot.text, edge, ctx);
       return true;
     },
   };
+}
+
+/**
+ * Align a label's text to sit inside the viewport from `edge`: centered and
+ * dropping in from top/bottom, middle-aligned and pushed in from left/right. The
+ * inward offset is the config value for that edge's orientation.
+ */
+function styleForEdge(text: Text, edge: EdgeLabelEdge, ctx: EdgeLabelContext): void {
+  const horizontal = edge === 'top' || edge === 'bottom';
+  const off = horizontal ? ctx.xLabelOffset : ctx.yLabelOffset;
+  switch (edge) {
+    case 'top':
+      text.setTextBaseline('top'); text.setTextAlign('center');
+      text.setOffsetX(0); text.setOffsetY(off);
+      break;
+    case 'bottom':
+      text.setTextBaseline('bottom'); text.setTextAlign('center');
+      text.setOffsetX(0); text.setOffsetY(-off);
+      break;
+    case 'left':
+      text.setTextBaseline('middle'); text.setTextAlign('left');
+      text.setOffsetX(off); text.setOffsetY(0);
+      break;
+    case 'right':
+      text.setTextBaseline('middle'); text.setTextAlign('right');
+      text.setOffsetX(-off); text.setOffsetY(0);
+      break;
+  }
 }
 
 export interface DefaultCellLabelOptions {
@@ -392,7 +464,7 @@ function colorToCss(color: ReturnType<Stroke['getColor']>): string | null {
   return null;
 }
 
-function isMajorMinor(
+export function isMajorMinor(
   value: GraticuleLineStyle,
 ): value is { major: Stroke; minor?: Stroke; boundary?: Stroke } {
   return (
@@ -400,6 +472,6 @@ function isMajorMinor(
     value !== null &&
     !Array.isArray(value) &&
     'major' in value &&
-    (value as { major: unknown }).major instanceof Stroke
+    value.major instanceof Stroke
   );
 }

@@ -1,24 +1,134 @@
 import { expect, test } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { blockExternalTiles } from './helpers.js';
 
 /**
- * Smoke + visual-regression tests for each grid-system demo.
+ * Smoke + visual-regression tests for each grid-system demo, run on BOTH
+ * renderers (Canvas 2D and WebGL).
  *
- * We intercept and abort every third-party tile request (cartocdn,
- * openstreetmap, etc.) so the basemap stays blank and only the
- * graticule canvas renders. That makes the screenshot deterministic
- * across machines and CI runs.
+ * External tile requests are aborted so the basemap stays blank and only the
+ * graticule renders, keeping the screenshot deterministic across machines/CI.
  *
- * What we verify:
- *   1. Page loads without uncaught JS errors
- *   2. The graticule canvas mounts under `#map` / `#bg-map`
- *   3. The canvas paints visible pixels (i.e. the graticule actually
- *      drew lines)
- *   4. A pixel-by-pixel screenshot of the canvas matches the baseline
- *      (visual regression for the grid-line layout)
+ * Both renderers are asserted against ONE shared baseline per demo (the Canvas
+ * reference). Canvas is compared tightly (regression); WebGL is compared with a
+ * looser per-pixel `threshold` that absorbs anti-aliasing / glyph-rasterisation
+ * differences but still fails on STRUCTURAL divergence (a line or label in the
+ * wrong place).
+ *
+ * `--update-snapshots` writes a missing baseline from the first run and leaves
+ * an already-matching one untouched, so `canvas` runs FIRST and owns the shared
+ * reference; `webgl` is then diffed against it.
  */
 
-const DEMOS = [
+const RENDERERS = ['canvas', 'webgl'] as const;
+type Renderer = (typeof RENDERERS)[number];
+
+// Canvas vs its own baseline: tight (real regression).
+const CANVAS_TOLERANCE = { maxDiffPixelRatio: 0.02 } as const;
+// WebGL vs the Canvas baseline: same tight 2% pixel budget; the looser per-pixel
+// threshold absorbs AA/GL-backend jitter, structural divergence still trips it.
+const WEBGL_TOLERANCE = { maxDiffPixelRatio: 0.02, threshold: 0.3 } as const;
+
+const tolerance = (r: Renderer): { maxDiffPixelRatio: number; threshold?: number } =>
+  r === 'canvas' ? CANVAS_TOLERANCE : WEBGL_TOLERANCE;
+
+/**
+ * Assert the graticule actually painted pixels. OL vector layers use a 2D
+ * context, so we read alpha back from every canvas under the target. Only
+ * meaningful for the Canvas renderer (WebGL canvases have no 2D context and may
+ * not preserve their drawing buffer); the screenshot assertion covers WebGL.
+ */
+async function expectPainted(target: Locator): Promise<void> {
+  const anyOpaque = await target.evaluate((el) => {
+    for (const c of el.querySelectorAll('canvas')) {
+      const { width, height } = c;
+      if (width === 0 || height === 0) continue;
+      const ctx = c.getContext('2d');
+      if (!ctx) continue;
+      const data = ctx.getImageData(0, 0, width, height).data;
+      for (let i = 3; i < data.length; i += 4) {
+        if (data[i]! > 0) return true;
+      }
+    }
+    return false;
+  });
+  expect(anyOpaque, 'graticule painted no pixels onto any 2D canvas').toBe(true);
+}
+
+/**
+ * Assert the demo mounted the EXPECTED renderer, so a silent WebGL→Canvas
+ * fallback can't make the "webgl" run secretly test Canvas. `getContext('webgl')`
+ * returns null on an already-2D canvas; the WebGL graticule layers are the page's
+ * only WebGL contexts.
+ */
+async function expectRenderer(page: Page, renderer: Renderer): Promise<void> {
+  const webglCanvases = await page.evaluate(() => {
+    let n = 0;
+    for (const c of document.querySelectorAll('canvas')) {
+      if (c.getContext('webgl2') || c.getContext('webgl')) n += 1;
+    }
+    return n;
+  });
+  if (renderer === 'webgl') {
+    expect(webglCanvases, 'expected a WebGL graticule layer, found none (Canvas fallback?)').toBeGreaterThan(0);
+  } else {
+    expect(webglCanvases, 'expected an all-Canvas map, found a WebGL context').toBe(0);
+  }
+}
+
+/**
+ * Rotate the view by +45° via OpenLayers' DragRotate (Alt+Shift+drag), so
+ * rotation is driven through real input with no test-only hook in the demo.
+ */
+async function rotateView45(page: Page): Promise<void> {
+  const size = page.viewportSize();
+  const cx = size ? size.width / 2 : 512;
+  const cy = size ? size.height / 2 : 384;
+  const r = 200;
+  await page.keyboard.down('Alt');
+  await page.keyboard.down('Shift');
+  await page.mouse.move(cx + r, cy);
+  await page.mouse.down();
+  await page.mouse.move(cx + r * Math.cos(-Math.PI / 4), cy + r * Math.sin(-Math.PI / 4), {
+    steps: 20,
+  });
+  await page.mouse.up();
+  await page.keyboard.up('Shift');
+  await page.keyboard.up('Alt');
+}
+
+/** Load a demo with the chosen renderer selected (via the localStorage key the
+ * demos read) and wait for its first canvas to mount + one render cycle. */
+async function loadDemo(page: Page, path: string, selector: string, renderer: Renderer): Promise<Locator> {
+  await page.addInitScript((r) => {
+    try {
+      localStorage.setItem('demo-renderer', r);
+    } catch {
+      /* ignore */
+    }
+  }, renderer);
+  await page.setViewportSize({ width: 1024, height: 768 });
+  await page.goto(path);
+  await page.waitForLoadState('domcontentloaded');
+  const target = page.locator(selector);
+  await expect(target).toBeAttached();
+  await expect(target.locator('canvas').first()).toBeAttached({ timeout: 10_000 });
+  await page.waitForTimeout(1500);
+  // Hide the dynamic info panel and the renderer toggle (whose label is the one
+  // thing that differs between variants) so the snapshot is just the graticule.
+  // `main` is the landing page's copy and card list, which sits over #bg-map;
+  // without this the index baseline asserts prose, not rendering.
+  await page.addStyleTag({
+    content: '.badge, .renderer-toggle, main { display: none !important; }',
+  });
+  await expectRenderer(page, renderer);
+  return target;
+}
+
+const DEMOS: { path: string; selector: string; name: string; renderers?: readonly Renderer[] }[] = [
+  // The landing background has no toggle; in production it uses the facade's
+  // 'auto' pick. The e2e forces each renderer via the localStorage key, so test
+  // both against the shared baseline like every other demo.
   { path: '/', selector: '#bg-map', name: 'index' },
   { path: '/ol-graticule/', selector: '#map', name: 'ol-graticule' },
   { path: '/ol-graticule-pixel/', selector: '#map', name: 'ol-graticule-pixel' },
@@ -36,64 +146,33 @@ test.beforeEach(async ({ page }) => {
 });
 
 for (const demo of DEMOS) {
-  test(`${demo.name}: graticule canvas renders without external tiles`, async ({ page }) => {
-    const pageErrors: string[] = [];
-    page.on('pageerror', (err) => pageErrors.push(err.message));
+  for (const renderer of demo.renderers ?? RENDERERS) {
+    test(`${demo.name} [${renderer}]: renders and matches the shared baseline`, async ({ page }) => {
+      const pageErrors: string[] = [];
+      page.on('pageerror', (err) => pageErrors.push(err.message));
 
-    await page.setViewportSize({ width: 1024, height: 768 });
-    await page.goto(demo.path);
-    await page.waitForLoadState('domcontentloaded');
+      const target = await loadDemo(page, demo.path, demo.selector, renderer);
 
-    const target = page.locator(demo.selector);
-    await expect(target).toBeAttached();
+      if (renderer === 'canvas') await expectPainted(target);
+      expect(pageErrors, `page errors:\n${pageErrors.join('\n')}`).toEqual([]);
 
-    const canvas = target.locator('canvas').first();
-    await expect(canvas).toBeAttached({ timeout: 10_000 });
-
-    // One full render cycle without tiles available.
-    await page.waitForTimeout(1500);
-
-    // Sanity: graticule lines actually drew pixels onto the canvas. OL
-    // uses a 2D context for vector layers, so we read back alpha values
-    // directly. If the context can't be acquired the test fails loud
-    // rather than silently passing on a stub.
-    const pixelStats = await canvas.evaluate((el) => {
-      if (!(el instanceof HTMLCanvasElement)) {
-        return { reason: 'target is not an HTMLCanvasElement', anyOpaque: false };
-      }
-      const { width, height } = el;
-      if (width === 0 || height === 0) {
-        return { reason: 'canvas has zero dimensions', anyOpaque: false };
-      }
-      const ctx = el.getContext('2d');
-      if (!ctx) {
-        return { reason: '2D context unavailable', anyOpaque: false };
-      }
-      const w = Math.min(width, 400);
-      const h = Math.min(height, 400);
-      const data = ctx.getImageData(0, 0, w, h).data;
-      let opaqueCount = 0;
-      for (let i = 3; i < data.length; i += 4) {
-        if (data[i]! > 0) opaqueCount += 1;
-      }
-      return {
-        reason: opaqueCount === 0 ? 'every sampled pixel was transparent' : '',
-        anyOpaque: opaqueCount > 0,
-        opaqueCount,
-        sampledPixels: (data.length / 4) | 0,
-      };
+      // Both renderers diff against the SAME baseline: canvas is the reference
+      // (regression), webgl matching it is the no-divergence guarantee.
+      await expect(target).toHaveScreenshot(`${demo.name}.png`, tolerance(renderer));
     });
-    expect(
-      pixelStats.anyOpaque,
-      `graticule canvas had no painted pixels: ${pixelStats.reason}`,
-    ).toBe(true);
 
-    expect(pageErrors, `page errors:\n${pageErrors.join('\n')}`).toEqual([]);
+    test(`${demo.name} [${renderer}]: 45° rotation matches the shared baseline`, async ({ page }) => {
+      const pageErrors: string[] = [];
+      page.on('pageerror', (err) => pageErrors.push(err.message));
 
-    // Visual regression. First run creates baselines under
-    // `e2e/demos.spec.ts-snapshots/`; subsequent runs diff against them.
-    await expect(canvas).toHaveScreenshot(`${demo.name}.png`, {
-      maxDiffPixelRatio: 0.02,
+      const target = await loadDemo(page, demo.path, demo.selector, renderer);
+      await rotateView45(page);
+      await page.waitForTimeout(1000);
+
+      if (renderer === 'canvas') await expectPainted(target);
+      expect(pageErrors, `page errors:\n${pageErrors.join('\n')}`).toEqual([]);
+
+      await expect(target).toHaveScreenshot(`${demo.name}-rotated.png`, tolerance(renderer));
     });
-  });
+  }
 }

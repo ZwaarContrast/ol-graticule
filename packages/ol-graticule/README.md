@@ -105,9 +105,42 @@ the layer and control into your map up front and activate them later.
 | `xLabelOffset` | `number` (px) | `2` | Inset for x-axis labels from the top/bottom edge. |
 | `yLabelOffset` | `number` (px) | `2` | Inset for y-axis labels from the left/right edge. |
 | `maxLines` | `number` | `100` | Safety cap on lines per axis per frame. |
+| `renderer` | `'auto' \| 'gl' \| 'canvas'` | `'auto'` | Which rasterizer to use, see [Rendering backends](#rendering-backends). |
 
-Plus every `VectorLayer` option except `source` and `style` (they're managed
-internally).
+Plus every `LayerGroup` option except `layers` (opacity, visible, zIndex,
+min/maxZoom, extent, properties). `UniversalGraticule` is a thin `LayerGroup`
+facade over the active backend.
+
+## Rendering backends
+
+`UniversalGraticule` picks a backend at construction and forwards
+`getGridSystem`/`setGridSystem`/`setHoverLens` to it:
+
+- `renderer: 'auto'` (default) prefers WebGL and falls back to Canvas 2D when
+  WebGL is unavailable or only software-rendered.
+- `renderer: 'gl'` forces `WebGLGraticuleLayer`; `renderer: 'canvas'` forces
+  `CanvasGraticuleLayer`.
+
+Both backend classes are exported, so you can construct one directly to pin a
+backend (and to keep bundles lean, see below).
+
+The runtime `setGridSystem` / `setHoverLens` act on the **first** grid, a
+convenience for the common single-grid case. Multiple grids and their per-grid
+line/lens styling are configured once at construction via `grids`
+(`GraticuleGridSpec[]`) and render together through one layer; swap the whole set
+by rebuilding the layer.
+
+**Bundle size.** Importing `UniversalGraticule` pulls in *both* backends,
+including the WebGL stack (shaders, glyph atlas, `@mapbox/tiny-sdf`). If you only
+ever want Canvas 2D, import `CanvasGraticuleLayer` directly instead and the WebGL
+code tree-shakes away.
+
+**Sharing the WebGL context.** OpenLayers pools contiguous WebGL layers that
+share a `className` into one WebGL context, so a `WebGLGraticuleLayer` normally
+costs at most one context (zero over a WebGL basemap). Two things break that
+pooling: interleaving a Canvas 2D layer between the graticule and other WebGL
+layers, or giving the graticule a custom `className`. Avoid both and the context
+stays shared.
 
 ## Styling
 
@@ -216,7 +249,8 @@ new PixelFormatter().parse('123 px');               // 123
 
 ## API reference
 
-- **`UniversalGraticule(options)`**, `VectorLayer` subclass. `setGridSystem(grid | null)` to swap/disable.
+- **`UniversalGraticule(options)`**, `LayerGroup` facade over a Canvas 2D or WebGL backend (see [Rendering backends](#rendering-backends)). `setGridSystem(grid | null)` to swap/disable.
+- **`CanvasGraticuleLayer(options)`** / **`WebGLGraticuleLayer(options)`**, the backends behind the facade; construct directly to pin a renderer or keep bundles lean.
 - **`CursorPositionControl(options)`**, OL `Control`. Renders edge labels (axis grids) or a floating compound label (MBS/Kriegsmarine) depending on the grid system.
 - **`GridSystem`**, interface with `getFeatures`, `getLabels`, `formatCoordinate`, optional `parseCoordinate`, `getCellLabels`, `isValidCoordinate`. Implement it to draw any grid describable in code.
 - **`LabelFormatter`**, `format` / optional `formatCoordinate` / optional `parse` / optional `parseCoordinate` / optional `formatCellLabel`.

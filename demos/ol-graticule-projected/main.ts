@@ -4,12 +4,10 @@ import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
 import OSM from 'ol/source/OSM';
 import { transformExtent } from 'ol/proj';
-import {
-  UniversalGraticule,
-  CursorPositionControl,
-} from '@zwaarcontrast/ol-graticule';
+import { CursorPositionControl } from '@zwaarcontrast/ol-graticule';
 import { ProjectedGridSystem } from '@zwaarcontrast/ol-graticule-projected';
 import { gridLine, edgeLabelText, cursorStyle, hoverLens } from '../shared';
+import { createGraticule, addRendererToggle } from '../renderer';
 import { createCoordinateInput } from '../coordinateInput';
 
 // UTM zone 33N is only valid within ~6° of its central meridian (15°E).
@@ -29,7 +27,7 @@ const map = new Map({
   target: 'map',
   layers: [
     new TileLayer({ source: new OSM() }),
-    new UniversalGraticule({
+    createGraticule({
       gridSystem,
       style: { line: { major: gridLine }, edgeLabel: edgeLabelText, hoverLens },
     }),
@@ -41,6 +39,8 @@ const map = new Map({
 map.getView().fit(transformExtent(zoneExtent, 'EPSG:32633', 'EPSG:3857'), {
   padding: [40, 40, 40, 40],
 });
+
+addRendererToggle();
 
 const badge = document.querySelector<HTMLElement>('.badge');
 if (badge) {

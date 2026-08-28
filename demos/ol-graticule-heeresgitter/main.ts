@@ -10,7 +10,6 @@ import Style from 'ol/style/Style';
 import Text from 'ol/style/Text';
 import { fromLonLat, transform } from 'ol/proj';
 import {
-  UniversalGraticule,
   CursorPositionControl,
   ParseError,
   createDefaultCellLabelHandler,
@@ -18,14 +17,18 @@ import {
 } from '@zwaarcontrast/ol-graticule';
 import {
   DhgGridSystem,
+  DrgGridSystem,
   HmnGridSystem,
   GeographicHmnGridSystem,
   decodeDhg,
   parseDhg,
+  decodeDrg,
+  parseDrg,
   parseHmn,
   parseHmnGeo,
 } from '@zwaarcontrast/ol-graticule-heeresgitter';
 import { cursorStyle, hoverLens } from '../shared';
+import { createGraticule, addRendererToggle } from '../renderer';
 import { tryNominatimFallback } from '../nominatim';
 
 // DHG: fine black grid, matching the printed kilometre grid on the sheets.
@@ -69,13 +72,14 @@ const hmnGeoLine = hmnLine;
 const hmnGeoCellLabelHandler = hmnCellLabelHandler;
 
 const dhg = new DhgGridSystem();
+const drg = new DrgGridSystem();
 const hmn = new HmnGridSystem({ maxDepth: 4 });
 const hmnGeo = new GeographicHmnGridSystem({ maxDepth: 4 });
 
-const dhgLayer = new UniversalGraticule({
+const dhgLayer = createGraticule({
   gridSystem: dhg,
   style: {
-    // The 6° strip boundary is rendered as a major grid line — same stroke
+    // The 6° strip boundary is rendered as a major grid line, the same stroke
     // as the kilometre grid. The strip meridian is itself a km line in the
     // wartime grid, so reusing the major stroke keeps the seam unobtrusive.
     line: { major: dhgLine, minor: dhgMinorLine, boundary: dhgLine },
@@ -85,7 +89,20 @@ const dhgLayer = new UniversalGraticule({
   maxLines: 600,
 });
 
-const hmnLayer = new UniversalGraticule({
+// Reichsgitter: same fine black km lattice as the DHG, it is the same
+// Gauss-Kruger family drawn on 3 degree strips instead of 6 degree ones.
+const drgLayer = createGraticule({
+  gridSystem: drg,
+  style: {
+    line: { major: dhgLine, minor: dhgMinorLine, boundary: dhgLine },
+    edgeLabel: dhgEdgeLabelHandler,
+    hoverLens,
+  },
+  maxLines: 600,
+});
+drgLayer.setVisible(false);
+
+const hmnLayer = createGraticule({
   gridSystem: hmn,
   style: {
     line: { major: hmnLine, boundary: hmnLine },
@@ -95,7 +112,7 @@ const hmnLayer = new UniversalGraticule({
   maxLines: 1600,
 });
 
-const hmnGeoLayer = new UniversalGraticule({
+const hmnGeoLayer = createGraticule({
   gridSystem: hmnGeo,
   style: {
     line: { major: hmnGeoLine, boundary: hmnGeoLine },
@@ -105,6 +122,7 @@ const hmnGeoLayer = new UniversalGraticule({
   maxLines: 1600,
 });
 hmnGeoLayer.setVisible(false);
+addRendererToggle();
 
 // Cursor reads whichever overlay is active. If both HMN variants are on,
 // planar wins (it's the canonical one for the *Deutsche Heereskarte*).
@@ -112,26 +130,13 @@ const cursorControl = new CursorPositionControl({ gridSystem: hmn, style: cursor
 
 const map = new Map({
   target: 'map',
-  layers: [new TileLayer({ source: new OSM() }), dhgLayer, hmnLayer, hmnGeoLayer],
+  layers: [new TileLayer({ source: new OSM() }), dhgLayer, drgLayer, hmnLayer, hmnGeoLayer],
   controls: [cursorControl],
   view: new View({
     center: fromLonLat([16.17, 48.75]), // Hadres
     zoom: 11,
   }),
 });
-
-// Debug hook — lets the playwright skill poke at HMN labels.
-declare global {
-  interface Window {
-    __heeresgitter?: {
-      map: Map;
-      hmn: HmnGridSystem;
-      hmnGeo: GeographicHmnGridSystem;
-      dhg: DhgGridSystem;
-    };
-  }
-}
-window.__heeresgitter = { map, hmn, hmnGeo, dhg };
 
 // --- Grid mode dropdown ------------------------------------------------------
 //
@@ -141,10 +146,10 @@ window.__heeresgitter = { map, hmn, hmnGeo, dhg };
 // the lat/lon graticule and doesn't depend on DHG at all, so it's shown
 // alone.
 
-type GridMode = 'dhg' | 'hmn' | 'hmn-geo';
+type GridMode = 'dhg' | 'drg' | 'hmn' | 'hmn-geo';
 
 function isGridMode(value: string): value is GridMode {
-  return value === 'dhg' || value === 'hmn' || value === 'hmn-geo';
+  return value === 'dhg' || value === 'drg' || value === 'hmn' || value === 'hmn-geo';
 }
 
 const modeSelectEl = document.getElementById('mode');
@@ -159,18 +164,28 @@ function applyMode(mode: GridMode): void {
   switch (mode) {
     case 'dhg':
       dhgLayer.setVisible(true);
+      drgLayer.setVisible(false);
       hmnLayer.setVisible(false);
       hmnGeoLayer.setVisible(false);
       cursorControl.setGridSystem(dhg);
       break;
+    case 'drg':
+      dhgLayer.setVisible(false);
+      drgLayer.setVisible(true);
+      hmnLayer.setVisible(false);
+      hmnGeoLayer.setVisible(false);
+      cursorControl.setGridSystem(drg);
+      break;
     case 'hmn':
       dhgLayer.setVisible(true);
+      drgLayer.setVisible(false);
       hmnLayer.setVisible(true);
       hmnGeoLayer.setVisible(false);
       cursorControl.setGridSystem(hmn);
       break;
     case 'hmn-geo':
       dhgLayer.setVisible(false);
+      drgLayer.setVisible(false);
       hmnLayer.setVisible(false);
       hmnGeoLayer.setVisible(true);
       cursorControl.setGridSystem(hmnGeo);
@@ -291,6 +306,22 @@ function createInputUi(): void {
       const ref = resolveHmnText(text, viewCentre);
       if (!ref) throw new ParseError(text, 'not a recognised HMN reference');
       return ref;
+    }
+    // A numeric pair reads as either grid, so the active mode decides which
+    // strip family it belongs to.
+    if (currentMode() === 'drg') {
+      const drgRef = parseDrg(text);
+      if (!drgRef) throw new ParseError(text, 'not a recognised Gauß-Krüger 3° reference');
+      const [lat, lon] = decodeDrg(drgRef.coord);
+      const { kennziffer, easting, northing } = drgRef.coord;
+      return {
+        lat,
+        lon,
+        summary:
+          `${drgRef.canonical} → ${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E ` +
+          `(strip ${kennziffer}, CM ${kennziffer * 3}°E, R=${easting.toLocaleString()} m, ` +
+          `H=${northing.toLocaleString()} m)`,
+      };
     }
     const parsed = parseDhg(text);
     if (!parsed) throw new ParseError(text, 'not a recognised HMN or DHG reference');

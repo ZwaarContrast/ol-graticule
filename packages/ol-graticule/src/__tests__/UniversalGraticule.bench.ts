@@ -1,82 +1,66 @@
 import { bench, describe } from 'vitest';
-import Point from 'ol/geom/Point';
-import { UniversalGraticule } from '../UniversalGraticule.js';
+import VectorSource from 'ol/source/Vector';
+import Projection from 'ol/proj/Projection';
+import { compose as composeTransform, create as createTransform, makeInverse } from 'ol/transform';
+import type { Extent } from 'ol/extent';
 import { PixelGridSystem } from '../grid-systems/PixelGridSystem.js';
+import { LabelCollector } from '../labels/LabelCollector.js';
+import { EdgeLabelPlacer, edgeLabelFrame, type EdgeLabelConfig } from '../labels/EdgeLabelPlacer.js';
+import { resolveEdgeLabelHandler } from '../style.js';
+import type { LabelSink } from '../labels/LabelSink.js';
 
-const mockVectorContext = {
-  drawFeature: () => {},
+// The live per-frame edge-label path: collect the grid system's labels across
+// world copies, then anchor + draw each against the viewport border. This is
+// what CanvasGraticuleLayer.handlePostrender_ runs every frame via LabelEngine.
+
+// Non-wrapping projection so pixel-space coords aren't world-shifted.
+const PROJ = new Projection({ code: 'BENCH:PX', units: 'pixels', extent: [0, 0, 20_000, 20_000] });
+const RESOLUTION = 1;
+const EXTENT: Extent = [0, 0, 20_000, 20_000];
+
+const EDGE_CONFIG: EdgeLabelConfig = {
+  xLabelPosition: 'top',
+  yLabelPosition: 'left',
+  xLabelOffset: 2,
+  yLabelOffset: 2,
+  edgeLabelCoverage: 'all',
+  edgeLabelLeader: 'none',
+  edgeLabelExtend: 'line',
 };
 
-interface UniversalGraticuleInternal {
-  collectEdgeLabels_: (
-    worlds: number[],
-    extent: [number, number, number, number],
-    getLabels: () => unknown[],
-  ) => { xCount: number; yCount: number };
-  drawLabels_: (
-    ctx: { drawFeature: () => void },
-    extent: [number, number, number, number],
-    resolution: number,
-    xCount: number,
-    yCount: number,
-  ) => void;
-  collectCellLabels_: (
-    worlds: number[],
-    extent: [number, number, number, number],
-    getLabels: () => unknown[],
-  ) => number;
-  drawCellLabels_: (ctx: { drawFeature: () => void }, count: number) => void;
-}
+const gridSystem = new PixelGridSystem();
+const source = new VectorSource({ useSpatialIndex: false });
+source.addFeatures(gridSystem.getFeatures(EXTENT, RESOLUTION, PROJ));
 
-describe('UniversalGraticule — Rendering Hot Path', () => {
-  const gridSystem = new PixelGridSystem();
-  const graticule = new UniversalGraticule({
-    gridSystem,
-    style: { edgeLabel: true },
-  });
+const handler = resolveEdgeLabelHandler(true);
+if (!handler) throw new Error('bench setup: expected an edge-label handler for `true`');
+const placer = new EdgeLabelPlacer(EDGE_CONFIG, handler, source, undefined);
+const collector = new LabelCollector();
 
-  // Vitest benches need access to private rendering helpers; narrow via a
-  // typed internal interface rather than `any`.
-  const inst = graticule as unknown as UniversalGraticuleInternal;
+const center = [10_000, 10_000];
+const size = [20_000, 20_000];
+const toPixel = composeTransform(
+  createTransform(), size[0] / 2, size[1] / 2, 1 / RESOLUTION, -1 / RESOLUTION, 0, -center[0], -center[1],
+);
+const fromPixel = makeInverse(createTransform(), toPixel);
+const screen = { toPixel, fromPixel, viewW: size[0], viewH: size[1] };
+const frame = edgeLabelFrame(center, size, RESOLUTION, 0, PROJ);
+const offsets = [0];
 
-  const extent: [number, number, number, number] = [0, 0, 1000, 1000];
-  const resolution = 1;
+const sink: LabelSink = {
+  setStyle: () => {},
+  drawFeature: () => {},
+  drawGeometry: () => {},
+};
 
-  // Pre-generate 1000 labels to simulate a very busy view
-  const xLabels = Array.from({ length: 500 }, (_, i) => ({
-    point: new Point([i * 2, 500]),
-    text: `X-${i}`,
-    axis: 'x' as const,
-  }));
-  const yLabels = Array.from({ length: 500 }, (_, i) => ({
-    point: new Point([500, i * 2]),
-    text: `Y-${i}`,
-    axis: 'y' as const,
-  }));
-  const allLabels = [...xLabels, ...yLabels];
+const lineCount = source.getFeatures().length;
 
-  const cellLabels = Array.from({ length: 1000 }, (_, i) => ({
-    point: new Point([(i % 30) * 33 + 15, Math.floor(i / 30) * 33 + 15]),
-    text: `Cell-${i}`,
-    cellSizePx: 100,
-  }));
-
-  bench('collectEdgeLabels (1000 labels, 1 world)', () => {
-    inst.collectEdgeLabels_([0], extent, () => allLabels);
-  });
-
-  bench('drawLabels (1000 labels, no culling)', () => {
-    // Populate buffers first
-    const { xCount, yCount } = inst.collectEdgeLabels_([0], extent, () => allLabels);
-    inst.drawLabels_(mockVectorContext, extent, resolution, xCount, yCount);
-  });
-
-  bench('collectCellLabels (1000 labels)', () => {
-    inst.collectCellLabels_([0], extent, () => cellLabels);
-  });
-
-  bench('drawCellLabels (1000 labels)', () => {
-    const count = inst.collectCellLabels_([0], extent, () => cellLabels);
-    inst.drawCellLabels_(mockVectorContext, count);
+describe(`LabelEngine edge path: ${lineCount} lines`, () => {
+  bench('collect + place edge labels', () => {
+    const { xBuf, xCount, yBuf, yCount } = collector.collectEdge(
+      offsets, EXTENT,
+      (shifted) => gridSystem.getLabels(shifted, RESOLUTION, PROJ),
+    );
+    placer.place(sink, frame, screen, EXTENT, RESOLUTION, xBuf, xCount, yBuf, yCount);
   });
 });

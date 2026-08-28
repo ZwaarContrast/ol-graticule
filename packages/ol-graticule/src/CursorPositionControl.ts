@@ -26,11 +26,14 @@ export class CursorPositionControl extends Control {
   private gridSystem_: GridSystem | null;
   private readonly color_: string;
   private readonly labelCss_: string;
+  private readonly guideLine_: boolean;
 
   private xIndicator_: HTMLDivElement;
   private yIndicator_: HTMLDivElement;
   private xLabel_: HTMLSpanElement;
   private yLabel_: HTMLSpanElement;
+  private xLine_: HTMLDivElement;
+  private yLine_: HTMLDivElement;
   private combinedIndicator_: HTMLDivElement;
   private combinedLabel_: HTMLSpanElement;
 
@@ -42,6 +45,9 @@ export class CursorPositionControl extends Control {
   private lastXText_ = '';
   private lastYText_ = '';
   private lastCombinedText_ = '';
+  // Cached guide-line label box metrics, measured only when they can change.
+  private xLabelH_ = 0;
+  private yLabelW_ = 0;
   private lastPointerCoord_: Coordinate | null = null;
 
   private rafId_: number | null = null;
@@ -61,6 +67,7 @@ export class CursorPositionControl extends Control {
     if (this.gridSystem_ === null) container.style.display = 'none';
     this.color_ = options.style?.color ?? DEFAULT_CURSOR_COLOR;
     this.labelCss_ = options.style?.labelCss ?? DEFAULT_CURSOR_LABEL_CSS;
+    this.guideLine_ = options.style?.guideLine ?? false;
 
     const labelCss = (radius: string, padding: string, blockDisplay = true): string =>
       `${blockDisplay ? 'display:block;' : ''}white-space:nowrap;padding:${padding};border-radius:${radius};background:${this.color_};${this.labelCss_}`;
@@ -76,11 +83,11 @@ export class CursorPositionControl extends Control {
     this.xLabel_ = document.createElement('span');
     this.xLabel_.style.cssText = labelCss('0 0 3px 3px', '1px 6px');
 
-    const xLine = document.createElement('div');
-    xLine.style.cssText = lineCss('1px', '12px', 'margin:0 auto;');
+    this.xLine_ = document.createElement('div');
+    this.xLine_.style.cssText = lineCss('1px', '12px', 'margin:0 auto;');
 
     this.xIndicator_.appendChild(this.xLabel_);
-    this.xIndicator_.appendChild(xLine);
+    this.xIndicator_.appendChild(this.xLine_);
     container.appendChild(this.xIndicator_);
 
     this.yIndicator_ = document.createElement('div');
@@ -89,11 +96,11 @@ export class CursorPositionControl extends Control {
     this.yLabel_ = document.createElement('span');
     this.yLabel_.style.cssText = labelCss('0 3px 3px 0', '1px 6px', false);
 
-    const yLine = document.createElement('div');
-    yLine.style.cssText = lineCss('12px', '1px', 'flex-shrink:0;');
+    this.yLine_ = document.createElement('div');
+    this.yLine_.style.cssText = lineCss('12px', '1px', 'flex-shrink:0;');
 
     this.yIndicator_.appendChild(this.yLabel_);
-    this.yIndicator_.appendChild(yLine);
+    this.yIndicator_.appendChild(this.yLine_);
     container.appendChild(this.yIndicator_);
 
     this.combinedIndicator_ = document.createElement('div');
@@ -243,9 +250,21 @@ export class CursorPositionControl extends Control {
         this.xLabel_.textContent = formatted.x;
         this.lastXText_ = formatted.x;
       }
-      if (formatted.y !== this.lastYText_) {
+      const yTextChanged = formatted.y !== this.lastYText_;
+      if (yTextChanged) {
         this.yLabel_.textContent = formatted.y;
         this.lastYText_ = formatted.y;
+      }
+      if (this.guideLine_) {
+        // Reach from the frame edge to the pointer, past each label's box.
+        // offsetHeight/Width force a layout flush, so measure only when the box
+        // can change: x-label height is fixed, y-label width tracks its text.
+        // ponytail: assumes fixed label font/padding; re-measure on restyle if
+        // the labels ever change style at runtime.
+        if (this.xLabelH_ === 0) this.xLabelH_ = this.xLabel_.offsetHeight;
+        if (yTextChanged || this.yLabelW_ === 0) this.yLabelW_ = this.yLabel_.offsetWidth;
+        this.xLine_.style.height = `${Math.max(12, py - this.xLabelH_)}px`;
+        this.yLine_.style.width = `${Math.max(12, px - this.yLabelW_)}px`;
       }
     }
   }

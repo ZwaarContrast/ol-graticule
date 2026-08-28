@@ -4,12 +4,8 @@ import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
 import OSM from 'ol/source/OSM';
 import { transformExtent } from 'ol/proj';
-import type Layer from 'ol/layer/Layer';
-import {
-  UniversalGraticule,
-  CursorPositionControl,
-} from '@zwaarcontrast/ol-graticule';
-import type { GridSystem } from '@zwaarcontrast/ol-graticule';
+import { CursorPositionControl } from '@zwaarcontrast/ol-graticule';
+import type { GridSystem, UniversalGraticule } from '@zwaarcontrast/ol-graticule';
 import {
   createNordDeGuerreGridSystem,
   createFrenchLambert1GridSystem,
@@ -35,13 +31,8 @@ import {
   ITALIAN_SOUTHERN_BBOX_WGS84,
   IBERIAN_PENINSULA_BBOX_WGS84,
 } from '@zwaarcontrast/ol-graticule-modified-british-system';
-import {
-  gridLine,
-  edgeLabelText,
-  cellLabelHandler,
-  cursorStyle,
-  hoverLens,
-} from '../shared';
+import { gridLine, edgeLabelText, cellLabelHandler, cursorStyle, hoverLens } from '../shared';
+import { createGraticule, addRendererToggle } from '../renderer';
 import { createCoordinateInput, type CoordinateInputHandle } from '../coordinateInput';
 
 interface Theatre {
@@ -128,8 +119,10 @@ const map = new Map({
   view: new View({ center: [0, 0], zoom: 0 }),
 });
 
+addRendererToggle();
+
 let cursorControl: CursorPositionControl | null = null;
-let graticuleLayer: Layer | null = null;
+let graticuleLayer: UniversalGraticule | null = null;
 let coordInput: CoordinateInputHandle | null = null;
 
 function applyTheatre(key: string): void {
@@ -139,7 +132,7 @@ function applyTheatre(key: string): void {
   const gridSystem = theatre.build();
 
   if (graticuleLayer) map.removeLayer(graticuleLayer);
-  graticuleLayer = new UniversalGraticule({
+  graticuleLayer = createGraticule({
     gridSystem,
     style: {
       line: { major: gridLine },
