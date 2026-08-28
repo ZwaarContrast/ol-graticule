@@ -1,5 +1,186 @@
 # Changelog
 
+## 4.0.0
+
+### @zwaarcontrast/ol-graticule
+
+### Major Changes
+
+- f975503: Split rendering into a Canvas 2D and a WebGL backend, with `UniversalGraticule`
+  as a thin facade over both. This decouples the grid logic from the rasterizer so
+  a non-OpenLayers backend (MapLibre) can be added without touching grid systems.
+
+  **Breaking:** `UniversalGraticule` now extends `LayerGroup` instead of
+  `VectorLayer`. `map.addLayer(graticule)` is unchanged, and `getGridSystem`,
+  `setGridSystem` and `setHoverLens` all still work, but the `VectorLayer` surface
+  is gone: `getSource()`, `setStyle()`, `getFeatures()`, the `postrender` event,
+  and the `style`, `declutter`, `renderBuffer`, `updateWhileAnimating` and
+  `updateWhileInteracting` options. `UniversalGraticuleOptions` now takes
+  `LayerGroup` options (`opacity`, `visible`, `extent`, `zIndex`, `minResolution`,
+  `maxResolution`, `minZoom`, `maxZoom`, `properties`) plus the graticule config.
+
+  If you relied on the layer internals, construct `CanvasGraticuleLayer` directly
+  to pin the old single-layer behaviour.
+
+  New `renderer` option: `'auto'` (default) probes for WebGL 2 and falls back to
+  canvas when it is absent or software-rendered, `'gl'` and `'canvas'` force a
+  backend. `CanvasGraticuleLayer` and `WebGLGraticuleLayer` are exported for
+  callers that want to skip the probe.
+
+  Adds `@mapbox/tiny-sdf` as a dependency, used to build the SDF glyph atlas for
+  GPU label rendering.
+
+### Minor Changes
+
+- 6b960f9: Adaptive grid-line densification. Grid lines are now sampled only where they
+  curve in the view projection: straight lines collapse to 2 points and points
+  cluster where the line bends, cutting coordinate-transform work during pan and
+  zoom. PolygonClippedGridSystem snap mode no longer re-densifies every line each
+  render, which made rapid scroll-zoom on clipped grids (e.g. MBS) far smoother.
+
+  Low-level gridline helpers changed as part of this: `adaptiveAxisTs` and
+  `uniformTs` replace `densifyCount`, and `pushAxisGridLineSpecs`,
+  `emitFlatLineFeatures`, and `FlatLineSpec` now take per-axis `t` samples instead
+  of a point count.
+
+- f975503: Add an optional `getCellInterval` to `IntervalStrategy`, so a grid whose label
+  cells are a fixed size (a 100 km lettered cell over a finer km grid) can
+  enumerate cell labels on their own interval instead of once per major-line cell.
+  Optional, so existing strategies are unaffected.
+
+  `ProjectedGridSystem` also caches transformed grid-line polylines across pan
+  within a zoom band, re-slicing them instead of re-projecting every frame.
+
+- 28d9a14: Add an optional pointer "hover lens". As the cursor moves over the grid, lines
+  swell toward it and taper away in all directions, with a clear hole at the
+  crossing under the pointer so the aim point stays uncovered. Enable it through
+  `GraticuleStyle.hoverLens`, or toggle it at runtime with
+  `UniversalGraticule.setHoverLens`; omit it or pass `false` to disable.
+
+### Patch Changes
+
+- f975503: Relax the adaptive densification tolerance from 0.25 px to 0.5 px. Grid lines
+  are densified until they sit within this distance of the true projected curve,
+  so this halves the vertex count on curved lines at the cost of up to half a
+  pixel of deviation. Pass a smaller `maxDevPx` to `adaptiveAxisTs` to restore the
+  previous fidelity.
+
+  `LruCache.get` also skips MRU promotion while the cache is below capacity, where
+  nothing can be evicted yet.
+
+- af14ae4: fix: remove redundant unanchored `\s*` from PixelFormatter pixel-suffix strip, eliminating a polynomial-ReDoS backtracking path (no behavior change)
+
+### @zwaarcontrast/ol-graticule-heeresgitter
+
+### Minor Changes
+
+- c1ab985: Add the **Deutsches Reichsgitter** (DRG), the Gauß-Krüger 3°-strip grid printed
+  on German Reich map sheets before the 6° Heeresgitter replaced it. Same Bessel
+  1841 / Potsdam family and the same `k=1`, but the strips are 3° wide, the
+  Kennziffer is the central meridian divided by 3, and it is carried as the
+  leading digit of the Rechtswert rather than quoted separately: false easting is
+  `Kennziffer × 1 000 000 + 500 000`, so a corner label reading `2512` is strip 2
+  (CM 6° E), Rechtswert 512 km. Strips 2–5 match EPSG:31466–31469.
+
+  New exports: `DrgGridSystem`, `encodeDrg`, `encodeDrgText`, `decodeDrg`,
+  `parseDrg`, `formatDrgEasting`, `formatDrgNorthing`, the `drg*` zone and
+  projection helpers, and the `DrgCoord` / `DrgZone` types. Labels follow the
+  sheet's _Planzeiger_ rules: kilometres on grid lines (`2512`, or `12` in the
+  _kurz_ form), metres for point references, Rechtswert first.
+
+  Encoding and geometry are anchored to sheet 5503 (3207 alt) Elsenborn,
+  _Planblatt A_, Geheim, Sonderdruck der Heeresplankammer, Stand 1.10.1939, whose
+  printed grid runs 2512–2523 km east and 5585–5595 km north. Note that a sheet's
+  printed graticule is Potsdam/Bessel, not WGS 84; `encodeDrg` takes WGS 84 and
+  applies the Helmert shift, which moves a corner by roughly 130 m in the Eifel.
+
+### Patch Changes
+
+- 4fa53bb: fix: remove ambiguous `\s*` overlap in the HMN label pattern, eliminating a polynomial-ReDoS backtracking path (no behavior change)
+- Updated dependencies [6b960f9]
+- Updated dependencies [f975503]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [28d9a14]
+- Updated dependencies [f975503]
+  - @zwaarcontrast/ol-graticule@4.0.0
+  - @zwaarcontrast/ol-graticule-projected@4.0.0
+
+### @zwaarcontrast/ol-graticule-luftwaffe-planquadrat
+
+### Patch Changes
+
+- Updated dependencies [6b960f9]
+- Updated dependencies [f975503]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [28d9a14]
+- Updated dependencies [f975503]
+  - @zwaarcontrast/ol-graticule@4.0.0
+
+### @zwaarcontrast/ol-graticule-mgrs
+
+### Patch Changes
+
+- Updated dependencies [6b960f9]
+- Updated dependencies [f975503]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [28d9a14]
+- Updated dependencies [f975503]
+  - @zwaarcontrast/ol-graticule@4.0.0
+  - @zwaarcontrast/ol-graticule-projected@4.0.0
+
+### @zwaarcontrast/ol-graticule-modified-british-system
+
+### Patch Changes
+
+- fa9475c: fix: remove `\s*` that overlapped `[\d\s]*` in the MBS compound-reference pattern, eliminating a polynomial-ReDoS backtracking path (no behavior change)
+- 55201f5: refactor: extract a shared MBS grid factory, collapsing the duplicated theatre wiring across the nine grid modules into createMBSGridSystem and assembleMBSGridSystem (no public API change)
+- Updated dependencies [6b960f9]
+- Updated dependencies [f975503]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [28d9a14]
+- Updated dependencies [f975503]
+  - @zwaarcontrast/ol-graticule@4.0.0
+  - @zwaarcontrast/ol-graticule-projected@4.0.0
+
+### @zwaarcontrast/ol-graticule-projected
+
+### Minor Changes
+
+- f975503: Add an optional `getCellInterval` to `IntervalStrategy`, so a grid whose label
+  cells are a fixed size (a 100 km lettered cell over a finer km grid) can
+  enumerate cell labels on their own interval instead of once per major-line cell.
+  Optional, so existing strategies are unaffected.
+
+  `ProjectedGridSystem` also caches transformed grid-line polylines across pan
+  within a zoom band, re-slicing them instead of re-projecting every frame.
+
+### Patch Changes
+
+- Updated dependencies [6b960f9]
+- Updated dependencies [f975503]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [28d9a14]
+- Updated dependencies [f975503]
+  - @zwaarcontrast/ol-graticule@4.0.0
+
+### @zwaarcontrast/ol-graticule-rd
+
+### Patch Changes
+
+- Updated dependencies [6b960f9]
+- Updated dependencies [f975503]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [28d9a14]
+- Updated dependencies [f975503]
+  - @zwaarcontrast/ol-graticule@4.0.0
+  - @zwaarcontrast/ol-graticule-projected@4.0.0
+
 ## 3.0.0
 
 ### @zwaarcontrast/ol-graticule

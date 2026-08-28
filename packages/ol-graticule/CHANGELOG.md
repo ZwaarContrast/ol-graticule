@@ -1,5 +1,73 @@
 # @zwaarcontrast/ol-graticule
 
+## 4.0.0
+
+### Major Changes
+
+- f975503: Split rendering into a Canvas 2D and a WebGL backend, with `UniversalGraticule`
+  as a thin facade over both. This decouples the grid logic from the rasterizer so
+  a non-OpenLayers backend (MapLibre) can be added without touching grid systems.
+
+  **Breaking:** `UniversalGraticule` now extends `LayerGroup` instead of
+  `VectorLayer`. `map.addLayer(graticule)` is unchanged, and `getGridSystem`,
+  `setGridSystem` and `setHoverLens` all still work, but the `VectorLayer` surface
+  is gone: `getSource()`, `setStyle()`, `getFeatures()`, the `postrender` event,
+  and the `style`, `declutter`, `renderBuffer`, `updateWhileAnimating` and
+  `updateWhileInteracting` options. `UniversalGraticuleOptions` now takes
+  `LayerGroup` options (`opacity`, `visible`, `extent`, `zIndex`, `minResolution`,
+  `maxResolution`, `minZoom`, `maxZoom`, `properties`) plus the graticule config.
+
+  If you relied on the layer internals, construct `CanvasGraticuleLayer` directly
+  to pin the old single-layer behaviour.
+
+  New `renderer` option: `'auto'` (default) probes for WebGL 2 and falls back to
+  canvas when it is absent or software-rendered, `'gl'` and `'canvas'` force a
+  backend. `CanvasGraticuleLayer` and `WebGLGraticuleLayer` are exported for
+  callers that want to skip the probe.
+
+  Adds `@mapbox/tiny-sdf` as a dependency, used to build the SDF glyph atlas for
+  GPU label rendering.
+
+### Minor Changes
+
+- 6b960f9: Adaptive grid-line densification. Grid lines are now sampled only where they
+  curve in the view projection: straight lines collapse to 2 points and points
+  cluster where the line bends, cutting coordinate-transform work during pan and
+  zoom. PolygonClippedGridSystem snap mode no longer re-densifies every line each
+  render, which made rapid scroll-zoom on clipped grids (e.g. MBS) far smoother.
+
+  Low-level gridline helpers changed as part of this: `adaptiveAxisTs` and
+  `uniformTs` replace `densifyCount`, and `pushAxisGridLineSpecs`,
+  `emitFlatLineFeatures`, and `FlatLineSpec` now take per-axis `t` samples instead
+  of a point count.
+
+- f975503: Add an optional `getCellInterval` to `IntervalStrategy`, so a grid whose label
+  cells are a fixed size (a 100 km lettered cell over a finer km grid) can
+  enumerate cell labels on their own interval instead of once per major-line cell.
+  Optional, so existing strategies are unaffected.
+
+  `ProjectedGridSystem` also caches transformed grid-line polylines across pan
+  within a zoom band, re-slicing them instead of re-projecting every frame.
+
+- 28d9a14: Add an optional pointer "hover lens". As the cursor moves over the grid, lines
+  swell toward it and taper away in all directions, with a clear hole at the
+  crossing under the pointer so the aim point stays uncovered. Enable it through
+  `GraticuleStyle.hoverLens`, or toggle it at runtime with
+  `UniversalGraticule.setHoverLens`; omit it or pass `false` to disable.
+
+### Patch Changes
+
+- f975503: Relax the adaptive densification tolerance from 0.25 px to 0.5 px. Grid lines
+  are densified until they sit within this distance of the true projected curve,
+  so this halves the vertex count on curved lines at the cost of up to half a
+  pixel of deviation. Pass a smaller `maxDevPx` to `adaptiveAxisTs` to restore the
+  previous fidelity.
+
+  `LruCache.get` also skips MRU promotion while the cache is below capacity, where
+  nothing can be evicted yet.
+
+- af14ae4: fix: remove redundant unanchored `\s*` from PixelFormatter pixel-suffix strip, eliminating a polynomial-ReDoS backtracking path (no behavior change)
+
 ## 3.0.0
 
 ### Major Changes
