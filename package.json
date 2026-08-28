@@ -46,7 +46,7 @@
     "@vitest/coverage-v8": "^4.0.17",
     "eslint": "^9.17.0",
     "eslint-config-prettier": "^9.1.0",
-    "fast-check": "^4.8.0",
+    "fast-check": "^4.9.0",
     "happy-dom": "^20.9.0",
     "knip": "^6.29.0",
     "prettier": "^3.9.6",
