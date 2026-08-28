@@ -52,13 +52,19 @@ export { densifyRing, projectRing, densifyAndProject } from './clipping/densifyR
 export { snapRingToCellGrid } from './clipping/snapRingToCellGrid.js';
 
 export { UniversalGraticule } from './UniversalGraticule.js';
-export type { UniversalGraticuleOptions } from './UniversalGraticule.js';
+export type { UniversalGraticuleOptions, GraticuleRenderer } from './UniversalGraticule.js';
+export { CanvasGraticuleLayer } from './CanvasGraticuleLayer.js';
+export type { CanvasGraticuleLayerOptions } from './CanvasGraticuleLayer.js';
+
+export { WebGLGraticuleLayer } from './WebGLGraticuleLayer.js';
+export type { WebGLGraticuleLayerOptions } from './WebGLGraticuleLayer.js';
 
 export { CursorPositionControl } from './CursorPositionControl.js';
 export type { CursorPositionControlOptions } from './CursorPositionControl.js';
 
 export type {
   GraticuleStyle,
+  GraticuleBlendMode,
   GraticuleLineStyle,
   GraticuleEdgeLabelStyle,
   GraticuleCellLabelStyle,
@@ -74,6 +80,8 @@ export type {
   CursorStyle,
   DefaultCellLabelOptions,
 } from './style.js';
+
+export type { GraticuleGridSpec, GraticuleOptions } from './options.js';
 export {
   DEFAULT_LINE_STROKE,
   DEFAULT_MINOR_LINE_STROKE,

@@ -16,7 +16,7 @@ import { blockExternalTiles, tallyHotFunctions, type CpuProfile } from './helper
  * The `.cpuprofile` files are openable in Chrome DevTools → Performance → Load Profile.
  *
  * Skipped by default because the run takes ~5 s × demos. Run explicitly:
- *   npx playwright test profile.spec.ts
+ *   npm run test:profile   # or: npx playwright test --config=playwright.profile.config.ts profile.profile.ts
  */
 
 const __filename = fileURLToPath(import.meta.url);
@@ -74,7 +74,7 @@ async function driveInteractions(page: Page, mapBox: { x: number; y: number; wid
     await page.waitForTimeout(200);
   }
 
-  // Heavy sweep at detail zoom — 40 positions in a tight figure-8 over the
+  // Heavy sweep at detail zoom: 40 positions in a tight figure-8 over the
   // grid's interior. Cell label + clipping cost peaks here.
   for (let i = 0; i < 40; i++) {
     const t = i / 40;
@@ -120,7 +120,7 @@ async function driveInteractions(page: Page, mapBox: { x: number; y: number; wid
     await page.waitForTimeout(16);
   }
 
-  // Zoom back in 2 steps to detail — should hit the per-resolution caches.
+  // Zoom back in 2 steps to detail, hitting the per-resolution caches.
   for (let i = 0; i < 2; i++) {
     await page.mouse.move(cx, cy);
     await page.mouse.wheel(0, -250);

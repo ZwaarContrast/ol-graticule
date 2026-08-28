@@ -19,6 +19,7 @@ import { KriegsmarineGridSystem } from '@zwaarcontrast/ol-graticule-marinequadra
 import { LuftwaffeGridSystem } from '@zwaarcontrast/ol-graticule-luftwaffe-planquadrat';
 import Stroke from 'ol/style/Stroke';
 import { hoverLens } from './shared';
+import { rendererSetting } from './renderer';
 
 interface Scene {
   label: string;
@@ -93,7 +94,9 @@ const dimCellLabel = createDefaultCellLabelHandler({
 });
 
 function buildGraticule(scene: Scene): UniversalGraticule {
+  // Landing background has no toggle; let the facade pick the best backend.
   return new UniversalGraticule({
+    renderer: rendererSetting(),
     gridSystem: scene.build(),
     style: {
       line: {

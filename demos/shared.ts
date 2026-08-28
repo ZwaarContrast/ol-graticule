@@ -1,13 +1,8 @@
 /**
- * "Field Atlas" shared palette, mirrors the CSS custom properties in
- * shared.css so the graticule picks up the same terracotta accent that
- * the page chrome uses.
- *
- * Exporting OL `Style` primitives directly: each demo imports and reuses
- * the same `Stroke` / `Text` instance, so switching palettes is a
- * one-file change.
- */
-import Stroke from 'ol/style/Stroke';
+ * "Field Atlas" palette, mirroring the CSS custom properties in shared.css.
+ * Demos share these `Stroke` / `Text` instances, so a repalette is one file.
+ * Renderer selection lives in `renderer.ts`.
+ */import Stroke from 'ol/style/Stroke';
 import Fill from 'ol/style/Fill';
 import Text from 'ol/style/Text';
 import { createDefaultCellLabelHandler } from '@zwaarcontrast/ol-graticule';
@@ -41,13 +36,7 @@ export const edgeLabelText = new Text({
   stroke: new Stroke({ color: palette.ink, width: 3 }),
 });
 
-/**
- * Cell labels for MBS / Kriegsmarine, pale orange letters with a
- * terracotta halo. Matches the accent palette: letters carry the brand
- * color, the halo picks up the same orange as the grid lines.
- * Peak opacity bumped above the default (0.45) because light orange
- * needs to be strong enough to read against OSM tiles.
- */
+/** Cell labels for MBS / Kriegsmarine */
 export const cellLabelHandler = createDefaultCellLabelHandler({
   fontWeight: 700,
   fillColor: (o) => `rgba(254, 215, 170, ${o.toFixed(2)})`, // orange-200

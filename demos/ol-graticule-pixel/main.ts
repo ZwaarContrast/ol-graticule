@@ -5,11 +5,11 @@ import ImageLayer from 'ol/layer/Image';
 import ImageStatic from 'ol/source/ImageStatic';
 import Projection from 'ol/proj/Projection';
 import {
-  UniversalGraticule,
   PixelGridSystem,
   CursorPositionControl,
 } from '@zwaarcontrast/ol-graticule';
 import { gridLine, edgeLabelText, cursorStyle, hoverLens } from '../shared';
+import { createGraticule, addRendererToggle } from '../renderer';
 import { createCoordinateInput } from '../coordinateInput';
 
 const WIDTH = 2000;
@@ -89,7 +89,7 @@ const map = new Map({
     new ImageLayer({
       source: new ImageStatic({ url: buildBackground(), projection, imageExtent: extent }),
     }),
-    new UniversalGraticule({
+    createGraticule({
       gridSystem,
       style: { line: { major: gridLine }, edgeLabel: edgeLabelText, hoverLens },
     }),
@@ -104,6 +104,8 @@ const map = new Map({
     minResolution: 0.25,
   }),
 });
+
+addRendererToggle();
 
 const badge = document.querySelector<HTMLElement>('.badge');
 if (badge) {

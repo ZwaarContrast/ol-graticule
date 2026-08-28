@@ -4,18 +4,10 @@ import View from 'ol/View';
 import TileLayer from 'ol/layer/Tile';
 import OSM from 'ol/source/OSM';
 import { fromLonLat } from 'ol/proj';
-import {
-  UniversalGraticule,
-  CursorPositionControl,
-} from '@zwaarcontrast/ol-graticule';
+import { CursorPositionControl } from '@zwaarcontrast/ol-graticule';
 import { MgrsGridSystem } from '@zwaarcontrast/ol-graticule-mgrs';
-import {
-  gridLine,
-  edgeLabelText,
-  cellLabelHandler,
-  cursorStyle,
-  hoverLens,
-} from '../shared';
+import { gridLine, edgeLabelText, cellLabelHandler, cursorStyle, hoverLens } from '../shared';
+import { createGraticule, addRendererToggle } from '../renderer';
 import { createCoordinateInput } from '../coordinateInput';
 
 const gridSystem = new MgrsGridSystem();
@@ -24,7 +16,7 @@ const map = new Map({
   target: 'map',
   layers: [
     new TileLayer({ source: new OSM() }),
-    new UniversalGraticule({
+    createGraticule({
       gridSystem,
       style: {
         line: { major: gridLine },
@@ -49,6 +41,8 @@ const map = new Map({
   }),
 });
 
+addRendererToggle();
+
 const badge = document.querySelector<HTMLElement>('.badge');
 if (badge) {
   createCoordinateInput({
@@ -56,7 +50,7 @@ if (badge) {
     gridSystem,
     host: badge,
     placeholder: '31U FT 23234 23252',
-    hint: 'GZD + 100 km square + easting/northing (1–10 digits). UPS zones Y/Z/A/B also accepted.',
+    hint: 'GZD + 100 km square + easting/northing (1-10 digits). UPS zones Y/Z/A/B also accepted.',
   });
 }
 

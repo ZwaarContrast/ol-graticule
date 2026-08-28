@@ -12,7 +12,7 @@ import { blockExternalTiles, tallyHotFunctions, type CpuProfile } from './helper
  * per-resolution render context, line densification, and re-render. Reports hot
  * functions plus Script/Layout CPU per demo.
  *
- *   PROFILE_BUILD=1 npx playwright test profile-zoomcycle.spec.ts
+ *   npx playwright test --config=playwright.profile.config.ts profile-zoomcycle.profile.ts
  */
 
 const __filename = fileURLToPath(import.meta.url);

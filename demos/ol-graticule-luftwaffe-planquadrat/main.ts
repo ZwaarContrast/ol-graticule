@@ -5,9 +5,9 @@ import TileLayer from 'ol/layer/Tile';
 import OSM from 'ol/source/OSM';
 import { fromLonLat, transform } from 'ol/proj';
 import {
-  UniversalGraticule,
   CursorPositionControl,
   createDefaultCellLabelHandler,
+  type UniversalGraticule,
 } from '@zwaarcontrast/ol-graticule';
 import {
   LuftwaffeGridSystem,
@@ -15,6 +15,7 @@ import {
 } from '@zwaarcontrast/ol-graticule-luftwaffe-planquadrat';
 import type { LuftwaffeSystem } from '@zwaarcontrast/ol-graticule-luftwaffe-planquadrat';
 import { gridLine, cursorStyle, hoverLens } from '../shared';
+import { createGraticule, addRendererToggle } from '../renderer';
 import { createCoordinateInput } from '../coordinateInput';
 
 const snapCellLabelHandler = createDefaultCellLabelHandler({
@@ -40,6 +41,8 @@ const map = new Map({
     zoom: 7,
   }),
 });
+
+addRendererToggle();
 
 const badge = document.querySelector<HTMLElement>('.badge');
 const controls = document.getElementById('system-controls');
@@ -76,7 +79,7 @@ function setActiveSystem(system: LuftwaffeSystem): void {
 }
 
 function buildGraticule(): UniversalGraticule {
-  return new UniversalGraticule({
+  return createGraticule({
     gridSystem,
     style: { line: { major: gridLine }, cellLabel: snapCellLabelHandler, hoverLens },
     maxLines: 600,

@@ -54,5 +54,8 @@
     "@zwaarcontrast/test-utils": "*",
     "typescript": "~6.0.3",
     "vitest": "^4.0.17"
+  },
+  "dependencies": {
+    "@mapbox/tiny-sdf": "^2.2.0"
   }
 }
