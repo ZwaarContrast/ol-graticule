@@ -57,10 +57,10 @@
     "ol": "^10.0.0"
   },
   "dependencies": {
-    "proj4": "^2.12.0"
+    "proj4": "^2.21.0"
   },
   "devDependencies": {
-    "@types/proj4": "^2.5.5",
+    "@types/proj4": "^2.19.0",
     "@zwaarcontrast/ol-graticule": "*",
     "@zwaarcontrast/ol-graticule-projected": "*",
     "@zwaarcontrast/test-utils": "*",
