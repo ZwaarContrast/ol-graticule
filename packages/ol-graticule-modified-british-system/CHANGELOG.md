@@ -1,5 +1,20 @@
 # @zwaarcontrast/ol-graticule-modified-british-system
 
+## 4.0.0
+
+### Patch Changes
+
+- fa9475c: fix: remove `\s*` that overlapped `[\d\s]*` in the MBS compound-reference pattern, eliminating a polynomial-ReDoS backtracking path (no behavior change)
+- 55201f5: refactor: extract a shared MBS grid factory, collapsing the duplicated theatre wiring across the nine grid modules into createMBSGridSystem and assembleMBSGridSystem (no public API change)
+- Updated dependencies [6b960f9]
+- Updated dependencies [f975503]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [28d9a14]
+- Updated dependencies [f975503]
+  - @zwaarcontrast/ol-graticule@4.0.0
+  - @zwaarcontrast/ol-graticule-projected@4.0.0
+
 ## 3.0.0
 
 ### Patch Changes

@@ -1,5 +1,18 @@
 # @zwaarcontrast/ol-graticule-rd
 
+## 4.0.0
+
+### Patch Changes
+
+- Updated dependencies [6b960f9]
+- Updated dependencies [f975503]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [28d9a14]
+- Updated dependencies [f975503]
+  - @zwaarcontrast/ol-graticule@4.0.0
+  - @zwaarcontrast/ol-graticule-projected@4.0.0
+
 ## 3.0.0
 
 ### Patch Changes
