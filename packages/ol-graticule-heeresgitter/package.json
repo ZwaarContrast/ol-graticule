@@ -2,7 +2,7 @@
   "name": "@zwaarcontrast/ol-graticule-heeresgitter",
   "version": "3.0.0",
   "type": "module",
-  "description": "WWII Wehrmacht map reference grids for ol-graticule: Deutsches Heeresgitter (DHG, Bessel + 6° Gauß-Krüger), Deutsches Reichsgitter (DRG, the 3°-strip predecessor) and both Heeresmeldenetz letter-cell variants: planar (6 km, DHG-metric) and geographic (6' × 4' lat/lon).",
+  "description": "WWII Wehrmacht map reference grids for ol-graticule: Deutsches Heeresgitter (DHG, Bessel + 6\u00b0 Gau\u00df-Kr\u00fcger), Deutsches Reichsgitter (DRG, the 3\u00b0-strip predecessor) and both Heeresmeldenetz letter-cell variants: planar (6 km, DHG-metric) and geographic (6' \u00d7 4' lat/lon).",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -54,9 +54,7 @@
   "peerDependencies": {
     "@zwaarcontrast/ol-graticule": "^3.0.0",
     "@zwaarcontrast/ol-graticule-projected": "^3.0.0",
-    "ol": "^10.0.0"
-  },
-  "dependencies": {
+    "ol": "^10.0.0",
     "proj4": "^2.12.0"
   },
   "devDependencies": {
