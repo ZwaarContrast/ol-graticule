@@ -12,16 +12,21 @@ import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
 /**
  * Iberian Peninsula MBS theatre, tangent Lambert Conformal Conic at
  * lat_0=40°N on the International 1924 (Hayford) ellipsoid, central
- * meridian at the Madrid Royal Observatory (3°41'14.55"W = -3.6872055555°),
+ * meridian at the Madrid Royal Observatory (3°41'14.55"W = -3.687375°),
  * false easting 600 000 m, false northing 530 000 m. Letter family:
  * British Cassini. No EPSG code; registered as `MBS:IBERIAN_PENINSULA`.
+ *
+ * Every value here is printed verbatim in the IBERIAN PENINSULA ZONE GRID block
+ * of AMS M981 Madrid City Plan 1:12 500 (1st ed. AMS 1, 3.1943). The central
+ * meridian carried -3.6872055555 until v3.0.1, which is 3°41'13.94" — the
+ * docstring's own DMS converted wrong, putting the grid 14.5 m east.
  */
 
 export const IBERIAN_PENINSULA_CRS = 'MBS:IBERIAN_PENINSULA';
 
 /** Tangent LCC at lat_0=40°N on Hayford 1924; Madrid Royal Observatory meridian; false E/N 600 000 / 530 000 m. */
 export const IBERIAN_PENINSULA_PROJ4 =
-  '+proj=lcc +lat_1=40 +lat_2=40 +lat_0=40 +lon_0=-3.6872055555 ' +
+  '+proj=lcc +lat_1=40 +lat_2=40 +lat_0=40 +lon_0=-3.6873750 ' +
   '+x_0=600000 +y_0=530000 +ellps=intl +units=m +no_defs +type=crs';
 
 /** WGS84 bbox `[lonMin, latMin, lonMax, latMax]` covering the Iberian Peninsula plus buffer. */

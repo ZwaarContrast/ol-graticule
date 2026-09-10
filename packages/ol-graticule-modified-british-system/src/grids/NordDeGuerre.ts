@@ -64,14 +64,47 @@ export const NORD_DE_GUERRE_EXTENT: [number, number, number, number] = [
   -125000, -20000, 1430000, 1115000,
 ];
 
+/**
+ * WGS84 bbox `[lonMin, latMin, lonMax, latMax]` covering the theatre plus
+ * buffer, so this family can be given a validity like every other one.
+ *
+ * Derived by projecting {@link NORD_DE_GUERRE_CLIP_POLYGON} out of EPSG:27500,
+ * which spans 1.00°W-20.49°E and 46.10°-56.50°N, then rounded outward. Note it
+ * has to be derived rather than copied: this grid is EPSG:27500, the French
+ * civil definition with a false easting of 500 000, and the British wartime
+ * Nord de Guerre Zone re-origined to 600 000 — so the same projected metres
+ * name ground 100 km apart in the two conventions. See the cross-package parity
+ * test in ol-graticule-gsgs, which asserts exactly that offset.
+ */
+export const NORD_DE_GUERRE_BBOX_WGS84: [number, number, number, number] = [
+  -2, 45.5, 21, 57,
+];
+
 /** MBS grid coverage polygon in Nord de Guerre metres (EPSG:27500). */
 export const NORD_DE_GUERRE_CLIP_POLYGON: [number, number][] = [
-  [992934, 1106517], [1211582, 1112253], [1210721, 716967], [1305936, 720043],
-  [1312622, 405847], [1413712, 410912], [1429608, -3415], [942172, -16568],
-  [390046, -10192], [391955, 89860], [-114167, 88673], [-123251, 402864],
-  [-15549, 402583], [-5953, 502188], [85597, 505328], [94355, 616248],
-  [189873, 609599], [195383, 810221], [287279, 805414], [292076, 916984],
-  [787222, 909849], [793852, 1011105], [990966, 1004936],
+  [992934, 1106517],
+  [1211582, 1112253],
+  [1210721, 716967],
+  [1305936, 720043],
+  [1312622, 405847],
+  [1413712, 410912],
+  [1429608, -3415],
+  [942172, -16568],
+  [390046, -10192],
+  [391955, 89860],
+  [-114167, 88673],
+  [-123251, 402864],
+  [-15549, 402583],
+  [-5953, 502188],
+  [85597, 505328],
+  [94355, 616248],
+  [189873, 609599],
+  [195383, 810221],
+  [287279, 805414],
+  [292076, 916984],
+  [787222, 909849],
+  [793852, 1011105],
+  [990966, 1004936],
 ];
 
 export type NordDeGuerreGridSystemOptions = MBSGridSystemOptions & {

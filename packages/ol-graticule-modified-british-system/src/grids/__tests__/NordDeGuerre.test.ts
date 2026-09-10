@@ -1,12 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import proj4 from 'proj4';
-import { get as getProjection } from 'ol/proj';
-import { PolygonClippedGridSystem, isCombinedFormatted } from '@zwaarcontrast/ol-graticule';
+import { get as getProjection, transform } from 'ol/proj';
+import {
+  PolygonClippedGridSystem,
+  isCombinedFormatted,
+} from '@zwaarcontrast/ol-graticule';
 import {
   createNordDeGuerreGridSystem,
   NORD_DE_GUERRE_CRS,
   NORD_DE_GUERRE_PROJ4,
   NORD_DE_GUERRE_EXTENT,
+  NORD_DE_GUERRE_BBOX_WGS84,
   NORD_DE_GUERRE_CLIP_POLYGON,
   NORD_DE_GUERRE_DEFAULT_TOWGS84,
 } from '../NordDeGuerre.js';
@@ -59,7 +63,10 @@ describe('createNordDeGuerreGridSystem', () => {
     const grid = createNordDeGuerreGridSystem();
     // The MBS formatter always returns a compound "vK 617 517"-style reference
     // via formatCoordinate, not axis pair. Pick a point inside the extent.
-    const formatted = grid.formatCoordinate([500_000, 400_000], NORD_DE_GUERRE_CRS);
+    const formatted = grid.formatCoordinate(
+      [500_000, 400_000],
+      NORD_DE_GUERRE_CRS,
+    );
     expect(isCombinedFormatted(formatted)).toBe(true);
   });
 
@@ -108,15 +115,21 @@ describe('createNordDeGuerreGridSystem', () => {
       '+proj=longlat +a=6376523 +rf=308.64 +pm=2.33720833333333 +no_defs';
     // Test points: WWI hotspots, Ypres, Verdun, Reims, Arras, Cambrai.
     const points: [number, number][] = [
-      [2.8853, 50.8503],   // Ypres
-      [5.3833, 49.1600],   // Verdun
-      [4.0333, 49.2583],   // Reims
-      [2.7770, 50.2925],   // Arras
-      [3.2356, 50.1763],   // Cambrai
+      [2.8853, 50.8503], // Ypres
+      [5.3833, 49.16], // Verdun
+      [4.0333, 49.2583], // Reims
+      [2.777, 50.2925], // Arras
+      [3.2356, 50.1763], // Cambrai
     ];
     for (const [lon, lat] of points) {
-      const [ours_x, ours_y] = proj4(plessisLL, oursNoShift).forward([lon, lat]);
-      const [epsg_x, epsg_y] = proj4(plessisLL, epsgCanonical).forward([lon, lat]);
+      const [ours_x, ours_y] = proj4(plessisLL, oursNoShift).forward([
+        lon,
+        lat,
+      ]);
+      const [epsg_x, epsg_y] = proj4(plessisLL, epsgCanonical).forward([
+        lon,
+        lat,
+      ]);
       expect(Math.abs(ours_x - epsg_x)).toBeLessThan(2);
       expect(Math.abs(ours_y - epsg_y)).toBeLessThan(2);
     }
@@ -141,10 +154,13 @@ describe('createNordDeGuerreGridSystem', () => {
       '+x_0=500000 +y_0=300000 +a=6376523 +rf=308.64 +pm=2.33720833333333 ' +
       '+units=m +no_defs';
     // Verdun, well inside the area where the empirical Helmert was fitted.
-    const [withShiftX, withShiftY] = proj4('EPSG:4326', NORD_DE_GUERRE_PROJ4)
-      .forward([5.3833, 49.16]);
-    const [noShiftX, noShiftY] = proj4('EPSG:4326', noShift)
-      .forward([5.3833, 49.16]);
+    const [withShiftX, withShiftY] = proj4(
+      'EPSG:4326',
+      NORD_DE_GUERRE_PROJ4,
+    ).forward([5.3833, 49.16]);
+    const [noShiftX, noShiftY] = proj4('EPSG:4326', noShift).forward([
+      5.3833, 49.16,
+    ]);
     const dx = withShiftX - noShiftX;
     const dy = withShiftY - noShiftY;
     // The empirical shift moves the projected point by ~100 m at Verdun.
@@ -172,7 +188,9 @@ describe('createNordDeGuerreGridSystem', () => {
     // proj4js parses +towgs84 into datum_params; absence means the field
     // is undefined or empty.
     const def = proj4.defs(NORD_DE_GUERRE_CRS) as { datum_params?: number[] };
-    expect(def.datum_params === undefined || def.datum_params.length === 0).toBe(true);
+    expect(
+      def.datum_params === undefined || def.datum_params.length === 0,
+    ).toBe(true);
     // Restore default for subsequent tests.
     createNordDeGuerreGridSystem();
   });
@@ -182,7 +200,9 @@ describe('createNordDeGuerreGridSystem', () => {
       createNordDeGuerreGridSystem({ towgs84: [1, 2] as readonly number[] }),
     ).toThrow(/3 or 7 elements/);
     expect(() =>
-      createNordDeGuerreGridSystem({ towgs84: [1, 2, 3, 4] as readonly number[] }),
+      createNordDeGuerreGridSystem({
+        towgs84: [1, 2, 3, 4] as readonly number[],
+      }),
     ).toThrow(/3 or 7 elements/);
     // Restore default for subsequent tests.
     createNordDeGuerreGridSystem();
@@ -193,9 +213,13 @@ describe('createNordDeGuerreGridSystem', () => {
     // wins, a view near this triangle should produce features; the default
     // would have clipped them away.
     const farTriangle: [number, number][] = [
-      [200_000, 200_000], [250_000, 200_000], [225_000, 250_000],
+      [200_000, 200_000],
+      [250_000, 200_000],
+      [225_000, 250_000],
     ];
-    const overridden = createNordDeGuerreGridSystem({ clipPolygon: farTriangle });
+    const overridden = createNordDeGuerreGridSystem({
+      clipPolygon: farTriangle,
+    });
     const withDefault = createNordDeGuerreGridSystem();
 
     // Build a narrow view extent (in EPSG:3857) roughly over that triangle.
@@ -205,9 +229,61 @@ describe('createNordDeGuerreGridSystem', () => {
       200_000, 6_000_000, 400_000, 6_200_000,
     ];
 
-    const overriddenFeatures = overridden.getFeatures(viewExtent, 500, 'EPSG:3857');
-    const defaultFeatures = withDefault.getFeatures(viewExtent, 500, 'EPSG:3857');
+    const overriddenFeatures = overridden.getFeatures(
+      viewExtent,
+      500,
+      'EPSG:3857',
+    );
+    const defaultFeatures = withDefault.getFeatures(
+      viewExtent,
+      500,
+      'EPSG:3857',
+    );
     // At minimum: the two clip polygons must produce different outputs.
     expect(overriddenFeatures.length).not.toBe(defaultFeatures.length);
+  });
+
+  it('publishes a WGS84 bbox that contains its own coverage polygon', () => {
+    // Every other MBS family exports one; without it this family could not be
+    // given a validity in lon/lat terms. It must contain the clip polygon,
+    // projected out of EPSG:27500 — and note the projection matters: the same
+    // metres under the British wartime false easting of 600 000 would name
+    // ground 100 km away.
+    createNordDeGuerreGridSystem();
+    const [lonMin, latMin, lonMax, latMax] = NORD_DE_GUERRE_BBOX_WGS84;
+    expect(lonMin).toBeLessThan(lonMax);
+    expect(latMin).toBeLessThan(latMax);
+    for (const [e, n] of NORD_DE_GUERRE_CLIP_POLYGON) {
+      const [lon, lat] = transform([e, n], NORD_DE_GUERRE_CRS, 'EPSG:4326');
+      expect(lon ?? 0, `${e},${n} lon outside bbox`).toBeGreaterThanOrEqual(
+        lonMin,
+      );
+      expect(lon ?? 0, `${e},${n} lon outside bbox`).toBeLessThanOrEqual(
+        lonMax,
+      );
+      expect(lat ?? 0, `${e},${n} lat outside bbox`).toBeGreaterThanOrEqual(
+        latMin,
+      );
+      expect(lat ?? 0, `${e},${n} lat outside bbox`).toBeLessThanOrEqual(
+        latMax,
+      );
+    }
+  });
+
+  it('covers the Western Front the family is for', () => {
+    // Sanity that the bbox is not merely self-consistent: Paris, Brussels,
+    // Verdun and Cologne all sit inside it.
+    const [lonMin, latMin, lonMax, latMax] = NORD_DE_GUERRE_BBOX_WGS84;
+    for (const [name, lon, lat] of [
+      ['Paris', 2.35, 48.86],
+      ['Brussels', 4.35, 50.85],
+      ['Verdun', 5.38, 49.16],
+      ['Cologne', 6.96, 50.94],
+    ] as const) {
+      expect(
+        lon > lonMin && lon < lonMax && lat > latMin && lat < latMax,
+        name,
+      ).toBe(true);
+    }
   });
 });
