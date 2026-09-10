@@ -57,6 +57,13 @@ interface ViewState {
   viewToPolygon: TransformFunction;
 }
 
+// Screen-space slack the snapped clip ring is inflated by, so a grid line lying
+// ON a ring edge survives its own sub-pixel densification error.
+const CLIP_SLACK_PX = 2;
+// Ceiling on that slack, as a fraction of the snap interval, so zooming far out
+// cannot inflate the coverage by a visible part of a cell.
+const MAX_CLIP_SLACK_RATIO = 0.05;
+
 /** Wraps a GridSystem to clip its features and labels against a polygon. */
 export class PolygonClippedGridSystem implements GridSystem {
   private readonly source_: GridSystem;
@@ -248,12 +255,18 @@ export class PolygonClippedGridSystem implements GridSystem {
   private viewState_(viewProjection: ProjectionLike, resolution: number): ViewState {
     const snapInterval = this.cellSnapInterval_?.(resolution, viewProjection);
     const code = projectionCacheKey_(viewProjection);
-    const variant = snapInterval !== undefined ? `snap:${snapInterval}` : 'raw';
+    const slack = snapInterval === undefined
+      ? 0
+      : Math.min(
+          snapInterval * MAX_CLIP_SLACK_RATIO,
+          Math.max(snapInterval * 1e-3, this.pixelSlack_(viewProjection, resolution)),
+        );
+    const variant = snapInterval !== undefined ? `snap:${snapInterval}:${slack}` : 'raw';
     const key = `${code}|${variant}`;
     const cached = this.viewCache_.get(key);
     if (cached) return cached;
 
-    const clipRingsInPolygonCrs = this.buildClipRings_(snapInterval);
+    const clipRingsInPolygonCrs = this.buildClipRings_(snapInterval, slack);
     const projectedRings = projectRingList_(clipRingsInPolygonCrs, this.polygonCrs_, viewProjection);
     const state: ViewState = {
       projectedRings,
@@ -267,7 +280,10 @@ export class PolygonClippedGridSystem implements GridSystem {
     return state;
   }
 
-  private buildClipRings_(snapInterval: number | undefined): [number, number][][] {
+  private buildClipRings_(
+    snapInterval: number | undefined,
+    slack: number,
+  ): [number, number][][] {
     if (snapInterval === undefined) {
       this.lastSnapRingsInPolygonCrs_ = null;
       return [this.densifiedSourceRing_];
@@ -278,10 +294,32 @@ export class PolygonClippedGridSystem implements GridSystem {
       return [this.densifiedSourceRing_];
     }
     this.lastSnapRingsInPolygonCrs_ = snapped.map((r) => r.slice());
-    const eps = snapInterval * 1e-3;
     return snapped.map((ring) =>
-      densifyRing(inflateRectilinearRing_(ring, eps), this.ringStepsPerEdge_),
+      densifyRing(inflateRectilinearRing_(ring, slack), this.ringStepsPerEdge_),
     );
+  }
+
+  /**
+   * Clip slack in polygon-CRS units, worth {@link CLIP_SLACK_PX} screen pixels
+   * and rounded up to a power of two so it changes only once per zoom band.
+   * A source line coincident with a snapped ring edge is only as accurate as its
+   * own densification (about a pixel of chord sag), so a clip tighter than that
+   * chops it into fragments.
+   */
+  private pixelSlack_(viewProjection: ProjectionLike, resolution: number): number {
+    if (!(resolution > 0) || !isFinite(resolution)) return 0;
+    const toView = requireTransform(this.polygonCrs_, viewProjection);
+    const toPolygon = requireTransform(viewProjection, this.polygonCrs_);
+    const origin = this.sourceRingOpen_[0];
+    if (!origin) return 0;
+    const [vx, vy] = toView([origin[0], origin[1]], undefined, 2);
+    if (vx === undefined || vy === undefined) return 0;
+    const step = CLIP_SLACK_PX * resolution;
+    const [px, py] = toPolygon([vx + step, vy], undefined, 2);
+    if (px === undefined || py === undefined) return 0;
+    const spanned = Math.hypot(px - origin[0], py - origin[1]);
+    if (!(spanned > 0) || !isFinite(spanned)) return 0;
+    return 2 ** Math.ceil(Math.log2(spanned));
   }
 
   private coordIsInsidePolygon_(

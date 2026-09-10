@@ -432,10 +432,11 @@ describe('PolygonClippedGridSystem', () => {
       const coords = (features[0]!.getGeometry() as LineString).getCoordinates();
       // Should clip to the cell-aligned bounds [0, 15] on the x-axis, not
       // to the source ring's raw bounds [1, 17]. The boundary is inflated
-      // outward by `interval × 1e-3` (= 0.005 here) to stabilise PIP at
-      // grid-line-vs-ring-edge coincidences, see PolygonClippedGridSystem.
-      expect(Math.abs(coords[0]![0]! - 0)).toBeLessThanOrEqual(0.01);
-      expect(Math.abs(coords[coords.length - 1]![0]! - 15)).toBeLessThanOrEqual(0.01);
+      // outward by a few screen pixels, capped at 5% of the interval (= 0.25
+      // here), to stabilise PIP at grid-line-vs-ring-edge coincidences, see
+      // PolygonClippedGridSystem.
+      expect(Math.abs(coords[0]![0]! - 0)).toBeLessThanOrEqual(0.25);
+      expect(Math.abs(coords[coords.length - 1]![0]! - 15)).toBeLessThanOrEqual(0.25);
     });
 
     it('falls back to smooth clipping when the callback returns undefined', () => {

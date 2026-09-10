@@ -72,6 +72,21 @@ interface WebGLGrid {
   labelEngine: LabelEngine | null;
 }
 
+/** One lens draw: a grid's swell/dot ranges under one pointer, in its own ink. */
+interface LensDraw {
+  lens: ResolvedHoverLens;
+  x: number;
+  y: number;
+  intensity: number;
+  swellStart: number;
+  swellEnd: number;
+  dotStart: number;
+  dotEnd: number;
+  holeOffset: number;
+  holeCount: number;
+  cellPx: number;
+}
+
 export interface WebGLGraticuleLayerOptions
   extends GraticuleOptions, Omit<LayerOptions<VectorSource>, 'source'> {}
 
@@ -100,9 +115,9 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
   private dvLen_ = 0;
   private di_ = new Uint32Array(256);
   private diLen_ = 0;
-  private readonly holes_ = new Float32Array(MAX_HOLES * 3);
-  private holeCount_ = 0;
-  private cellPx_ = 0;
+  private holes_ = new Float32Array(MAX_HOLES * 3);
+  private holeLen_ = 0;
+  private readonly lensDraws_: LensDraw[] = [];
 
   // Text pass
   private labelProgram_: WebGLProgram | null = null;
@@ -206,7 +221,8 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
     this.siLen_ = 0;
     this.dvLen_ = 0;
     this.diLen_ = 0;
-    this.holeCount_ = 0;
+    this.holeLen_ = 0;
+    this.lensDraws_.length = 0;
 
     this.lvLen_ = 0;
     this.liLen_ = 0;
@@ -322,17 +338,19 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
     const { holes, cell } = collectLensHoles(
       features, toPixel, 1, worldOffset, cx, cy, radius, lens.approachFraction, lens.approach, MAX_HOLES,
     );
-    this.cellPx_ = cell;
-    this.holeCount_ = holes.length;
-    for (let i = 0; i < holes.length; i++) {
-      const h = holes[i];
-      if (!h) continue;
-      this.holes_[i * 3] = h.x;
-      this.holes_[i * 3 + 1] = h.y;
-      this.holes_[i * 3 + 2] = h.strength;
+
+    const dotStart = this.diLen_;
+    const holeOffset = this.holeLen_;
+    this.holes_ = growF32(this.holes_, this.holeLen_, holes.length * 3);
+    for (const h of holes) {
+      this.holes_[this.holeLen_++] = h.x;
+      this.holes_[this.holeLen_++] = h.y;
+      this.holes_[this.holeLen_++] = h.strength;
       this.emitDotQuad_(h.x, h.y, h.strength, intensity);
     }
+    const dotEnd = this.diLen_;
 
+    const swellStart = this.siLen_;
     const scratch: [number, number] = [0, 0];
     for (const feature of features) {
       const geom = feature.getGeometry();
@@ -342,16 +360,20 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
         this.emitSwellQuad_(x0, y0, x1, y1, half);
       });
     }
+
+    this.lensDraws_.push({
+      lens, x: cx, y: cy, intensity,
+      swellStart, swellEnd: this.siLen_,
+      dotStart, dotEnd,
+      holeOffset, holeCount: holes.length, cellPx: cell,
+    });
   }
 
   private drawLens_(frameState: FrameState): void {
     const helper = this.helper;
     const gl = helper.getGL();
-    const layer = this.getLayer();
-    const firstLens = layer.getGrids()[0]?.lens;
-    if (!firstLens) return;
-
-    const [cr, cg, cb, ca] = toRgbaNormalized(firstLens.color);
+    const draws = this.lensDraws_;
+    if (draws.length === 0) return;
 
     if (this.siLen_ > 0 && this.swellProgram_ && this.swellBuffer_ && this.swellIndex_) {
       this.swellBuffer_.setArray(this.sv_.subarray(0, this.svLen_));
@@ -363,24 +385,27 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
       helper.enableAttributes(SWELL_ATTRIBUTES);
       helper.bindBuffer(this.swellIndex_);
 
-      layer.pointers.forEach((pointer) => {
-        helper.setUniformFloatVec2('u_cursor', [pointer.x, pointer.y]);
-        helper.setUniformFloatValue('u_radius', firstLens.radius);
-        helper.setUniformFloatValue('u_sigmaSq', (firstLens.radius / 2.2) * (firstLens.radius / 2.2));
-        helper.setUniformFloatValue('u_boost', firstLens.boost * pointer.intensity);
-        helper.setUniformFloatValue('u_intensity', pointer.intensity);
+      for (const draw of draws) {
+        if (draw.swellEnd === draw.swellStart) continue;
+        const lens = draw.lens;
+        helper.setUniformFloatVec2('u_cursor', [draw.x, draw.y]);
+        helper.setUniformFloatValue('u_radius', lens.radius);
+        helper.setUniformFloatValue('u_sigmaSq', (lens.radius / 2.2) * (lens.radius / 2.2));
+        helper.setUniformFloatValue('u_boost', lens.boost * draw.intensity);
+        helper.setUniformFloatValue('u_intensity', draw.intensity);
         helper.setUniformFloatValue('u_quantum', 0.33);
         helper.setUniformFloatValue('u_minWidth', 0.33);
-        helper.setUniformFloatVec4('u_color', [cr, cg, cb, ca]);
-        const clearR = this.cellPx_ > 0 ? Math.min(firstLens.clearRadius, this.cellPx_ * 0.42) : firstLens.clearRadius;
+        helper.setUniformFloatVec4('u_color', toRgbaNormalized(lens.color));
+        const clearR = draw.cellPx > 0 ? Math.min(lens.clearRadius, draw.cellPx * 0.42) : lens.clearRadius;
         helper.setUniformFloatValue('u_clearR', clearR);
         helper.setUniformFloatValue('u_holeFeather', Math.min(12, clearR * 0.85));
-        helper.setUniformFloatValue('u_holeCount', this.holeCount_);
-        if (this.holeCount_ > 0) {
-          gl.uniform3fv(helper.getUniformLocation('u_holes[0]'), this.holes_.subarray(0, this.holeCount_ * 3));
+        helper.setUniformFloatValue('u_holeCount', draw.holeCount);
+        if (draw.holeCount > 0) {
+          const end = draw.holeOffset + draw.holeCount * 3;
+          gl.uniform3fv(helper.getUniformLocation('u_holes[0]'), this.holes_.subarray(draw.holeOffset, end));
         }
-        helper.drawElements(0, this.siLen_);
-      });
+        helper.drawElements(draw.swellStart, draw.swellEnd);
+      }
     }
 
     if (this.diLen_ > 0 && this.dotProgram_ && this.dotBuffer_ && this.dotIndex_) {
@@ -393,8 +418,11 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
       helper.enableAttributes(DOT_ATTRIBUTES);
       helper.bindBuffer(this.dotIndex_);
       helper.setUniformFloatValue('u_glowR', DOT_GLOW_PX);
-      helper.setUniformFloatVec4('u_color', [cr, cg, cb, ca]);
-      helper.drawElements(0, this.diLen_);
+      for (const draw of draws) {
+        if (draw.dotEnd === draw.dotStart) continue;
+        helper.setUniformFloatVec4('u_color', toRgbaNormalized(draw.lens.color));
+        helper.drawElements(draw.dotStart, draw.dotEnd);
+      }
     }
   }
 
