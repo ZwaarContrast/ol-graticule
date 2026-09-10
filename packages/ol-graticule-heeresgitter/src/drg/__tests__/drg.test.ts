@@ -5,10 +5,12 @@ import {
   ALL_ZONES,
   FALSE_EASTING,
   MAX_KENNZIFFER,
+  PUBLISHED_KENNZIFFERN,
   STRIP_HALF_WIDTH_DEG,
   STRIP_OVERLAP_DEG,
   cmForKennziffer,
   falseEastingFor,
+  isPublishedKennziffer,
   kennzifferForCm,
   zoneByKennziffer,
   zoneForLon,
@@ -50,6 +52,38 @@ describe('strip constants', () => {
     expect(zonesContainingLon(6).map((z) => z.kennziffer)).toEqual([2]);
     // 7°25' E is within 10' of the 7°30' strip edge.
     expect(zonesContainingLon(7 + 25 / 60).map((z) => z.kennziffer)).toEqual([2, 3]);
+  });
+
+  // Planheft, "Das Deutsche Reichsgitter" (Planheft Schweiz OKH g 23/1,
+  // 16 March 1944, p. C 3; same text in Planheft Osteuropa, Merkblatt 34/31b).
+  it('reproduces the Planheft strip table verbatim', () => {
+    //   3°  6°  9°  12°  15°   ostwärts Greenwich
+    //   1   2   3   4    5     Kennziffern
+    expect(PUBLISHED_KENNZIFFERN.map(cmForKennziffer)).toEqual([3, 6, 9, 12, 15]);
+    expect([3, 6, 9, 12, 15].map(kennzifferForCm)).toEqual([...PUBLISHED_KENNZIFFERN]);
+  });
+
+  it('separates a strip the Planheft tabulates from one the formula merely admits', () => {
+    // The Planheft prints five strips and stops, in the Osteuropa edition too.
+    // Kennziffer 11 (CM 33° E) still builds, because Kennziffer = CM / 3 is
+    // given as a general rule, but nothing here vouches for it being printed.
+    expect(isPublishedKennziffer(2)).toBe(true);
+    expect(isPublishedKennziffer(11)).toBe(false);
+    expect(zoneByKennziffer(11).cm).toBe(33);
+  });
+
+  it("counts Hochwert from the equator and Rechtswert from the CM at 500 000", () => {
+    // "Die Hochwerte werden vom Äquator mit dem Hochwert 0 und die Rechtswerte
+    //  vom Mittelmeridian mit dem Rechtswert 500 000 gezählt."
+    // Input is WGS 84, so a point on the 6° E WGS 84 meridian lands ~41 m off
+    // the Bessel/Potsdam central meridian. That offset is the datum shift, not
+    // a false-easting error, so allow for it rather than demanding an exact hit.
+    const onCm = forwardInZone([52, 6], 2);
+    expect(onCm.easting).toBeGreaterThan(2_499_900);
+    expect(onCm.easting).toBeLessThan(2_500_100);
+    // Bessel meridian arc to 52° N is ~5 763 km; the Planheft counts it from 0.
+    expect(onCm.northing).toBeGreaterThan(5_760_000);
+    expect(onCm.northing).toBeLessThan(5_766_000);
   });
 
   it('rejects Kennziffern outside the supported range', () => {

@@ -63,6 +63,8 @@ export {
   ZONE_EASTING_STEP as DRG_ZONE_EASTING_STEP,
   FALSE_EASTING as DRG_FALSE_EASTING,
   MAX_KENNZIFFER as DRG_MAX_KENNZIFFER,
+  PUBLISHED_KENNZIFFERN as DRG_PUBLISHED_KENNZIFFERN,
+  isPublishedKennziffer as isPublishedDrgKennziffer,
 } from './drg/zones.js';
 
 export {

@@ -112,11 +112,33 @@ renderer uses these as its hard clip envelope.
 | Scale factor on CM | 1.0 |
 | False easting | `Kennziffer × 1 000 000 + 500 000` m |
 | False northing | 0 (Hochwert = meridian arc from equator) |
-| Strip overlap | 10' on each side beyond the nominal 3° |
+| Strip overlap | 10' on each side beyond the nominal 3° (unsourced, see below) |
 
 Zone numbering is `n = L_m / 3°`, so Kennziffer 2 = CM 6°E, 3 = CM 9°E,
 4 = CM 12°E, 5 = CM 15°E. Strips 2–5 are the German ones and match
 EPSG:31466–31469.
+
+Every row above except the overlap is stated verbatim in the Planheft
+section *Das Deutsche Reichsgitter* (p. C 3), which also gives the strip
+table — central meridians 3°, 6°, 9°, 12°, 15° against Kennziffern 1–5 —
+and the rule `Kennziffer = CM / 3`. The Osteuropa edition prints the same
+five, so **no DRG strip east of 15°E is attested here.** The formula will
+build one anyway, which is why `DRG_PUBLISHED_KENNZIFFERN` and
+`isPublishedDrgKennziffer()` are exported: use them to tell "the
+arithmetic works" from "the grid was printed here".
+
+That distinction is cheap for the DRG specifically, because the Kennziffer
+is printed on the sheet inside the Rechtswert. A sheet showing ordinary
+3-digit hundreds is not a DRG sheet at any strip.
+
+The overlap is the one constant we have no source for, and the Planheft
+appears to contradict it. Its *Schweiz 1:25 000* entry places the overlap
+of strips 2 and 3 at "etwa zwischen 6° 50' und 8° 20' ostw. Greenwich",
+a band 1°30' wide about the 7°30' boundary; 10' gives a band of 20'.
+Matching it would need strips reaching ~2°15' either side of their CM.
+The value is left alone because that sentence describes one printed series
+and may be quantised to whole sheets. It affects `zonesContainingLon` and
+the `overlap` boundary mode only, never a coordinate.
 
 The Kennziffer is not quoted apart from the coordinate the way it is on
 DHG sheets: it is carried as the *leading digit of the Rechtswert*. A
@@ -347,7 +369,10 @@ Den Haag cross-check against an Atlantikwall sector overprint.
 ## Sources
 
 - **Planheft Schweiz** (OKH g 23/1, 16 March 1944), pages C 1–C 3: the
-  explicit DHG projection specification.
+  explicit DHG projection specification, and on C 3 the *Das Deutsche
+  Reichsgitter* section giving the DRG specification and strip table.
+- **Planheft Osteuropa** (Merkblatt 34/31b): the same *Deutsches
+  Reichsgitter* section, tabulating the same five strips.
 - **Buchroithner & Pfahlbusch**, *Geodetic grids in authoritative maps:
   new findings about the origin of the UTM Grid*, Cartography &
   Geographic Information Science (2016),
