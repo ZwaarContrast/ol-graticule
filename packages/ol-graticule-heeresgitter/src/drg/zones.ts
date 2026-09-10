@@ -100,6 +100,13 @@ export const MAX_KENNZIFFER = 59;
  * rule. Use this list to tell "the arithmetic works" from "the grid was
  * printed here" — for a DRG sheet the two are separable, because the Kennziffer
  * is printed on the face inside the Rechtswert rather than inferred.
+ *
+ * Do NOT use it to reject a strip. A sheet printing a leading 11 in its
+ * Rechtswert is the only evidence that could ever extend this list, and a filter
+ * built on the list would throw exactly that sheet away: absence of attestation
+ * is not attestation of absence, and a catalogue's silence does not outrank a
+ * sheet's own ink. The Kennziffer being glued into the Rechtswert already makes
+ * a DRG sheet vouch for itself, so there is nothing here for a veto to do.
  */
 export const PUBLISHED_KENNZIFFERN: readonly number[] = Object.freeze([1, 2, 3, 4, 5]);
 

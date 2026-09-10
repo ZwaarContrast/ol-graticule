@@ -131,6 +131,13 @@ That distinction is cheap for the DRG specifically, because the Kennziffer
 is printed on the sheet inside the Rechtswert. A sheet showing ordinary
 3-digit hundreds is not a DRG sheet at any strip.
 
+**Don't turn the list into a filter.** A sheet printing a leading `11` is
+the only evidence that could ever extend it, and a check built on the list
+would reject precisely that sheet. Absence of attestation is not
+attestation of absence. Since the Kennziffer is glued into the Rechtswert,
+a DRG sheet already vouches for itself and there is nothing for a veto to
+do — the five strips are worth knowing, not enforcing.
+
 The overlap is the one constant we have no source for, and the Planheft
 appears to contradict it. Its *Schweiz 1:25 000* entry places the overlap
 of strips 2 and 3 at "etwa zwischen 6° 50' und 8° 20' ostw. Greenwich",
