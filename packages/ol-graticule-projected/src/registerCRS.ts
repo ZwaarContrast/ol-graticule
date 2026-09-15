@@ -1,14 +1,18 @@
 import proj4 from 'proj4';
 import { register } from 'ol/proj/proj4';
 
+import { registerProj4 } from './registerProj4.js';
+
 /**
- * Track which `(code, proj4Def)` pairs we've already processed so repeat
- * `registerCRS` calls in the same process become no-ops. We key on both
- * the EPSG code and the proj4 string, if the caller passes a *different*
- * definition for the same code later, we update the registry rather than
- * silently keeping the old one.
+ * Push proj4's current definitions into OpenLayers' projection registry.
+ *
+ * Call this after `registerProj4` when the code will reach OpenLayers, for
+ * instance a grid system that resolves it through `ol/proj`. Cheap to repeat,
+ * but it must run *after* the definitions it should pick up.
  */
-const registered = new Map<string, string>();
+export function syncOlProjections(): void {
+  register(proj4);
+}
 
 /**
  * Register a CRS with proj4 and OpenLayers so grid systems that reference
@@ -30,10 +34,11 @@ const registered = new Map<string, string>();
  * ships with them. `ProjectedGridSystem` will throw a clear error if it
  * encounters an unknown CRS, so missing `registerCRS` calls surface
  * immediately.
+ *
+ * Decoding a grid reference under plain Node wants `registerProj4` from
+ * `@zwaarcontrast/ol-graticule-projected/headless`, which skips the OL half.
  */
 export function registerCRS(code: string, proj4Def: string): void {
-  if (registered.get(code) === proj4Def) return;
-  proj4.defs(code, proj4Def);
-  register(proj4);
-  registered.set(code, proj4Def);
+  if (!registerProj4(code, proj4Def)) return;
+  syncOlProjections();
 }

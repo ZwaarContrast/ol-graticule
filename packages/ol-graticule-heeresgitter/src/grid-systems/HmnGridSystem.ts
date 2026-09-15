@@ -34,10 +34,16 @@ import {
   transformExtentSampled,
 } from '@zwaarcontrast/ol-graticule';
 
+import { syncOlProjections } from '@zwaarcontrast/ol-graticule-projected';
+
 import { DEFAULT_DATUM_SHIFT, registerZone } from '../dhg/projection.js';
 import { stripClipPolygon, pointInsideValidity } from '../dhg/stripPolygon.js';
 import type { DatumShift } from '../dhg/types.js';
-import { FALSE_EASTING, STRIP_OVERLAP_DEG, zoneByKennziffer } from '../dhg/zones.js';
+import {
+  FALSE_EASTING,
+  STRIP_OVERLAP_DEG,
+  zoneByKennziffer,
+} from '../dhg/zones.js';
 import {
   DHG_WORLD_BOX,
   activeZonesFor,
@@ -93,7 +99,9 @@ export class HmnGridSystem implements GridSystem {
 
   private readonly delegates_ = new Map<number, GridSystem>();
   private readonly activeZonesCache_ = new RenderCache<number[]>();
-  private readonly cursorCache_ = new BoundedCache<string, FormattedCoordinate>(512);
+  private readonly cursorCache_ = new BoundedCache<string, FormattedCoordinate>(
+    512,
+  );
 
   constructor(options: HmnGridSystemOptions = {}) {
     this.maxDepth_ = options.maxDepth ?? 4;
@@ -113,7 +121,11 @@ export class HmnGridSystem implements GridSystem {
     if (resolution > this.maxRenderResolution_) return [];
     const features: Feature<Geometry>[] = [];
     for (const k of this.activeZones_(extent, viewProjection)) {
-      for (const f of this.delegateFor_(k).getFeatures(extent, resolution, viewProjection)) {
+      for (const f of this.delegateFor_(k).getFeatures(
+        extent,
+        resolution,
+        viewProjection,
+      )) {
         features.push(f);
       }
     }
@@ -121,7 +133,11 @@ export class HmnGridSystem implements GridSystem {
   }
 
   /** HMN doesn't print axis labels; DHG underneath carries those. */
-  getLabels(_extent: Extent, _resolution: number, _viewProjection: ProjectionLike): GridLabel[] {
+  getLabels(
+    _extent: Extent,
+    _resolution: number,
+    _viewProjection: ProjectionLike,
+  ): GridLabel[] {
     return [];
   }
 
@@ -133,7 +149,12 @@ export class HmnGridSystem implements GridSystem {
     if (resolution > this.maxRenderResolution_) return [];
     const labels: GridCellLabel[] = [];
     for (const k of this.activeZones_(extent, viewProjection)) {
-      const fromDelegate = this.delegateFor_(k).getCellLabels?.(extent, resolution, viewProjection) ?? [];
+      const fromDelegate =
+        this.delegateFor_(k).getCellLabels?.(
+          extent,
+          resolution,
+          viewProjection,
+        ) ?? [];
       for (const l of fromDelegate) labels.push(l);
     }
     return labels;
@@ -151,7 +172,10 @@ export class HmnGridSystem implements GridSystem {
     if (!lonLat || !pointInsideValidity(lonLat[0], lonLat[1])) {
       result = { combined: '-' };
     } else {
-      const ref = encodeHmn([lonLat[1], lonLat[0]], { depth: this.maxDepth_, datumShift: this.datumShift_ });
+      const ref = encodeHmn([lonLat[1], lonLat[0]], {
+        depth: this.maxDepth_,
+        datumShift: this.datumShift_,
+      });
       result = { combined: ref.canonical };
     }
     this.cursorCache_.set(cacheKey, result);
@@ -166,13 +190,19 @@ export class HmnGridSystem implements GridSystem {
     return lonLat !== null && pointInsideValidity(lonLat[0], lonLat[1]);
   }
 
-  private activeZones_(extent: Extent, viewProjection: ProjectionLike): number[] {
+  private activeZones_(
+    extent: Extent,
+    viewProjection: ProjectionLike,
+  ): number[] {
     return this.activeZonesCache_.get(extent, 0, viewProjection, () =>
       this.computeActiveZones_(extent, viewProjection),
     );
   }
 
-  private computeActiveZones_(extent: Extent, viewProjection: ProjectionLike): number[] {
+  private computeActiveZones_(
+    extent: Extent,
+    viewProjection: ProjectionLike,
+  ): number[] {
     return activeZonesFor(extent, viewProjection, this.zoneBoundary_);
   }
 
@@ -187,6 +217,7 @@ export class HmnGridSystem implements GridSystem {
 
     const zone = zoneByKennziffer(kennziffer);
     const crs = registerZone(zone, this.datumShift_);
+    syncOlProjections();
     const inner = new HmnZoneRenderer({
       crs,
       intervals: this.intervals_,
@@ -283,8 +314,14 @@ class HmnZoneRenderer implements GridSystem {
     const [tMinE, tMinN, tMaxE, tMaxN] = target;
 
     const halfInterval = interval / 2;
-    const eMin = FALSE_EASTING + Math.floor((tMinE - FALSE_EASTING) / interval) * interval + halfInterval;
-    const eMax = FALSE_EASTING + Math.ceil((tMaxE - FALSE_EASTING) / interval) * interval - halfInterval;
+    const eMin =
+      FALSE_EASTING +
+      Math.floor((tMinE - FALSE_EASTING) / interval) * interval +
+      halfInterval;
+    const eMax =
+      FALSE_EASTING +
+      Math.ceil((tMaxE - FALSE_EASTING) / interval) * interval -
+      halfInterval;
     const nMin = Math.floor(tMinN / interval) * interval + halfInterval;
     const nMax = Math.ceil(tMaxN / interval) * interval - halfInterval;
 
@@ -296,11 +333,16 @@ class HmnZoneRenderer implements GridSystem {
         if (!text) continue;
         texts.push(text);
         flat.push(
-          e, n,
-          e - halfInterval, n - halfInterval,
-          e + halfInterval, n - halfInterval,
-          e + halfInterval, n + halfInterval,
-          e - halfInterval, n + halfInterval,
+          e,
+          n,
+          e - halfInterval,
+          n - halfInterval,
+          e + halfInterval,
+          n - halfInterval,
+          e + halfInterval,
+          n + halfInterval,
+          e - halfInterval,
+          n + halfInterval,
         );
       }
     }
@@ -317,7 +359,10 @@ class HmnZoneRenderer implements GridSystem {
       for (let k = 1; k <= 4; k++) {
         const rx = flat[base + k * 2]!;
         const ry = flat[base + k * 2 + 1]!;
-        if (!Number.isFinite(rx) || !Number.isFinite(ry)) { ringOk = false; break; }
+        if (!Number.isFinite(rx) || !Number.isFinite(ry)) {
+          ringOk = false;
+          break;
+        }
         ring.push([rx, ry]);
       }
       if (!ringOk) continue;
@@ -331,21 +376,30 @@ class HmnZoneRenderer implements GridSystem {
     return labels;
   }
 
-  formatCoordinate(_coordinate: [number, number], _viewProjection: ProjectionLike): FormattedCoordinate {
+  formatCoordinate(
+    _coordinate: [number, number],
+    _viewProjection: ProjectionLike,
+  ): FormattedCoordinate {
     return { combined: '' };
   }
 
-  private context_(extent: Extent, resolution: number, viewProjection: ProjectionLike): RenderContext | null {
+  private context_(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): RenderContext | null {
     return this.ctxCache_.get(extent, resolution, viewProjection, () => {
       const toCrs = requireTransform(viewProjection, this.crs_);
       const toView = requireTransform(this.crs_, viewProjection);
       let target = transformExtentSampled(extent, toCrs);
-      if (![target[0], target[1], target[2], target[3]].every(Number.isFinite)) return null;
+      if (![target[0], target[1], target[2], target[3]].every(Number.isFinite))
+        return null;
 
       target = getIntersection(target, DHG_WORLD_BOX);
       if (isEmpty(target)) return null;
 
-      const targetResolution = measureTargetResolution(target, toView, resolution) ?? resolution;
+      const targetResolution =
+        measureTargetResolution(target, toView, resolution) ?? resolution;
       const interval = this.intervals_.getInterval(targetResolution);
 
       const cap = this.densificationPoints_;
@@ -365,24 +419,49 @@ class HmnZoneRenderer implements GridSystem {
     type: 'major' | 'minor',
   ): void {
     const [tMinE, tMinN, tMaxE, tMaxN] = ctx.target;
-    const startE = FALSE_EASTING + Math.ceil((tMinE - FALSE_EASTING) / interval) * interval;
-    const endE = FALSE_EASTING + Math.floor((tMaxE - FALSE_EASTING) / interval) * interval;
+    const startE =
+      FALSE_EASTING + Math.ceil((tMinE - FALSE_EASTING) / interval) * interval;
+    const endE =
+      FALSE_EASTING + Math.floor((tMaxE - FALSE_EASTING) / interval) * interval;
     const startN = Math.ceil(tMinN / interval) * interval;
     const endN = Math.floor(tMaxN / interval) * interval;
 
     // Minor lines that coincide with a Klein boundary are dropped so the
     // 6 km grid isn't double-drawn.
-    const skipE = type === 'minor'
-      ? (e: number): boolean => (e - FALSE_EASTING) % KLEINQUADRAT_M === 0
-      : undefined;
-    const skipN = type === 'minor'
-      ? (n: number): boolean => n % KLEINQUADRAT_M === 0
-      : undefined;
+    const skipE =
+      type === 'minor'
+        ? (e: number): boolean => (e - FALSE_EASTING) % KLEINQUADRAT_M === 0
+        : undefined;
+    const skipN =
+      type === 'minor'
+        ? (n: number): boolean => n % KLEINQUADRAT_M === 0
+        : undefined;
 
     const specs: FlatLineSpec[] = [];
-    pushAxisGridLineSpecs(specs, 'x', startE, endE, interval, tMinN, tMaxN, ctx.xTs, type, skipE);
-    pushAxisGridLineSpecs(specs, 'y', startN, endN, interval, tMinE, tMaxE, ctx.yTs, type, skipN);
+    pushAxisGridLineSpecs(
+      specs,
+      'x',
+      startE,
+      endE,
+      interval,
+      tMinN,
+      tMaxN,
+      ctx.xTs,
+      type,
+      skipE,
+    );
+    pushAxisGridLineSpecs(
+      specs,
+      'y',
+      startN,
+      endN,
+      interval,
+      tMinE,
+      tMaxE,
+      ctx.yTs,
+      type,
+      skipN,
+    );
     emitFlatLineFeatures(out, this.projScratch_, specs, ctx.toView);
   }
 }
-

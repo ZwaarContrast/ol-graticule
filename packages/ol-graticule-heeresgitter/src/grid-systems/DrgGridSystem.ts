@@ -27,7 +27,10 @@ import {
   RenderCache,
   SteppingIntervalStrategy,
 } from '@zwaarcontrast/ol-graticule';
-import { ProjectedGridSystem } from '@zwaarcontrast/ol-graticule-projected';
+import {
+  ProjectedGridSystem,
+  syncOlProjections,
+} from '@zwaarcontrast/ol-graticule-projected';
 
 import { formatEasting, formatNorthing, parseDrg } from '../drg/codec.js';
 import { DEFAULT_DATUM_SHIFT, registerZone } from '../drg/projection.js';
@@ -39,7 +42,11 @@ import {
   zoneByKennziffer,
   zoneForLon,
 } from '../drg/zones.js';
-import { cursorKey, sampleCornerLons, toFiniteLonLat } from './sharedViewport.js';
+import {
+  cursorKey,
+  sampleCornerLons,
+  toFiniteLonLat,
+} from './sharedViewport.js';
 
 const KM = 1_000;
 /** Every step divides the 500 000 m false easting, so lines land on true grid values. */
@@ -88,15 +95,24 @@ class DrgFormatter implements LabelFormatter {
   format(value: number, _axis: 'x' | 'y'): string {
     const cached = this.cache_.get(value);
     if (cached !== undefined) return cached;
-    const result = formatEasting({ kennziffer: 0, easting: value, northing: 0 }, { form: this.form_ });
+    const result = formatEasting(
+      { kennziffer: 0, easting: value, northing: 0 },
+      { form: this.form_ },
+    );
     this.cache_.set(value, result);
     return result;
   }
 
   formatCoordinate(x: number, y: number): FormattedCoordinate {
     return {
-      x: formatEasting({ kennziffer: 0, easting: x, northing: 0 }, { form: this.form_, unit: 'm' }),
-      y: formatNorthing({ kennziffer: 0, easting: 0, northing: y }, { form: this.form_, unit: 'm' }),
+      x: formatEasting(
+        { kennziffer: 0, easting: x, northing: 0 },
+        { form: this.form_, unit: 'm' },
+      ),
+      y: formatNorthing(
+        { kennziffer: 0, easting: 0, northing: y },
+        { form: this.form_, unit: 'm' },
+      ),
     };
   }
 }
@@ -111,7 +127,9 @@ export class DrgGridSystem implements GridSystem {
   private readonly formatter_: DrgFormatter;
 
   private readonly delegates_ = new Map<number, GridSystem>();
-  private readonly cursorCache_ = new BoundedCache<string, FormattedCoordinate>(512);
+  private readonly cursorCache_ = new BoundedCache<string, FormattedCoordinate>(
+    512,
+  );
   private readonly activeZonesCache_ = new RenderCache<number[]>();
 
   constructor(options: DrgGridSystemOptions = {}) {
@@ -120,7 +138,10 @@ export class DrgGridSystem implements GridSystem {
     this.densificationPoints_ = options.densificationPoints ?? 60;
     this.labelForm_ = options.labelForm ?? 'long';
     this.maxRenderResolution_ = options.maxRenderResolution ?? 2000;
-    this.intervals_ = new SteppingIntervalStrategy(DRG_INTERVALS, options.targetScreenPx ?? 80);
+    this.intervals_ = new SteppingIntervalStrategy(
+      DRG_INTERVALS,
+      options.targetScreenPx ?? 80,
+    );
     this.formatter_ = new DrgFormatter(this.labelForm_);
   }
 
@@ -132,7 +153,11 @@ export class DrgGridSystem implements GridSystem {
     if (resolution > this.maxRenderResolution_) return [];
     const features: Feature<Geometry>[] = [];
     for (const kennziffer of this.activeZones_(extent, viewProjection)) {
-      for (const f of this.delegateFor_(kennziffer).getFeatures(extent, resolution, viewProjection)) {
+      for (const f of this.delegateFor_(kennziffer).getFeatures(
+        extent,
+        resolution,
+        viewProjection,
+      )) {
         features.push(f);
       }
     }
@@ -148,9 +173,15 @@ export class DrgGridSystem implements GridSystem {
     const labels: GridLabel[] = [];
     // Hochwerte are equator-referenced, so neighbouring strips repeat them.
     const seenNorthings = new Set<string>();
-    const westToEast = [...this.activeZones_(extent, viewProjection)].sort((a, b) => a - b);
+    const westToEast = [...this.activeZones_(extent, viewProjection)].sort(
+      (a, b) => a - b,
+    );
     for (const kennziffer of westToEast) {
-      for (const label of this.delegateFor_(kennziffer).getLabels(extent, resolution, viewProjection)) {
+      for (const label of this.delegateFor_(kennziffer).getLabels(
+        extent,
+        resolution,
+        viewProjection,
+      )) {
         if (label.axis === 'y') {
           if (seenNorthings.has(label.text)) continue;
           seenNorthings.add(label.text);
@@ -170,23 +201,39 @@ export class DrgGridSystem implements GridSystem {
     if (cached !== undefined) return cached;
     const lonLat = toFiniteLonLat(coordinate, viewProjection);
     const result = lonLat
-      ? this.delegateFor_(zoneForLon(lonLat[0]).kennziffer).formatCoordinate(coordinate, viewProjection)
+      ? this.delegateFor_(zoneForLon(lonLat[0]).kennziffer).formatCoordinate(
+          coordinate,
+          viewProjection,
+        )
       : { x: '-', y: '-' };
     this.cursorCache_.set(key, result);
     return result;
   }
 
-  isValidCoordinate(coordinate: [number, number], viewProjection: ProjectionLike): boolean {
+  isValidCoordinate(
+    coordinate: [number, number],
+    viewProjection: ProjectionLike,
+  ): boolean {
     return toFiniteLonLat(coordinate, viewProjection) !== null;
   }
 
-  parseCoordinate(text: string, viewProjection: ProjectionLike): [number, number] {
+  parseCoordinate(
+    text: string,
+    viewProjection: ProjectionLike,
+  ): [number, number] {
     const parsed = parseDrg(text);
-    if (!parsed) throw new ParseError(text, 'not a recognised Gauß-Krüger 3° reference');
+    if (!parsed)
+      throw new ParseError(text, 'not a recognised Gauß-Krüger 3° reference');
     const { kennziffer, easting, northing } = parsed.coord;
     const crs = registerZone(zoneByKennziffer(kennziffer), this.datumShift_);
+    syncOlProjections();
     const [vx, vy] = transform([easting, northing], crs, viewProjection);
-    if (vx === undefined || vy === undefined || !Number.isFinite(vx) || !Number.isFinite(vy)) {
+    if (
+      vx === undefined ||
+      vy === undefined ||
+      !Number.isFinite(vx) ||
+      !Number.isFinite(vy)
+    ) {
       throw new ParseError(text, 'transform produced non-finite coordinate');
     }
     return [vx, vy];
@@ -200,9 +247,13 @@ export class DrgGridSystem implements GridSystem {
     return this.zoneBoundary_;
   }
 
-  private activeZones_(extent: Extent, viewProjection: ProjectionLike): number[] {
+  private activeZones_(
+    extent: Extent,
+    viewProjection: ProjectionLike,
+  ): number[] {
     return this.activeZonesCache_.get(extent, 0, viewProjection, () => {
-      const overlapDeg = this.zoneBoundary_ === 'overlap' ? STRIP_OVERLAP_DEG : 0;
+      const overlapDeg =
+        this.zoneBoundary_ === 'overlap' ? STRIP_OVERLAP_DEG : 0;
       const lons = sampleCornerLons(extent, viewProjection);
       if (lons.length === 0) return [];
       if (this.zoneBoundary_ === 'single') {
@@ -213,7 +264,10 @@ export class DrgGridSystem implements GridSystem {
       const maxLon = Math.max(...lons);
       const halfWidth = STRIP_HALF_WIDTH_DEG + overlapDeg;
       const first = Math.max(0, Math.ceil((minLon - halfWidth) / 3));
-      const last = Math.min(MAX_KENNZIFFER, Math.floor((maxLon + halfWidth) / 3));
+      const last = Math.min(
+        MAX_KENNZIFFER,
+        Math.floor((maxLon + halfWidth) / 3),
+      );
       const result: number[] = [];
       for (let k = first; k <= last; k++) result.push(k);
       return result;
@@ -225,14 +279,19 @@ export class DrgGridSystem implements GridSystem {
     if (cached) return cached;
 
     const zone = zoneByKennziffer(kennziffer);
+    const crs = registerZone(zone, this.datumShift_);
+    syncOlProjections();
     const delegate = new PolygonClippedGridSystem({
       source: new ProjectedGridSystem({
-        crs: registerZone(zone, this.datumShift_),
+        crs,
         intervals: this.intervals_,
         formatter: this.formatter_,
         densificationPoints: this.densificationPoints_,
       }),
-      clipPolygon: stripClipPolygon(zone, this.zoneBoundary_ === 'overlap' ? STRIP_OVERLAP_DEG : 0),
+      clipPolygon: stripClipPolygon(
+        zone,
+        this.zoneBoundary_ === 'overlap' ? STRIP_OVERLAP_DEG : 0,
+      ),
       emitBoundary: true,
     });
     this.delegates_.set(kennziffer, delegate);
@@ -246,11 +305,13 @@ function stripClipPolygon(zone: DrgZone, overlapDeg: number): PolygonClip {
   const east = zone.cm + STRIP_HALF_WIDTH_DEG + overlapDeg;
   return {
     crs: 'EPSG:4326',
-    rings: [[
-      [west, CLIP_SOUTH_LAT],
-      [east, CLIP_SOUTH_LAT],
-      [east, CLIP_NORTH_LAT],
-      [west, CLIP_NORTH_LAT],
-    ]],
+    rings: [
+      [
+        [west, CLIP_SOUTH_LAT],
+        [east, CLIP_SOUTH_LAT],
+        [east, CLIP_NORTH_LAT],
+        [west, CLIP_NORTH_LAT],
+      ],
+    ],
   };
 }

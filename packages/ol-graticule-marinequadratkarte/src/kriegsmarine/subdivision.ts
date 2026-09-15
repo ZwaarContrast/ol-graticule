@@ -1,6 +1,6 @@
 /** Sub-square calculation and shifting for the Kriegsmarine grid. */
 
-import { normalizeLon } from '@zwaarcontrast/ol-graticule';
+import { normalizeLon } from '@zwaarcontrast/ol-graticule/headless';
 import type { RectSquare, LatLon, Square } from './types.js';
 import { simpleRhumbDivision, roundTo, smallestLonDiff } from './latlon.js';
 
@@ -8,12 +8,17 @@ const DEG_TO_RAD = Math.PI / 180;
 const RAD_TO_DEG = 180 / Math.PI;
 
 /** Shift a square's boundaries along an orientation by a given factor. */
-export function shift(square: RectSquare, orientation: 'h' | 'v', factor: number): RectSquare {
+export function shift(
+  square: RectSquare,
+  orientation: 'h' | 'v',
+  factor: number,
+): RectSquare {
   const [nwLat, nwLon] = square.nw;
   const [seLat, seLon] = square.se;
 
   if (orientation === 'h') {
-    const dLon = smallestLonDiff(nwLon * DEG_TO_RAD, seLon * DEG_TO_RAD) * RAD_TO_DEG;
+    const dLon =
+      smallestLonDiff(nwLon * DEG_TO_RAD, seLon * DEG_TO_RAD) * RAD_TO_DEG;
     const dist = factor * dLon;
     return {
       ...square,
@@ -32,7 +37,10 @@ export function shift(square: RectSquare, orientation: 'h' | 'v', factor: number
 }
 
 /** Map a sub-square digit to [eastSteps, southSteps]; default 3x3 telephone-keypad layout, or a custom `sub` array. */
-export function steps(n: number, sub?: number[][] | undefined): [number, number] | undefined {
+export function steps(
+  n: number,
+  sub?: number[][] | undefined,
+): [number, number] | undefined {
   if (sub == null) {
     return [(n - 1) % 3, Math.floor((n - 1) / 3)];
   }
@@ -44,7 +52,10 @@ export function steps(n: number, sub?: number[][] | undefined): [number, number]
 }
 
 /** Get a sub-square of a rectangular parent square. */
-export function subSquare(parent: RectSquare, n: number): RectSquare | undefined {
+export function subSquare(
+  parent: RectSquare,
+  n: number,
+): RectSquare | undefined {
   const { id, nw, se, sub } = parent;
   const [cols, rows] = sub ? [sub[0]!.length, sub.length] : [3, 3];
 
@@ -70,9 +81,18 @@ export function subSquare(parent: RectSquare, n: number): RectSquare | undefined
 /** Two-by-five sub-square layout. */
 function twoByFiveSubs(orientation: 'h' | 'v'): number[][] {
   if (orientation === 'v') {
-    return [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10]];
+    return [
+      [1, 2],
+      [3, 4],
+      [5, 6],
+      [7, 8],
+      [9, 10],
+    ];
   }
-  return [[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]];
+  return [
+    [1, 2, 3, 4, 5],
+    [6, 7, 8, 9, 10],
+  ];
 }
 
 /** Parse remaining digits from a reference string after a prefix. */
@@ -81,7 +101,10 @@ function parseDigits(ref: string, prefixLen: number): number[] {
 }
 
 /** Recursively subdivide a regular rectangular square using a digit sequence. */
-export function regularSquare(ref: string, def: RectSquare): RectSquare | undefined {
+export function regularSquare(
+  ref: string,
+  def: RectSquare,
+): RectSquare | undefined {
   const digits = parseDigits(ref, def.id.length);
   let square: RectSquare | undefined = def;
   for (const digit of digits) {
@@ -92,7 +115,10 @@ export function regularSquare(ref: string, def: RectSquare): RectSquare | undefi
 }
 
 /** Handle two-by-five square subdivision. */
-export function twoByFiveSquare(ref: string, def: { id?: string | undefined; nw: LatLon; se: LatLon; so: 'h' | 'v' }): RectSquare | undefined {
+export function twoByFiveSquare(
+  ref: string,
+  def: { id?: string | undefined; nw: LatLon; se: LatLon; so: 'h' | 'v' },
+): RectSquare | undefined {
   const { nw, se, so } = def;
   const [cols, rows] = so === 'v' ? [2, 5] : [5, 2];
 
@@ -124,7 +150,10 @@ export function twoByFiveSquare(ref: string, def: { id?: string | undefined; nw:
 }
 
 /** Process a square definition into its final resolved form. */
-export function fromSquareDef(ref: string, def: RectSquare & { so?: 'h' | 'v' | undefined }): Square | undefined {
+export function fromSquareDef(
+  ref: string,
+  def: RectSquare & { so?: 'h' | 'v' | undefined },
+): Square | undefined {
   if (!def) return undefined;
   if (def.id === ref) return { id: def.id, nw: def.nw, se: def.se };
   if (def.so) return twoByFiveSquare(ref, { ...def, so: def.so });

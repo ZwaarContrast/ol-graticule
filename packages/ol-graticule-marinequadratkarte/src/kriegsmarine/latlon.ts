@@ -6,13 +6,13 @@
  * (© 2002-2022 Chris Veness, MIT).
  */
 
-import { normalizeLon } from '@zwaarcontrast/ol-graticule';
+import { normalizeLon } from '@zwaarcontrast/ol-graticule/headless';
 
 /** Smallest longitude difference in radians, taking the shorter path across the anti-meridian. */
 export function smallestLonDiff(lon1Rad: number, lon2Rad: number): number {
   const dLon = lon2Rad - lon1Rad;
   if (Math.abs(dLon) > Math.PI) {
-    return dLon > 0 ? -(2 * Math.PI - dLon) : (2 * Math.PI + dLon);
+    return dLon > 0 ? -(2 * Math.PI - dLon) : 2 * Math.PI + dLon;
   }
   return dLon;
 }
@@ -28,7 +28,7 @@ export function lonRange(lon1: number, lon2: number, div: number): number[] {
     endLon = lon1 + (180 - lon1) + (180 + lon2);
   } else if (dLon > 180) {
     startLon = lon1;
-    endLon = lon1 - ((180 + lon1) + (180 - lon2));
+    endLon = lon1 - (180 + lon1 + (180 - lon2));
   } else {
     startLon = lon1;
     endLon = lon2;
@@ -58,7 +58,7 @@ export function latRange(lat1: number, lat2: number, div: number): number[] {
 export function simpleRhumbDivision(
   coord1: [number, number],
   coord2: [number, number],
-  div: number
+  div: number,
 ): [number, number][] {
   const [lat1, lon1] = coord1;
   const [lat2, lon2] = coord2;
@@ -69,7 +69,9 @@ export function simpleRhumbDivision(
   if (lon1 === lon2) {
     return latRange(lat1, lat2, div).map((lat) => [lat, lon1]);
   }
-  throw new Error(`Invalid bearing from [${coord1}] to [${coord2}]. Must be horizontal or vertical.`);
+  throw new Error(
+    `Invalid bearing from [${coord1}] to [${coord2}]. Must be horizontal or vertical.`,
+  );
 }
 
 /** Round to a given number of decimal places. */

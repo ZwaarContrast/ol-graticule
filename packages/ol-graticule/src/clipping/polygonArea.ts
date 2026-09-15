@@ -1,23 +1,23 @@
 /** Shoelace area helpers for open polygon rings. */
 
 import type { Coordinate } from 'ol/coordinate';
-import { linearRing } from 'ol/geom/flat/area';
 
 /**
- * Signed area of an open ring. Positive for CCW. Delegates to OL's
- * `linearRing` (translation-relative shoelace, numerically stable for large
- * coords) after flattening the tuple ring. OL's convention is negative for
- * CCW, so the result is negated to keep this contract.
+ * Signed area of an open ring. Positive for CCW. Translation-relative
+ * shoelace: every vertex is taken relative to the first, which keeps the
+ * products small and the sum numerically stable for large coordinates.
  */
 export function signedArea(ring: Coordinate[]): number {
   const n = ring.length;
   if (n < 3) return 0;
-  const flat = new Array<number>(n * 2);
-  for (let i = 0; i < n; i++) {
-    flat[i * 2] = ring[i][0];
-    flat[i * 2 + 1] = ring[i][1];
+  const [ox, oy] = ring[0];
+  let twice = 0;
+  for (let i = 1, j = 2; j < n; i++, j++) {
+    twice +=
+      (ring[i][0] - ox) * (ring[j][1] - oy) -
+      (ring[j][0] - ox) * (ring[i][1] - oy);
   }
-  return -linearRing(flat, 0, flat.length, 2);
+  return twice / 2;
 }
 
 /** Absolute polygon area. Returns 0 for degenerate input. */

@@ -6,31 +6,33 @@
  * and his research at navalgrid.com. See the package README for the full credit.
  */
 
-import Polygon from 'ol/geom/Polygon';
-
-import { BoundedCache, ParseError, normalizeLon } from '@zwaarcontrast/ol-graticule';
+import {
+  BoundedCache,
+  ParseError,
+  normalizeLon,
+  pointInRing,
+} from '@zwaarcontrast/ol-graticule/headless';
 
 import { findById, getLargeSquaresNearLat } from './lookup.js';
 import type { RectSquare, LatLon, Square } from './types.js';
 import { isPolySquare } from './types.js';
 import { rectCrossesAntimeridian, lonSpanDeg, squareExtent } from './geo.js';
 
-const polyCache = new WeakMap<LatLon[], Polygon>();
+const ringCache = new WeakMap<LatLon[], [number, number][]>();
 
-function polygonGeom(polygon: LatLon[]): Polygon {
-  let geom = polyCache.get(polygon);
-  if (!geom) {
-    const closed: [number, number][] = polygon.map((p) => [p[1], p[0]]);
-    closed.push(closed[0]!);
-    geom = new Polygon([closed]);
-    polyCache.set(polygon, geom);
+/** `[lat, lon]` square outline as an open `[lon, lat]` ring. */
+function lonLatRing(polygon: LatLon[]): [number, number][] {
+  let ring = ringCache.get(polygon);
+  if (!ring) {
+    ring = polygon.map((p): [number, number] => [p[1], p[0]]);
+    ringCache.set(polygon, ring);
   }
-  return geom;
+  return ring;
 }
 
 /** Point-in-polygon test; input is [lat, lon]. */
 function pointInPolygon(point: LatLon, polygon: LatLon[]): boolean {
-  return polygonGeom(polygon).intersectsCoordinate([point[1], point[0]]);
+  return pointInRing(point[1], point[0], lonLatRing(polygon));
 }
 
 /** Check if a lat/lon point is inside a rectangular square; handles antimeridian-crossing rects. */
@@ -67,14 +69,19 @@ export function childRefCandidates(parentRef: string): string[] {
 }
 
 /** Resolve a [lat, lon] coordinate to the deepest Kriegsmarine grid reference up to `maxDepth` subdivisions. */
-export function coordinateToGridRef(point: LatLon, maxDepth: number = 4): string | undefined {
+export function coordinateToGridRef(
+  point: LatLon,
+  maxDepth: number = 4,
+): string | undefined {
   const [lat, lon] = point;
   const normalized: LatLon = [lat, normalizeLon(lon)];
   const largeSquares = getLargeSquaresNearLat(lat);
 
   let containingId: string | undefined;
   for (const sq of largeSquares) {
-    const hit = isPolySquare(sq) ? pointInPolygon(normalized, sq.poly) : pointInRect(normalized, sq);
+    const hit = isPolySquare(sq)
+      ? pointInPolygon(normalized, sq.poly)
+      : pointInRect(normalized, sq);
     if (hit) {
       containingId = sq.id;
       break;
@@ -89,7 +96,9 @@ export function coordinateToGridRef(point: LatLon, maxDepth: number = 4): string
     for (const subRef of childRefCandidates(ref)) {
       const sub = findById(subRef);
       if (!sub) continue;
-      const hit = isPolySquare(sub) ? pointInPolygon(normalized, sub.poly) : pointInRect(normalized, sub);
+      const hit = isPolySquare(sub)
+        ? pointInPolygon(normalized, sub.poly)
+        : pointInRect(normalized, sub);
       if (hit) {
         ref = subRef;
         found = true;
@@ -123,7 +132,8 @@ export function parseGridRef(text: string): string {
   const condensed = text.replace(/\s+/g, '');
   if (condensed.length === 0) throw new ParseError(text, 'empty input');
   const m = condensed.match(/^([a-zA-ZÄÖÜäöü])([a-zA-ZÄÖÜäöü])(\d{0,8})$/);
-  if (!m) throw new ParseError(text, 'expected two letters followed by 0–8 digits');
+  if (!m)
+    throw new ParseError(text, 'expected two letters followed by 0–8 digits');
   return m[1]!.toUpperCase() + m[2]!.toUpperCase() + m[3]!;
 }
 
