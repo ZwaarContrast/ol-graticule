@@ -14,7 +14,7 @@
  * full credit.
  */
 
-import { ParseError } from '@zwaarcontrast/ol-graticule';
+import { ParseError } from '@zwaarcontrast/ol-graticule/headless';
 
 import {
   ZZG_LAT_DEG,

@@ -1,7 +1,7 @@
 /** Lat/lon to MGRS conversion. */
 
 import proj4 from 'proj4';
-import { ParseError } from '@zwaarcontrast/ol-graticule';
+import { ParseError } from '@zwaarcontrast/ol-graticule/headless';
 import {
   bandLatBounds,
   bandLetterFromLatitude,
