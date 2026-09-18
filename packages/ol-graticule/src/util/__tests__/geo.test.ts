@@ -1,9 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import {
-  normalizeLon,
-  extentFromPolygon,
-  transformExtentSampled,
-} from '../geo.js';
+import { normalizeLon } from '../normalizeLon.js';
+import { extentFromPolygon, transformExtentSampled } from '../geo.js';
 
 describe('normalizeLon', () => {
   it('is the identity inside [-180, 180]', () => {

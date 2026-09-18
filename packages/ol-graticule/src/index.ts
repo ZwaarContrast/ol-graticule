@@ -1,18 +1,19 @@
+// The ol-free leaves (parsing, formatting, plane geometry) live in one place
+// and are separately importable from the `/headless` subpath.
+export * from './headless.js';
+
 export type {
   GridLabel,
   GridCellLabel,
   GridSystem,
-  LabelFormatter,
   IntervalStrategy,
   LatLon,
-  FormattedCoordinate,
   AxisFormatted,
   CombinedFormatted,
 } from './types.js';
 
 export { isCombinedFormatted, isAxisFormatted } from './types.js';
 
-export { ParseError } from './util/ParseError.js';
 export {
   splitCoordinatePair,
   parsePairViaFormatter,
@@ -25,7 +26,7 @@ export { MetricIntervals } from './intervals/MetricIntervals.js';
 export { DegreeFormatter } from './formatters/DegreeFormatter.js';
 export type { DegreeFormat } from './formatters/DegreeFormatter.js';
 export { PixelFormatter } from './formatters/PixelFormatter.js';
-export { MetricFormatter, parseLinear } from './formatters/MetricFormatter.js';
+export { MetricFormatter } from './formatters/MetricFormatter.js';
 export type { MetricFormatterOptions } from './formatters/MetricFormatter.js';
 
 export { PixelGridSystem } from './grid-systems/PixelGridSystem.js';
@@ -40,9 +41,7 @@ export type {
   PolygonClippedGridSystemOptions,
 } from './grid-systems/PolygonClippedGridSystem.js';
 
-export { pointInRing } from './clipping/pointInRing.js';
 export { clipPolygonToConvex } from './clipping/clipPolygonToConvex.js';
-export { polygonArea, signedArea } from './clipping/polygonArea.js';
 export { clipPolylineToRect } from './clipping/clipPolylineToRect.js';
 export {
   PolygonEdgeIndex,
@@ -110,16 +109,10 @@ export {
 
 export { SteppingIntervalStrategy } from './util/SteppingIntervalStrategy.js';
 export { RenderCache } from './util/renderCache.js';
-export { BoundedCache } from './util/boundedCache.js';
 export { LruCache } from './util/lruCache.js';
 export { ProjectionScratch } from './util/projectionScratch.js';
 export { TransformCache, transformBatchCached } from './util/transformCache.js';
-export { formatDecimal } from './util/formatNumber.js';
-export {
-  normalizeLon,
-  extentFromPolygon,
-  transformExtentSampled,
-} from './util/geo.js';
+export { extentFromPolygon, transformExtentSampled } from './util/geo.js';
 export {
   isOnMajorLine,
   buildStraightGridLine,

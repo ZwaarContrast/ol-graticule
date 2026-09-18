@@ -28,7 +28,7 @@ import {
   TransformCache,
   transformBatchCached,
 } from '../util/transformCache.js';
-import { normalizeLon } from '../util/geo.js';
+import { normalizeLon } from '../util/normalizeLon.js';
 import { ParseError } from '../util/ParseError.js';
 import { parsePairViaFormatter } from '../util/parseCoordinatePair.js';
 import { requireTransform } from '../util/requireTransform.js';

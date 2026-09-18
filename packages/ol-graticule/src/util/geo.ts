@@ -2,8 +2,6 @@ import { buffer, createEmpty, extendXY } from 'ol/extent';
 import type { Extent } from 'ol/extent';
 import type { TransformFunction } from 'ol/proj';
 
-export { normalizeLon } from './normalizeLon.js';
-
 /** Bounding box of a polygon as `[minX, minY, maxX, maxY]`, optionally padded. */
 export function extentFromPolygon(
   polygon: ReadonlyArray<readonly [number, number]>,
