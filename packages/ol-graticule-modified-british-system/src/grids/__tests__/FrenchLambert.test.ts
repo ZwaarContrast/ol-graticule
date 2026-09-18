@@ -1,13 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import proj4 from 'proj4';
 import {
-  createFrenchLambert1GridSystem,
-  createFrenchLambert2GridSystem,
-  createFrenchLambert3GridSystem,
   FRENCH_LAMBERT_1_CRS,
   FRENCH_LAMBERT_2_CRS,
   FRENCH_LAMBERT_3_CRS,
 } from '../FrenchLambert';
+import {
+  createFrenchLambert1GridSystem,
+  createFrenchLambert2GridSystem,
+  createFrenchLambert3GridSystem,
+} from '../FrenchLambert.grid';
 
 /**
  * Ground-truth samples from Thierry Arsicaud's translator

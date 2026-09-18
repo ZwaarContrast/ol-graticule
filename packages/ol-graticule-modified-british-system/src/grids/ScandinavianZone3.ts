@@ -5,10 +5,6 @@
  * the full credit.
  */
 
-import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
-import { SCANDINAVIAN_ZONE_3_SCHEME } from '../formatters/schemes.js';
-import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
-
 /**
  * Scandinavian Zone 3, Lambert Conformal Conic with standard parallels
  * 55°N and 60°N, central meridian 20°E, lat_0=57.5°, Bessel 1841. Letter
@@ -47,17 +43,3 @@ export const SCANDINAVIAN_ZONE_3_CLIP_POLYGON: [number, number][] = [
   [386326, 193466],
   [159493, 193857],
 ];
-
-export type ScandinavianZone3GridSystemOptions = MBSGridSystemOptions;
-
-export function createScandinavianZone3GridSystem(
-  options?: ScandinavianZone3GridSystemOptions,
-): PolygonClippedGridSystem {
-  return createMBSGridSystem(
-    SCANDINAVIAN_ZONE_3_CRS,
-    SCANDINAVIAN_ZONE_3_PROJ4,
-    SCANDINAVIAN_ZONE_3_SCHEME,
-    SCANDINAVIAN_ZONE_3_CLIP_POLYGON,
-    options,
-  );
-}

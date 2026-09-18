@@ -1,10 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import proj4 from 'proj4';
 import { transform } from 'ol/proj';
-import {
-  createBritishCassiniGridSystem,
-  BRITISH_CASSINI_CRS,
-} from '../BritishCassini';
+import { BRITISH_CASSINI_CRS } from '../BritishCassini';
+import { createBritishCassiniGridSystem } from '../BritishCassini.grid';
 
 /**
  * Ground truth: a handful of British cities cross-referenced against

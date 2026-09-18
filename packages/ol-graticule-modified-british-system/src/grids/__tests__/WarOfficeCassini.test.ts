@@ -1,10 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import proj4 from 'proj4';
 import { transform } from 'ol/proj';
-import {
-  createWarOfficeCassiniGridSystem,
-  WAR_OFFICE_CASSINI_CRS,
-} from '../WarOfficeCassini';
+import { WAR_OFFICE_CASSINI_CRS } from '../WarOfficeCassini';
+import { createWarOfficeCassiniGridSystem } from '../WarOfficeCassini.grid';
 import { WAR_OFFICE_CASSINI_SCHEME } from '../../formatters/schemes';
 
 describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {

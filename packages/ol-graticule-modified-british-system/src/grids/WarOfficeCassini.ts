@@ -6,10 +6,6 @@
  * package README for the full credit.
  */
 
-import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
-import { WAR_OFFICE_CASSINI_SCHEME } from '../formatters/schemes.js';
-import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
-
 /**
  * War Office Cassini Grid ("WOFO" / "Purple Grid"), WWII British Army
  * grid, used on GSGS series sheets 1927–WWII. Cassini-Soldner with natural
@@ -49,17 +45,3 @@ export const WAR_OFFICE_CASSINI_CLIP_POLYGON: [number, number][] = [
   [195945, 596925],
   [95099, 595915],
 ];
-
-export type WarOfficeCassiniGridSystemOptions = MBSGridSystemOptions;
-
-export function createWarOfficeCassiniGridSystem(
-  options?: WarOfficeCassiniGridSystemOptions,
-): PolygonClippedGridSystem {
-  return createMBSGridSystem(
-    WAR_OFFICE_CASSINI_CRS,
-    WAR_OFFICE_CASSINI_PROJ4,
-    WAR_OFFICE_CASSINI_SCHEME,
-    WAR_OFFICE_CASSINI_CLIP_POLYGON,
-    options,
-  );
-}

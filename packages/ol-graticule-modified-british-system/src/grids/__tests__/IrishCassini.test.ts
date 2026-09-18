@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { transform } from 'ol/proj';
-import {
-  createIrishCassiniGridSystem,
-  IRISH_CASSINI_CRS,
-} from '../IrishCassini';
+import { IRISH_CASSINI_CRS } from '../IrishCassini';
+import { createIrishCassiniGridSystem } from '../IrishCassini.grid';
 
 /**
  * Ground truth sampled against Thierry Arsicaud's translator. Ireland

@@ -5,10 +5,6 @@
  * the full credit.
  */
 
-import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
-import { ITALIAN_SOUTHERN_SCHEME } from '../formatters/schemes.js';
-import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
-
 /**
  * Italian Southern Grid, Lambert Conformal Conic with standard parallels
  * 37° and 42°, central meridian 14°E, lat_0=39°30', Bessel 1841. Letter
@@ -43,17 +39,3 @@ export const ITALIAN_SOUTHERN_CLIP_POLYGON: [number, number][] = [
   [118365, 395380],
   [95872, 395351],
 ];
-
-export type ItalianSouthernGridSystemOptions = MBSGridSystemOptions;
-
-export function createItalianSouthernGridSystem(
-  options?: ItalianSouthernGridSystemOptions,
-): PolygonClippedGridSystem {
-  return createMBSGridSystem(
-    ITALIAN_SOUTHERN_CRS,
-    ITALIAN_SOUTHERN_PROJ4,
-    ITALIAN_SOUTHERN_SCHEME,
-    ITALIAN_SOUTHERN_CLIP_POLYGON,
-    options,
-  );
-}

@@ -5,7 +5,7 @@ import {
   parseLinear,
   type LabelFormatter,
   type FormattedCoordinate,
-} from '@zwaarcontrast/ol-graticule';
+} from '@zwaarcontrast/ol-graticule/headless';
 import type { MBSLetterScheme } from './schemes.js';
 
 /** Modified British System letter-grid formatter, parameterised by an {@link MBSLetterScheme}. */

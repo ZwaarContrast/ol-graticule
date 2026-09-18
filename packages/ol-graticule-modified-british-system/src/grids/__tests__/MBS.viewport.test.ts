@@ -3,8 +3,8 @@ import {
   findOffScreenFeatures,
   viewportExtentAt,
 } from '@zwaarcontrast/test-utils';
-import { createNordDeGuerreGridSystem } from '../NordDeGuerre.js';
-import { createBritishCassiniGridSystem } from '../BritishCassini.js';
+import { createNordDeGuerreGridSystem } from '../NordDeGuerre.grid.js';
+import { createBritishCassiniGridSystem } from '../BritishCassini.grid.js';
 
 const ndgCases: Array<[string, [number, number], number]> = [
   ['Western Front, z9', [3, 50], 9],

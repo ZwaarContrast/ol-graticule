@@ -5,10 +5,6 @@
  * the full credit.
  */
 
-import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
-import { IBERIAN_PENINSULA_SCHEME } from '../formatters/schemes.js';
-import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
-
 /**
  * Iberian Peninsula MBS theatre, tangent Lambert Conformal Conic at
  * lat_0=40°N on the International 1924 (Hayford) ellipsoid, central
@@ -52,17 +48,3 @@ export const IBERIAN_PENINSULA_CLIP_POLYGON: [number, number][] = [
   [603965, -6123],
   [-5712, -7663],
 ];
-
-export type IberianPeninsulaGridSystemOptions = MBSGridSystemOptions;
-
-export function createIberianPeninsulaGridSystem(
-  options?: IberianPeninsulaGridSystemOptions,
-): PolygonClippedGridSystem {
-  return createMBSGridSystem(
-    IBERIAN_PENINSULA_CRS,
-    IBERIAN_PENINSULA_PROJ4,
-    IBERIAN_PENINSULA_SCHEME,
-    IBERIAN_PENINSULA_CLIP_POLYGON,
-    options,
-  );
-}

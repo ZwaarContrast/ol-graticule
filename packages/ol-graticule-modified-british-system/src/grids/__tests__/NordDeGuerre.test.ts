@@ -6,7 +6,6 @@ import {
   isCombinedFormatted,
 } from '@zwaarcontrast/ol-graticule';
 import {
-  createNordDeGuerreGridSystem,
   NORD_DE_GUERRE_CRS,
   NORD_DE_GUERRE_PROJ4,
   NORD_DE_GUERRE_EXTENT,
@@ -14,6 +13,7 @@ import {
   NORD_DE_GUERRE_CLIP_POLYGON,
   NORD_DE_GUERRE_DEFAULT_TOWGS84,
 } from '../NordDeGuerre.js';
+import { createNordDeGuerreGridSystem } from '../NordDeGuerre.grid.js';
 
 describe('NordDeGuerre constants', () => {
   it('uses EPSG:27500 as the CRS code', () => {

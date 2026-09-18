@@ -5,10 +5,6 @@
  * the full credit.
  */
 
-import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
-import { IRISH_CASSINI_SCHEME } from '../formatters/schemes.js';
-import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
-
 /**
  * Irish Cassini, 1825 Ordnance Survey of Ireland Cassini-Soldner.
  * Projection origin 53°30'N, 8°W, Airy 1830, false E/N 200 / 250 km.
@@ -38,17 +34,3 @@ export const IRISH_CASSINI_CLIP_POLYGON: [number, number][] = [
   [198965, -4687],
   [-3077, -4788],
 ];
-
-export type IrishCassiniGridSystemOptions = MBSGridSystemOptions;
-
-export function createIrishCassiniGridSystem(
-  options?: IrishCassiniGridSystemOptions,
-): PolygonClippedGridSystem {
-  return createMBSGridSystem(
-    IRISH_CASSINI_CRS,
-    IRISH_CASSINI_PROJ4,
-    IRISH_CASSINI_SCHEME,
-    IRISH_CASSINI_CLIP_POLYGON,
-    options,
-  );
-}

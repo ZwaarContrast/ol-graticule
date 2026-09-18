@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { transform } from 'ol/proj';
-import {
-  createIberianPeninsulaGridSystem,
-  IBERIAN_PENINSULA_CRS,
-} from '../IberianPeninsula';
+import { IBERIAN_PENINSULA_CRS } from '../IberianPeninsula';
+import { createIberianPeninsulaGridSystem } from '../IberianPeninsula.grid';
 
 /**
  * Primary-source anchors read from the printed corner cartouches of

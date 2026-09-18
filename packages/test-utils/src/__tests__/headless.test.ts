@@ -9,7 +9,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -18,16 +18,26 @@ const PACKAGES = resolve(
   '../../..',
 );
 
-const WORKSPACE: Record<string, string> = {
-  '@zwaarcontrast/ol-graticule': 'ol-graticule',
-  '@zwaarcontrast/ol-graticule-projected': 'ol-graticule-projected',
-  '@zwaarcontrast/ol-graticule-heeresgitter': 'ol-graticule-heeresgitter',
-  '@zwaarcontrast/ol-graticule-marinequadratkarte':
-    'ol-graticule-marinequadratkarte',
-  '@zwaarcontrast/ol-graticule-gsgs': 'ol-graticule-gsgs',
-};
+/**
+ * Every workspace package, by its published name, discovered from disk rather
+ * than listed here. A hardcoded list silently fails to cover a package someone
+ * adds a `headless.ts` to, which is the one moment this guard exists for.
+ */
+const WORKSPACE: Record<string, string> = {};
+for (const entry of readdirSync(PACKAGES, { withFileTypes: true })) {
+  if (!entry.isDirectory()) continue;
+  const manifest = join(PACKAGES, entry.name, 'package.json');
+  if (!existsSync(manifest)) continue;
+  const { name }: { name?: unknown } = JSON.parse(
+    readFileSync(manifest, 'utf8'),
+  );
+  if (typeof name === 'string') WORKSPACE[name] = entry.name;
+}
 
-const HEADLESS_BARRELS = Object.values(WORKSPACE);
+/** Packages that ship an ol-free barrel, and so must be held to one. */
+const HEADLESS_BARRELS = Object.values(WORKSPACE)
+  .filter((dir) => existsSync(join(PACKAGES, dir, 'src/headless.ts')))
+  .sort();
 
 /** `import`/`export ... from '<spec>'`, capturing the clause so type-only ones can be skipped. */
 const FROM_RE =
@@ -100,6 +110,13 @@ function olImportsReachableFrom(entry: string): string[] {
 }
 
 describe('headless barrels', () => {
+  it('discovers the workspace and the barrels in it', () => {
+    // Without this, a discovery bug would empty the suite below and every
+    // barrel would go unchecked while the run still came back green.
+    expect(Object.keys(WORKSPACE).length).toBeGreaterThanOrEqual(8);
+    expect(HEADLESS_BARRELS.length).toBeGreaterThanOrEqual(7);
+  });
+
   for (const pkg of HEADLESS_BARRELS) {
     const entry = join(PACKAGES, pkg, 'src/headless.ts');
 

@@ -5,10 +5,6 @@
  * the full credit.
  */
 
-import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
-import { BRITISH_CASSINI_SCHEME } from '../formatters/schemes.js';
-import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
-
 /**
  * British Cassini, Cassini-Soldner on the OS Cassini-Delamere origin
  * (Cheshire, 53°13'17.274"N, 2°41'03.562"W), Airy 1830 ellipsoid.
@@ -48,17 +44,3 @@ export const BRITISH_CASSINI_CLIP_POLYGON: [number, number][] = [
   [294070, 295645],
   [195665, 293235],
 ];
-
-export type BritishCassiniGridSystemOptions = MBSGridSystemOptions;
-
-export function createBritishCassiniGridSystem(
-  options?: BritishCassiniGridSystemOptions,
-): PolygonClippedGridSystem {
-  return createMBSGridSystem(
-    BRITISH_CASSINI_CRS,
-    BRITISH_CASSINI_PROJ4,
-    BRITISH_CASSINI_SCHEME,
-    BRITISH_CASSINI_CLIP_POLYGON,
-    options,
-  );
-}

@@ -3,10 +3,10 @@ import { getTransform } from 'ol/proj';
 import LineString from 'ol/geom/LineString';
 import { snapRingToCellGrid } from '@zwaarcontrast/ol-graticule';
 import {
-  createNordDeGuerreGridSystem,
   NORD_DE_GUERRE_CRS,
   NORD_DE_GUERRE_CLIP_POLYGON,
 } from '../NordDeGuerre.js';
+import { createNordDeGuerreGridSystem } from '../NordDeGuerre.grid.js';
 
 const VIEW = 'EPSG:3857';
 const resAt = (zoom: number): number => 156543.03392804097 / 2 ** zoom;

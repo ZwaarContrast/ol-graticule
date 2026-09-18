@@ -2,19 +2,19 @@ import { describe, it, expect } from 'vitest';
 import { get as getProjection, transform } from 'ol/proj';
 import type { Extent } from 'ol/extent';
 import {
-  createRDNewGridSystem,
   RD_NEW_CRS,
   RD_NEW_PROJ4,
   RD_NEW_EXTENT,
   RD_NEW_CLIP_POLYGON,
 } from '../RDNew.js';
+import { createRDNewGridSystem } from '../RDNew.grid.js';
 import {
-  createRDOldGridSystem,
   RD_OLD_CRS,
   RD_OLD_PROJ4,
   RD_OLD_EXTENT,
   RD_OLD_CLIP_POLYGON,
 } from '../RDOld.js';
+import { createRDOldGridSystem } from '../RDOld.grid.js';
 
 describe('@zwaarcontrast/ol-graticule-rd', () => {
   describe('constants', () => {

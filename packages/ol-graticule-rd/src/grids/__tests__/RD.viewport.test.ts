@@ -3,8 +3,8 @@ import {
   findOffScreenFeatures,
   viewportExtentAt,
 } from '@zwaarcontrast/test-utils';
-import { createRDNewGridSystem } from '../RDNew.js';
-import { createRDOldGridSystem } from '../RDOld.js';
+import { createRDNewGridSystem } from '../RDNew.grid.js';
+import { createRDOldGridSystem } from '../RDOld.grid.js';
 
 const rdNewCases: Array<[string, [number, number], number]> = [
   ['Amersfoort, z8', [5.39, 52.16], 8],

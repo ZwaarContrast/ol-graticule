@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { transform } from 'ol/proj';
-import {
-  createScandinavianZone3GridSystem,
-  SCANDINAVIAN_ZONE_3_CRS,
-} from '../ScandinavianZone3';
+import { SCANDINAVIAN_ZONE_3_CRS } from '../ScandinavianZone3';
+import { createScandinavianZone3GridSystem } from '../ScandinavianZone3.grid';
 
 describe('Scandinavian Zone 3 MBS factory', () => {
   it('Copenhagen labels under a 4-letter MBS reference', () => {

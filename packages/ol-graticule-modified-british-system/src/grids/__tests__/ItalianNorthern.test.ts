@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { transform } from 'ol/proj';
-import {
-  createItalianNorthernGridSystem,
-  ITALIAN_NORTHERN_CRS,
-} from '../ItalianNorthern';
+import { ITALIAN_NORTHERN_CRS } from '../ItalianNorthern';
+import { createItalianNorthernGridSystem } from '../ItalianNorthern.grid';
 
 describe('Italian Northern MBS factory', () => {
   // Cities inside the hand-drawn AOI, Rome is too far south, Vienna too

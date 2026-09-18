@@ -1,9 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { transform } from 'ol/proj';
-import {
-  createItalianSouthernGridSystem,
-  ITALIAN_SOUTHERN_CRS,
-} from '../ItalianSouthern';
+import { ITALIAN_SOUTHERN_CRS } from '../ItalianSouthern';
+import { createItalianSouthernGridSystem } from '../ItalianSouthern.grid';
 
 describe('Italian Southern MBS factory', () => {
   const cities: [string, [number, number]][] = [
