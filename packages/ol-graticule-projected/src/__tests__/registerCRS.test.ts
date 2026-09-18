@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import proj4 from 'proj4';
 import { get as getProjection } from 'ol/proj';
 import { registerCRS } from '../registerCRS.js';
+import { registerProj4 } from '../registerProj4.js';
 
 // Use obscure/unassigned EPSG codes so we can't collide with anything the
 // ProjectedGridSystem test file might have registered first.
@@ -42,5 +43,21 @@ describe('registerCRS', () => {
     registerCRS(TEST_CODE_A, PROJ4_A_ALT);
     const after = proj4.defs(TEST_CODE_A) as { proj?: string; zone?: number };
     expect(after.zone).toBe(34);
+  });
+});
+
+describe('registerCRS after registerProj4', () => {
+  const CODE = 'TEST:HEADLESS_THEN_OL';
+  const DEF =
+    '+proj=sterea +lat_0=52.1561605555556 +lon_0=5.38763888888889 ' +
+    '+k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +units=m +no_defs';
+
+  it('still tells OpenLayers about a code the headless path registered first', () => {
+    // registerProj4 reports "no change" for a code it already holds, so a
+    // registerCRS that trusts that report would skip the OpenLayers half and
+    // leave the code resolvable by proj4 but invisible to ol/proj.
+    registerProj4(CODE, DEF);
+    registerCRS(CODE, DEF);
+    expect(getProjection(CODE)).not.toBeNull();
   });
 });

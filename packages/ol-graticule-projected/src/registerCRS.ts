@@ -14,6 +14,9 @@ export function syncOlProjections(): void {
   register(proj4);
 }
 
+/** Codes OpenLayers has been told about, so a repeat `registerCRS` is a no-op. */
+const olKnows = new Set<string>();
+
 /**
  * Register a CRS with proj4 and OpenLayers so grid systems that reference
  * it by EPSG code (or any proj4-supported name) can resolve it.
@@ -39,6 +42,11 @@ export function syncOlProjections(): void {
  * `@zwaarcontrast/ol-graticule-projected/headless`, which skips the OL half.
  */
 export function registerCRS(code: string, proj4Def: string): void {
-  if (!registerProj4(code, proj4Def)) return;
+  const definitionChanged = registerProj4(code, proj4Def);
+  // `registerProj4` reports no change for a code it already holds, including
+  // one registered through the headless path, which OpenLayers has never been
+  // told about. Sync unless this code has reached OL before.
+  if (!definitionChanged && olKnows.has(code)) return;
   syncOlProjections();
+  olKnows.add(code);
 }
