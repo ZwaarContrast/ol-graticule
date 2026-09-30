@@ -60,15 +60,14 @@ jobs:
           # PR that bumps versions and updates CHANGELOG.md via your
           # `npm run version` script (it runs `changeset version` + the
           # aggregate-changelog helper).
-          version: npm run version
+          version-script: npm run version
           # When there are no pending changesets (i.e. a version PR just
           # merged), runs your existing `release` script — `npm run build &&
           # changeset publish` — to push to npm.
-          publish: npm run release
-          commit: 'chore: version packages'
-          title: 'chore: version packages'
+          publish-script: npm run release
+          commit-message: 'chore: version packages'
+          pr-title: 'chore: version packages'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           # No `NODE_AUTH_TOKEN`. Authentication runs through npm trusted
           # publishing (OIDC) — see the trusted-publisher entries on npm
           # for each `@zwaarcontrast/ol-graticule*` package.
