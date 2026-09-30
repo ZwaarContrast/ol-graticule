@@ -73,7 +73,7 @@ jobs:
     container:
       image: mcr.microsoft.com/playwright:v1.62.1-noble
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       # No setup-node: the image ships Node 24, which is what the committed
       # baselines were generated on. Swapping it would diverge from them.
       - run: npm ci
