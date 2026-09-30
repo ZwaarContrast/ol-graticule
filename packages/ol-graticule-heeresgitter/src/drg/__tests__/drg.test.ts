@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import proj4 from 'proj4';
 
 import {
   ALL_ZONES,
@@ -13,7 +14,7 @@ import {
   zoneForLon,
   zonesContainingLon,
 } from '../zones.js';
-import { forwardInZone } from '../projection.js';
+import { registerZone } from '../projection.js';
 import type { DatumShift, DrgCoord } from '../types.js';
 import {
   decodeDrg,
@@ -80,8 +81,20 @@ describe('sheet 5503 Elsenborn', () => {
     scale: 0,
   };
 
-  const nativeCorner = (latLon: readonly [number, number]): DrgCoord =>
-    forwardInZone(latLon, 2, POTSDAM_NATIVE);
+  // The sheet prints Potsdam lat/lon, so project from a Bessel geographic CRS
+  // rather than EPSG:4326: a zero `towgs84` still changes the ellipsoid, moving
+  // the latitude ~65 m.
+  const POTSDAM_GEOGRAPHIC =
+    '+proj=longlat +ellps=bessel +towgs84=0,0,0,0,0,0,0 +no_defs';
+
+  const nativeCorner = (latLon: readonly [number, number]): DrgCoord => {
+    const code = registerZone(zoneByKennziffer(2), POTSDAM_NATIVE);
+    const [easting, northing] = proj4(POTSDAM_GEOGRAPHIC, code, [
+      latLon[1],
+      latLon[0],
+    ]);
+    return { kennziffer: 2, easting, northing };
+  };
 
   it('projects into strip 2 on the 6° E central meridian', () => {
     const coord = encodeDrg(corners.sw);
