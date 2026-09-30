@@ -1,5 +1,59 @@
 # @zwaarcontrast/ol-graticule-heeresgitter
 
+## 4.0.0
+
+### Major Changes
+
+- 24941be: **Breaking:** `proj4` moves from `dependencies` to `peerDependencies`, matching
+  every other package in the monorepo. Install it alongside this package:
+
+  ```bash
+  npm install @zwaarcontrast/ol-graticule-heeresgitter proj4
+  ```
+
+  proj4 keeps its CRS registry in module-level state. This package registers its
+  Gauß-Krüger strip definitions through `registerCRS` from
+  `@zwaarcontrast/ol-graticule-projected` (a peer, so it uses the caller's proj4),
+  then projects through its own `proj4` import. As a plain dependency those two
+  could resolve to separate copies, leaving the strip definition registered on one
+  instance and looked up on the other, so the transform failed. A peer guarantees
+  one shared instance.
+
+### Minor Changes
+
+- c1ab985: Add the **Deutsches Reichsgitter** (DRG), the Gauß-Krüger 3°-strip grid printed
+  on German Reich map sheets before the 6° Heeresgitter replaced it. Same Bessel
+  1841 / Potsdam family and the same `k=1`, but the strips are 3° wide, the
+  Kennziffer is the central meridian divided by 3, and it is carried as the
+  leading digit of the Rechtswert rather than quoted separately: false easting is
+  `Kennziffer × 1 000 000 + 500 000`, so a corner label reading `2512` is strip 2
+  (CM 6° E), Rechtswert 512 km. Strips 2–5 match EPSG:31466–31469.
+
+  New exports: `DrgGridSystem`, `encodeDrg`, `encodeDrgText`, `decodeDrg`,
+  `parseDrg`, `formatDrgEasting`, `formatDrgNorthing`, the `drg*` zone and
+  projection helpers, and the `DrgCoord` / `DrgZone` types. Labels follow the
+  sheet's _Planzeiger_ rules: kilometres on grid lines (`2512`, or `12` in the
+  _kurz_ form), metres for point references, Rechtswert first.
+
+  Encoding and geometry are anchored to sheet 5503 (3207 alt) Elsenborn,
+  _Planblatt A_, Geheim, Sonderdruck der Heeresplankammer, Stand 1.10.1939, whose
+  printed grid runs 2512–2523 km east and 5585–5595 km north. Note that a sheet's
+  printed graticule is Potsdam/Bessel, not WGS 84; `encodeDrg` takes WGS 84 and
+  applies the Helmert shift, which moves a corner by roughly 130 m in the Eifel.
+
+### Patch Changes
+
+- 4fa53bb: fix: remove ambiguous `\s*` overlap in the HMN label pattern, eliminating a polynomial-ReDoS backtracking path (no behavior change)
+- Updated dependencies [6b960f9]
+- Updated dependencies [24941be]
+- Updated dependencies [f975503]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [28d9a14]
+- Updated dependencies [f975503]
+  - @zwaarcontrast/ol-graticule@4.0.0
+  - @zwaarcontrast/ol-graticule-projected@4.0.0
+
 ## 3.0.0
 
 ### Patch Changes

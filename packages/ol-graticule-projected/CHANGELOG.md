@@ -1,5 +1,36 @@
 # @zwaarcontrast/ol-graticule-projected
 
+## 4.0.0
+
+### Minor Changes
+
+- 24941be: Raise the `proj4` peer range from `^2.9.0` to `^2.12.0`, matching the `^2.12.0`
+  that `ol-graticule-heeresgitter` already declares.
+
+  proj4 keeps its CRS registry in module-level state, so a consumer combining
+  heeresgitter (which depends on proj4 directly) with these packages could resolve
+  two proj4 copies when the ranges did not overlap, leaving definitions registered
+  through one copy invisible to the other. A single range across the monorepo
+  dedupes to one instance.
+
+- f975503: Add an optional `getCellInterval` to `IntervalStrategy`, so a grid whose label
+  cells are a fixed size (a 100 km lettered cell over a finer km grid) can
+  enumerate cell labels on their own interval instead of once per major-line cell.
+  Optional, so existing strategies are unaffected.
+
+  `ProjectedGridSystem` also caches transformed grid-line polylines across pan
+  within a zoom band, re-slicing them instead of re-projecting every frame.
+
+### Patch Changes
+
+- Updated dependencies [6b960f9]
+- Updated dependencies [f975503]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [28d9a14]
+- Updated dependencies [f975503]
+  - @zwaarcontrast/ol-graticule@4.0.0
+
 ## 3.0.0
 
 ### Patch Changes
