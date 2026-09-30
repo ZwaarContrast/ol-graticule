@@ -65,13 +65,26 @@ jobs:
 
       - run: npm test
 
+  playwright-version:
+    name: Playwright version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.lock.outputs.version }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: package-lock.json
+          sparse-checkout-cone-mode: false
+      - id: lock
+        run: echo "version=$(jq -r '.packages["node_modules/@playwright/test"].version' package-lock.json)" >> "$GITHUB_OUTPUT"
+
   e2e:
     name: Visual regression
+    needs: playwright-version
     runs-on: ubuntu-latest
-    # Pinned to the image matching @playwright/test so the committed snapshots,
-    # which are generated in this same image, render identically.
+    # Image matching the locked @playwright/test, in which the committed snapshots are generated.
     container:
-      image: mcr.microsoft.com/playwright:v1.63.0-noble
+      image: mcr.microsoft.com/playwright:v${{ needs.playwright-version.outputs.version }}-noble
     steps:
       - uses: actions/checkout@v7
       # No setup-node: the image ships Node 24, which is what the committed
