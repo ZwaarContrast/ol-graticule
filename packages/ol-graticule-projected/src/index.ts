@@ -9,4 +9,6 @@ export type { MetricFormatterOptions } from '@zwaarcontrast/ol-graticule';
 
 export { registerCRS } from './registerCRS.js';
 export { loadNadgrid } from './loadNadgrid.js';
+export { createProjectedGridSystemFromEPSG } from './fromEPSG.js';
+export type { EPSGGridSystemOptions, EPSGSources } from './fromEPSG.js';
 export type { LoadNadgridOptions } from './loadNadgrid.js';
