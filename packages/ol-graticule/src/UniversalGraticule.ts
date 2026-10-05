@@ -58,6 +58,11 @@ export class UniversalGraticule extends LayerGroup {
   setHoverLens(input: GraticuleHoverLens | undefined): void {
     this.impl_.setHoverLens(input);
   }
+
+  protected override disposeInternal(): void {
+    this.impl_.dispose();
+    super.disposeInternal();
+  }
 }
 
 /** Cached per page load: WebGL2 present and not a renderer we recognise as software. */
