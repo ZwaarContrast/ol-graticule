@@ -1,5 +1,5 @@
-import { getTransform } from 'ol/proj';
 import type { ProjectionLike, TransformFunction } from 'ol/proj';
+import { requireTransform } from '../util/requireTransform.js';
 
 /** Insert `stepsPerEdge` evenly-spaced points along each edge of `ring`. */
 export function densifyRing(
@@ -29,7 +29,7 @@ export function projectRing(
   fromProjection: ProjectionLike,
   toProjection: ProjectionLike,
 ): [number, number][] {
-  const transformFn = getTransform(fromProjection, toProjection);
+  const transformFn = requireTransform(fromProjection, toProjection);
   const out: [number, number][] = [];
   for (let i = 0; i < ring.length; i++) {
     const p = ring[i]!;

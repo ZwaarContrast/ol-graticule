@@ -40,6 +40,7 @@ export class CursorPositionControl extends Control {
   private pointerMoveKey_: EventsKey | null = null;
   private pointerLeaveHandler_: (() => void) | null = null;
   private pointerLeaveTarget_: HTMLElement | null = null;
+  private readonly container_: HTMLElement;
 
   private lastMode_: 'axis' | 'combined' | 'hidden' = 'hidden';
   private lastXText_ = '';
@@ -62,6 +63,7 @@ export class CursorPositionControl extends Control {
     if (options.className) container.className = options.className;
 
     super({ element: container });
+    this.container_ = container;
 
     this.gridSystem_ = options.gridSystem ?? null;
     if (this.gridSystem_ === null) container.style.display = 'none';
@@ -126,7 +128,7 @@ export class CursorPositionControl extends Control {
     this.lastCombinedText_ = '';
 
     if (gridSystem === null) {
-      this.element.style.display = 'none';
+      this.container_.style.display = 'none';
       this.detach_();
       this.hide_();
       this.lastPointerCoord_ = null;
@@ -135,7 +137,7 @@ export class CursorPositionControl extends Control {
 
     const map = this.getMap();
     if (!wasActive) {
-      this.element.style.display = '';
+      this.container_.style.display = '';
       if (map) this.attach_(map);
     }
 
@@ -163,6 +165,7 @@ export class CursorPositionControl extends Control {
       this.scheduleFlush_();
     });
     const viewport = map.getViewport();
+    if (!viewport) return;
     this.pointerLeaveTarget_ = viewport;
     this.pointerLeaveHandler_ = () => {
       this.lastPointerCoord_ = null;

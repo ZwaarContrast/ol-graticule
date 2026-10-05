@@ -766,7 +766,8 @@ export class WebGLGraticuleLayer extends Layer<VectorSource, WebGLGraticuleRende
   private updatePointers_(): void {
     const map = this.map_;
     const hasLens = this.grids_.some((g) => g.lens !== null && g.gridSystem !== null);
-    if (map && hasLens) this.pointers.attach(map.getViewport(), () => map.render());
+    const viewport = map?.getViewport();
+    if (map && viewport && hasLens) this.pointers.attach(viewport, () => map.render());
     else this.pointers.detach();
   }
 

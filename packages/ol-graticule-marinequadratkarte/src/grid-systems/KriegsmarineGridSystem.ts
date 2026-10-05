@@ -5,8 +5,9 @@ import { Point } from 'ol/geom';
 import type { Extent } from 'ol/extent';
 import { intersects as olExtentsIntersect } from 'ol/extent';
 import type { ProjectionLike } from 'ol/proj';
-import { getTransform, transform, transformExtent } from 'ol/proj';
+import { transform, transformExtent } from 'ol/proj';
 import type { Geometry } from 'ol/geom';
+import { requireTransform } from './requireTransform.js';
 
 import type {
   GridSystem,
@@ -120,7 +121,7 @@ export class KriegsmarineGridSystem implements GridSystem {
       }
       if (visible.length === 0) return [];
 
-      const transformFn = getTransform('EPSG:4326', viewProjection);
+      const transformFn = requireTransform('EPSG:4326', viewProjection);
 
       const probe = new Array<number>(visible.length * 4);
       for (let i = 0; i < visible.length; i++) {
@@ -177,7 +178,7 @@ export class KriegsmarineGridSystem implements GridSystem {
     });
 
     if (specs.length === 0) return [];
-    const transformFn = getTransform('EPSG:4326', viewProjection);
+    const transformFn = requireTransform('EPSG:4326', viewProjection);
     const features: Feature<Geometry>[] = [];
     emitFlatLineFeatures(features, this.projScratch_, specs, transformFn);
     return features;

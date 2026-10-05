@@ -13,7 +13,8 @@ import Point from 'ol/geom/Point';
 import type { Extent } from 'ol/extent';
 import type { Geometry } from 'ol/geom';
 import type { ProjectionLike, TransformFunction } from 'ol/proj';
-import { transformExtent, getTransform } from 'ol/proj';
+import { transformExtent } from 'ol/proj';
+import { requireTransform } from './requireTransform.js';
 
 import type {
   FlatLineSpec,
@@ -243,7 +244,7 @@ export class GeographicHmnGridSystem implements GridSystem {
 
   private context_(extent: Extent, resolution: number, viewProjection: ProjectionLike): RenderContext | null {
     return this.ctxCache_.get(extent, resolution, viewProjection, () => {
-      const toView = getTransform('EPSG:4326', viewProjection);
+      const toView = requireTransform('EPSG:4326', viewProjection);
       const target = transformExtent(extent, viewProjection, 'EPSG:4326');
       if (![target[0], target[1], target[2], target[3]].every(Number.isFinite)) return null;
       // Clamp to a sane global box: the geographic HMN is defined globally

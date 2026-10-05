@@ -4,7 +4,7 @@ import Feature from 'ol/Feature';
 import LineString from 'ol/geom/LineString';
 import Point from 'ol/geom/Point';
 import Polygon from 'ol/geom/Polygon';
-import { getTransform, transformExtent } from 'ol/proj';
+import { transformExtent } from 'ol/proj';
 import type Geometry from 'ol/geom/Geometry';
 import type { Coordinate } from 'ol/coordinate';
 import type { Extent } from 'ol/extent';
@@ -48,6 +48,7 @@ import {
   type MgrsPrecision,
 } from '../mgrs/conversion.js';
 import { MgrsIntervals } from '../mgrs/intervals.js';
+import { requireTransform } from './requireTransform.js';
 
 export interface MgrsGridSystemOptions {
   /** Override the default MGRS interval strategy. */
@@ -192,7 +193,7 @@ export class MgrsGridSystem implements GridSystem {
     const key = cursorKey(coordinate, viewProjection);
     const cached = this.cursorCache_.get(key);
     if (cached !== undefined) return cached;
-    const toLonLat = getTransform(viewProjection, 'EPSG:4326');
+    const toLonLat = requireTransform(viewProjection, 'EPSG:4326');
     const [lon, lat] = toLonLat(coordinate, undefined, 2);
     let result: FormattedCoordinate;
     if (lon === undefined || lat === undefined) {
@@ -209,7 +210,7 @@ export class MgrsGridSystem implements GridSystem {
     coordinate: [number, number],
     viewProjection: ProjectionLike,
   ): boolean {
-    const toLonLat = getTransform(viewProjection, 'EPSG:4326');
+    const toLonLat = requireTransform(viewProjection, 'EPSG:4326');
     const [lon, lat] = toLonLat(coordinate, undefined, 2);
     if (lon === undefined || lat === undefined) return false;
     if (!Number.isFinite(lon) || !Number.isFinite(lat)) return false;
@@ -220,7 +221,7 @@ export class MgrsGridSystem implements GridSystem {
     const { parts, precision } = parseMgrsRef(text);
     const lonLat = mgrsPartsToLonLat(parts, precision);
     if (!lonLat) throw new ParseError(text, 'MGRS reference does not resolve to a coordinate');
-    const toView = getTransform('EPSG:4326', viewProjection);
+    const toView = requireTransform('EPSG:4326', viewProjection);
     const [px, py] = toView([lonLat[0], lonLat[1]], undefined, 2);
     if (px === undefined || py === undefined || !Number.isFinite(px) || !Number.isFinite(py)) {
       throw new ParseError(text, 'transform produced non-finite coordinate');
@@ -467,7 +468,7 @@ export class MgrsGridSystem implements GridSystem {
   ): RenderContext {
     return this.ctxCache_.get(extent, resolution, viewProjection, () => {
       const geoExtent = transformExtent(extent, viewProjection, 'EPSG:4326');
-      const toView = getTransform('EPSG:4326', viewProjection);
+      const toView = requireTransform('EPSG:4326', viewProjection);
       const interval = this.intervals_.getInterval(resolution, viewProjection);
 
       const gzds: Gzd[] = [];
@@ -560,8 +561,8 @@ export class MgrsGridSystem implements GridSystem {
       const code = upsCrsCode(north);
       registerCRS(code, upsProj4(north));
       const created: ProjectedTransforms = {
-        toProj: getTransform('EPSG:4326', code),
-        fromProj: getTransform(code, 'EPSG:4326'),
+        toProj: requireTransform('EPSG:4326', code),
+        fromProj: requireTransform(code, 'EPSG:4326'),
       };
       this.upsTransforms_.set(north, created);
       return created;
@@ -571,8 +572,8 @@ export class MgrsGridSystem implements GridSystem {
     const code = utmCrsCode(gzd.zone, false);
     registerCRS(code, utmProj4(gzd.zone));
     const created: ProjectedTransforms = {
-      toProj: getTransform('EPSG:4326', code),
-      fromProj: getTransform(code, 'EPSG:4326'),
+      toProj: requireTransform('EPSG:4326', code),
+      fromProj: requireTransform(code, 'EPSG:4326'),
     };
     this.utmTransforms_.set(gzd.zone, created);
     return created;
