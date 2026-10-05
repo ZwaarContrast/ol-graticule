@@ -288,7 +288,6 @@ export function parseGnmvRef(text: string, era: LuftwaffeEra = 'post-1943'): Dec
   if (c.empty()) return makeDecoded(canonical, formatted, bbox, depth);
 
   const mtDigit = takeDigit(c, 'Mitteltrapez', 8);
-  depth = 2;
   canonical += String(mtDigit);
   formatted += ` ${mtDigit}`;
   bbox = childBox(bbox, MT_LAT_DEG, MT_LON_DEG, Math.floor((mtDigit - 1) / 2), (mtDigit - 1) % 2);
@@ -329,7 +328,6 @@ export function parseJmnRef(text: string): DecodedRef {
   if (c.empty()) return makeDecoded(canonical, formatted, bbox, depth);
 
   const letters = takeJmnLetters(c);
-  depth = 2;
   canonical += letters.letters;
   formatted += ` ${letters.letters}`;
   bbox = childBox(bbox, MT_LAT_DEG, MT_LON_DEG, letters.row, letters.col);
