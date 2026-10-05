@@ -157,11 +157,28 @@ with proj4 is not fetched again. A `+nadgrids` shift becomes
 `+nadgrids=@grid,@null`: it applies once `loadNadgrid` has loaded the grid,
 and falls back to no shift until then. Pass `sources` to fetch from elsewhere.
 
+`lookupEPSG(code)` returns everything spatialreference.org's record gives for
+the code, through the same cache, so calling both fetches the code once:
+
+```ts
+import { lookupEPSG } from '@zwaarcontrast/ol-graticule-projected';
+
+const { name, type, area, scope, bbox, axes } = await lookupEPSG(27700);
+// name: 'OSGB36 / British National Grid', type: 'ProjectedCRS'
+// bbox: { west: -9.01, south: 49.75, east: 2.01, north: 61.01 }
+// axes[0]: { name: 'Easting', abbreviation: 'E', direction: 'east', unit: 'metre' }
+```
+
+A CRS with several usages reports the first. A `bbox` across the antimeridian
+has its `east` past 180. A code neither service knows rejects with
+`Unknown EPSG code: <code>`.
+
 ## Exports
 
 - `ProjectedGridSystem`, `ProjectedGridSystemOptions`
 - `registerCRS(code, proj4Def)`, idempotent proj4 + OL registration.
 - `loadNadgrid(name, url)`, fetch + register an NTv2 `.gsb` file.
+- `lookupEPSG(code)`, the EPSG record (name, type, area of use, scope, axes).
 - `createProjectedGridSystemFromEPSG(code, options)`, a clipped grid for any EPSG code.
 - `MetricIntervals`, `MetricFormatter`, re-exported from core for convenience.
 
