@@ -43,7 +43,11 @@ interface MergedEdge {
 }
 
 /** Classify each of a rect square's 4 edges; antimeridian-crossing rects emit as diagonals. */
-export function rectEdges(sq: RectSquare, depth: number, out: RawEdge[] = []): RawEdge[] {
+export function rectEdges(
+  sq: RectSquare,
+  depth: number,
+  out: RawEdge[] = [],
+): RawEdge[] {
   if (rectCrossesAntimeridian(sq.nw, sq.se)) {
     return antimeridianRectEdges(sq, depth, out);
   }
@@ -65,7 +69,11 @@ export function rectEdges(sq: RectSquare, depth: number, out: RawEdge[] = []): R
   return out;
 }
 
-function antimeridianRectEdges(sq: RectSquare, depth: number, out: RawEdge[]): RawEdge[] {
+function antimeridianRectEdges(
+  sq: RectSquare,
+  depth: number,
+  out: RawEdge[],
+): RawEdge[] {
   const { nw, se } = sq;
   const eastLon = se[1] < nw[1] ? se[1] + 360 : se[1];
   const corners: LatLon[] = [
@@ -77,13 +85,26 @@ function antimeridianRectEdges(sq: RectSquare, depth: number, out: RawEdge[]): R
   for (let i = 0; i < corners.length; i++) {
     const a = corners[i]!;
     const b = corners[(i + 1) % corners.length]!;
-    out.push({ axis: 'd', val: 0, lo: 0, hi: 0, p1: a, p2: b, depth, squareId: sq.id });
+    out.push({
+      axis: 'd',
+      val: 0,
+      lo: 0,
+      hi: 0,
+      p1: a,
+      p2: b,
+      depth,
+      squareId: sq.id,
+    });
   }
   return out;
 }
 
 /** Classify each edge of a poly square; axis-aligned edges bucket with rect edges, others stay diagonal. */
-export function polyEdges(sq: PolySquare, depth: number, out: RawEdge[] = []): RawEdge[] {
+export function polyEdges(
+  sq: PolySquare,
+  depth: number,
+  out: RawEdge[] = [],
+): RawEdge[] {
   const n = sq.poly.length;
   for (let i = 0; i < n; i++) {
     const a = sq.poly[i]!;
@@ -111,7 +132,16 @@ export function polyEdges(sq: PolySquare, depth: number, out: RawEdge[] = []): R
         squareId: sq.id,
       });
     } else {
-      out.push({ axis: 'd', val: 0, lo: 0, hi: 0, p1: a, p2: b, depth, squareId: sq.id });
+      out.push({
+        axis: 'd',
+        val: 0,
+        lo: 0,
+        hi: 0,
+        p1: a,
+        p2: b,
+        depth,
+        squareId: sq.id,
+      });
     }
   }
   return out;

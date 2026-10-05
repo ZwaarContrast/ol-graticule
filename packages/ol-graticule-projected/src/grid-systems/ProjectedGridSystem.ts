@@ -134,7 +134,7 @@ export class ProjectedGridSystem implements GridSystem {
     this.crs_ = options.crs;
     this.densificationPoints_ = options.densificationPoints ?? 512;
     this.extent_ = options.extent;
-    this.emitBoundary_ = options.emitBoundary ?? (options.extent !== undefined);
+    this.emitBoundary_ = options.emitBoundary ?? options.extent !== undefined;
 
     if (options.proj4Def !== undefined) {
       registerCRS(this.crs_, options.proj4Def);
@@ -144,7 +144,7 @@ export class ProjectedGridSystem implements GridSystem {
     if (!projection) {
       throw new Error(
         `CRS ${this.crs_} is not registered. Call registerCRS(code, proj4Def) ` +
-        `before constructing ProjectedGridSystem, or pass proj4Def in the options.`,
+          `before constructing ProjectedGridSystem, or pass proj4Def in the options.`,
       );
     }
 
@@ -152,7 +152,8 @@ export class ProjectedGridSystem implements GridSystem {
     const targetScreenPx = options.targetScreenPx ?? 100;
 
     if (units === 'degrees') {
-      this.intervals_ = options.intervals ?? new DegreeIntervals(targetScreenPx);
+      this.intervals_ =
+        options.intervals ?? new DegreeIntervals(targetScreenPx);
       this.formatter_ = options.formatter ?? new DegreeFormatter();
     } else {
       // Linear units (metres, feet, US-survey-feet). `MetricIntervals`'
@@ -171,12 +172,18 @@ export class ProjectedGridSystem implements GridSystem {
         else if (Math.abs(mpu - 0.3048) < 1e-5) displayUnit = 'ft';
       }
 
-      this.intervals_ = options.intervals ?? new MetricIntervals(targetScreenPx);
-      this.formatter_ = options.formatter ?? new MetricFormatter({ unit: displayUnit });
+      this.intervals_ =
+        options.intervals ?? new MetricIntervals(targetScreenPx);
+      this.formatter_ =
+        options.formatter ?? new MetricFormatter({ unit: displayUnit });
     }
   }
 
-  getFeatures(extent: Extent, resolution: number, viewProjection: ProjectionLike): Feature<Geometry>[] {
+  getFeatures(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): Feature<Geometry>[] {
     const ctx = this.renderContext_(extent, resolution, viewProjection);
     if (!ctx) return [];
     const features: Feature<Geometry>[] = [];
@@ -188,9 +195,22 @@ export class ProjectedGridSystem implements GridSystem {
     const crsExtent = this.effectiveExtent_();
     if (crsExtent && Number.isFinite(ctx.band)) {
       this.lineCache_.ensureProjection(projectionKey(viewProjection));
-      this.generateLinesCached_(features, ctx, crsExtent, ctx.interval, 'major');
+      this.generateLinesCached_(
+        features,
+        ctx,
+        crsExtent,
+        ctx.interval,
+        'major',
+      );
       if (ctx.minorInterval !== undefined) {
-        this.generateLinesCached_(features, ctx, crsExtent, ctx.minorInterval, 'minor', ctx.interval);
+        this.generateLinesCached_(
+          features,
+          ctx,
+          crsExtent,
+          ctx.minorInterval,
+          'minor',
+          ctx.interval,
+        );
       }
       if (this.emitBoundary_) {
         this.generateBoundary_(features, ctx);
@@ -200,7 +220,13 @@ export class ProjectedGridSystem implements GridSystem {
 
     this.generateLines_(features, ctx, ctx.interval, 'major');
     if (ctx.minorInterval !== undefined) {
-      this.generateLines_(features, ctx, ctx.minorInterval, 'minor', ctx.interval);
+      this.generateLines_(
+        features,
+        ctx,
+        ctx.minorInterval,
+        'minor',
+        ctx.interval,
+      );
     }
     if (this.emitBoundary_) {
       this.generateBoundary_(features, ctx);
@@ -208,7 +234,11 @@ export class ProjectedGridSystem implements GridSystem {
     return features;
   }
 
-  getLabels(extent: Extent, resolution: number, viewProjection: ProjectionLike): GridLabel[] {
+  getLabels(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): GridLabel[] {
     const ctx = this.renderContext_(extent, resolution, viewProjection);
     if (!ctx) return [];
     const labels: GridLabel[] = [];
@@ -259,7 +289,11 @@ export class ProjectedGridSystem implements GridSystem {
     return labels;
   }
 
-  getCellLabels(extent: Extent, resolution: number, viewProjection: ProjectionLike): GridCellLabel[] {
+  getCellLabels(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): GridCellLabel[] {
     if (!this.formatter_.formatCellLabel) return [];
     const ctx = this.renderContext_(extent, resolution, viewProjection);
     if (!ctx) return [];
@@ -271,7 +305,8 @@ export class ProjectedGridSystem implements GridSystem {
     // Cell size in pixels, measured at the first cell's bottom edge.
     const [c1x, c1y] = transformFn([tMinX, tMinY], undefined, 2);
     const [c2x, c2y] = transformFn([tMinX + cellInterval, tMinY], undefined, 2);
-    const cellSizePx = Math.hypot((c2x ?? 0) - (c1x ?? 0), (c2y ?? 0) - (c1y ?? 0)) / resolution;
+    const cellSizePx =
+      Math.hypot((c2x ?? 0) - (c1x ?? 0), (c2y ?? 0) - (c1y ?? 0)) / resolution;
 
     const startX = Math.floor(tMinX / cellInterval) * cellInterval;
     const startY = Math.floor(tMinY / cellInterval) * cellInterval;
@@ -305,7 +340,10 @@ export class ProjectedGridSystem implements GridSystem {
     return labels;
   }
 
-  isValidCoordinate(coordinate: [number, number], viewProjection: ProjectionLike): boolean {
+  isValidCoordinate(
+    coordinate: [number, number],
+    viewProjection: ProjectionLike,
+  ): boolean {
     const [cx, cy] = coordinate;
     if (!isFinite(cx) || !isFinite(cy)) return false;
 
@@ -326,7 +364,12 @@ export class ProjectedGridSystem implements GridSystem {
 
     const crsExtent = this.effectiveExtent_();
     if (crsExtent) {
-      if (x < crsExtent[0] || x > crsExtent[2] || y < crsExtent[1] || y > crsExtent[3]) {
+      if (
+        x < crsExtent[0] ||
+        x > crsExtent[2] ||
+        y < crsExtent[1] ||
+        y > crsExtent[3]
+      ) {
         return false;
       }
     }
@@ -334,7 +377,10 @@ export class ProjectedGridSystem implements GridSystem {
     return true;
   }
 
-  formatCoordinate(coordinate: [number, number], viewProjection: ProjectionLike): FormattedCoordinate {
+  formatCoordinate(
+    coordinate: [number, number],
+    viewProjection: ProjectionLike,
+  ): FormattedCoordinate {
     if (!this.isValidCoordinate(coordinate, viewProjection)) {
       return { x: '-', y: '-' };
     }
@@ -349,12 +395,20 @@ export class ProjectedGridSystem implements GridSystem {
     };
   }
 
-  parseCoordinate(text: string, viewProjection: ProjectionLike): [number, number] {
+  parseCoordinate(
+    text: string,
+    viewProjection: ProjectionLike,
+  ): [number, number] {
     const [cx, cy] = parsePairViaFormatter(this.formatter_, text);
     const projected = transform([cx, cy], this.crs_, viewProjection);
     const px = projected[0];
     const py = projected[1];
-    if (px === undefined || py === undefined || !Number.isFinite(px) || !Number.isFinite(py)) {
+    if (
+      px === undefined ||
+      py === undefined ||
+      !Number.isFinite(px) ||
+      !Number.isFinite(py)
+    ) {
       throw new ParseError(text, 'transform produced non-finite coordinate');
     }
     return [px, py];
@@ -366,14 +420,22 @@ export class ProjectedGridSystem implements GridSystem {
   }
 
   /** Null when the view is entirely outside the CRS's valid extent. */
-  private renderContext_(extent: Extent, resolution: number, viewProjection: ProjectionLike): RenderContext | null {
+  private renderContext_(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): RenderContext | null {
     return this.ctxCache_.get(extent, resolution, viewProjection, () => {
       const viewToCrs = requireTransform(viewProjection, this.crs_);
       const crsToView = requireTransform(this.crs_, viewProjection);
 
       let targetExtent = transformExtentSampled(extent, viewToCrs);
-      if (!isFinite(targetExtent[0]) || !isFinite(targetExtent[1]) ||
-          !isFinite(targetExtent[2]) || !isFinite(targetExtent[3])) {
+      if (
+        !isFinite(targetExtent[0]) ||
+        !isFinite(targetExtent[1]) ||
+        !isFinite(targetExtent[2]) ||
+        !isFinite(targetExtent[3])
+      ) {
         return null;
       }
 
@@ -386,12 +448,17 @@ export class ProjectedGridSystem implements GridSystem {
       // Fallback to the view's pixel resolution if the viewport→CRS transform
       // collapses to zero width at every sampled corner.
       const targetResolution =
-        measureTargetResolution(targetExtent, crsToView, resolution) ?? resolution;
+        measureTargetResolution(targetExtent, crsToView, resolution) ??
+        resolution;
 
-      const interval = this.intervals_.getInterval(targetResolution, viewProjection);
+      const interval = this.intervals_.getInterval(
+        targetResolution,
+        viewProjection,
+      );
       const minorInterval = this.intervals_.getMinorInterval?.(interval);
       const cellInterval =
-        this.intervals_.getCellInterval?.(targetResolution, viewProjection) ?? interval;
+        this.intervals_.getCellInterval?.(targetResolution, viewProjection) ??
+        interval;
 
       const cap = this.densificationPoints_;
       const xTs = adaptiveAxisTs('x', targetExtent, crsToView, resolution, cap);
@@ -399,12 +466,21 @@ export class ProjectedGridSystem implements GridSystem {
 
       // Sampling density is stable within a factor-2 zoom band.
       const band =
-        Number.isFinite(resolution) && resolution > 0 ? Math.floor(Math.log2(resolution)) : NaN;
+        Number.isFinite(resolution) && resolution > 0
+          ? Math.floor(Math.log2(resolution))
+          : NaN;
       const bandResolution = Number.isFinite(band) ? 2 ** band : resolution;
 
       return {
-        targetExtent, interval, minorInterval, cellInterval,
-        transformFn: crsToView, xTs, yTs, band, bandResolution,
+        targetExtent,
+        interval,
+        minorInterval,
+        cellInterval,
+        transformFn: crsToView,
+        xTs,
+        yTs,
+        band,
+        bandResolution,
       };
     });
   }
@@ -425,11 +501,35 @@ export class ProjectedGridSystem implements GridSystem {
     const epsilon = interval * MAJOR_SKIP_EPSILON_RATIO;
 
     const skipMinor = (v: number): boolean =>
-      type === 'minor' && majorInterval !== undefined && isOnMajorLine(v, majorInterval, epsilon);
+      type === 'minor' &&
+      majorInterval !== undefined &&
+      isOnMajorLine(v, majorInterval, epsilon);
 
     const specs: FlatLineSpec[] = [];
-    pushAxisGridLineSpecs(specs, 'x', startX, endX, interval, tMinY, tMaxY, ctx.xTs, type, skipMinor);
-    pushAxisGridLineSpecs(specs, 'y', startY, endY, interval, tMinX, tMaxX, ctx.yTs, type, skipMinor);
+    pushAxisGridLineSpecs(
+      specs,
+      'x',
+      startX,
+      endX,
+      interval,
+      tMinY,
+      tMaxY,
+      ctx.xTs,
+      type,
+      skipMinor,
+    );
+    pushAxisGridLineSpecs(
+      specs,
+      'y',
+      startY,
+      endY,
+      interval,
+      tMinX,
+      tMaxX,
+      ctx.yTs,
+      type,
+      skipMinor,
+    );
     emitFlatLineFeatures(features, this.projScratch_, specs, ctx.transformFn);
   }
 
@@ -445,17 +545,39 @@ export class ProjectedGridSystem implements GridSystem {
     const [tMinX, tMinY, tMaxX, tMaxY] = ctx.targetExtent;
     const epsilon = interval * MAJOR_SKIP_EPSILON_RATIO;
     const skipMinor = (v: number): boolean =>
-      type === 'minor' && majorInterval !== undefined && isOnMajorLine(v, majorInterval, epsilon);
+      type === 'minor' &&
+      majorInterval !== undefined &&
+      isOnMajorLine(v, majorInterval, epsilon);
 
     // Vertical lines (constant x): grid values sweep x, the line sweeps y.
     this.cachedAxis_(
-      features, ctx, 'x', type, skipMinor, interval,
-      tMinX, tMaxX, tMinY, tMaxY, crsExtent[1], crsExtent[3],
+      features,
+      ctx,
+      'x',
+      type,
+      skipMinor,
+      interval,
+      tMinX,
+      tMaxX,
+      tMinY,
+      tMaxY,
+      crsExtent[1],
+      crsExtent[3],
     );
     // Horizontal lines (constant y): grid values sweep y, the line sweeps x.
     this.cachedAxis_(
-      features, ctx, 'y', type, skipMinor, interval,
-      tMinY, tMaxY, tMinX, tMaxX, crsExtent[0], crsExtent[2],
+      features,
+      ctx,
+      'y',
+      type,
+      skipMinor,
+      interval,
+      tMinY,
+      tMaxY,
+      tMinX,
+      tMaxX,
+      crsExtent[0],
+      crsExtent[2],
     );
   }
 
@@ -473,9 +595,12 @@ export class ProjectedGridSystem implements GridSystem {
     type: 'major' | 'minor',
     skip: (v: number) => boolean,
     interval: number,
-    gvMin: number, gvMax: number,
-    vMin: number, vMax: number,
-    extMin: number, extMax: number,
+    gvMin: number,
+    gvMax: number,
+    vMin: number,
+    vMax: number,
+    extMin: number,
+    extMax: number,
   ): void {
     const start = Math.ceil(gvMin / interval) * interval;
     const end = Math.floor(gvMax / interval) * interval;
@@ -495,9 +620,15 @@ export class ProjectedGridSystem implements GridSystem {
           wMax = Math.min(extMax, vMax);
         }
         const windowExtent: Extent =
-          axis === 'x' ? [gvMin, wMin, gvMax, wMax] : [wMin, gvMin, wMax, gvMax];
+          axis === 'x'
+            ? [gvMin, wMin, gvMax, wMax]
+            : [wMin, gvMin, wMax, gvMax];
         ts = adaptiveAxisTs(
-          axis, windowExtent, ctx.transformFn, ctx.bandResolution, this.densificationPoints_,
+          axis,
+          windowExtent,
+          ctx.transformFn,
+          ctx.bandResolution,
+          this.densificationPoints_,
         );
       }
       return ts;
@@ -510,14 +641,25 @@ export class ProjectedGridSystem implements GridSystem {
       if (entry === undefined) {
         // ensureWindow() populates wMin/wMax, so call it before reading them.
         const windowTs = ensureWindow();
-        entry = buildLineWindow(axis, v, ctx.band, wMin, wMax, windowTs, ctx.transformFn);
+        entry = buildLineWindow(
+          axis,
+          v,
+          ctx.band,
+          wMin,
+          wMax,
+          windowTs,
+          ctx.transformFn,
+        );
         this.lineCache_.set(key, entry);
       }
       features.push(sliceLineFeature(entry, axis, v, type, vMin, vMax));
     }
   }
 
-  private generateBoundary_(features: Feature<Geometry>[], ctx: RenderContext): void {
+  private generateBoundary_(
+    features: Feature<Geometry>[],
+    ctx: RenderContext,
+  ): void {
     const crsExtent = this.effectiveExtent_();
     if (!crsExtent) return;
     const [cMinX, cMinY, cMaxX, cMaxY] = crsExtent;
@@ -527,25 +669,41 @@ export class ProjectedGridSystem implements GridSystem {
     const specs: FlatLineSpec[] = [];
     if (tMinX === cMinX) {
       specs.push({
-        startX: cMinX, startY: tMinY, endX: cMinX, endY: tMaxY, ts: ctx.xTs,
+        startX: cMinX,
+        startY: tMinY,
+        endX: cMinX,
+        endY: tMaxY,
+        ts: ctx.xTs,
         props: { gridValue: cMinX, gridAxis: 'x', gridLineType: 'boundary' },
       });
     }
     if (tMaxX === cMaxX) {
       specs.push({
-        startX: cMaxX, startY: tMinY, endX: cMaxX, endY: tMaxY, ts: ctx.xTs,
+        startX: cMaxX,
+        startY: tMinY,
+        endX: cMaxX,
+        endY: tMaxY,
+        ts: ctx.xTs,
         props: { gridValue: cMaxX, gridAxis: 'x', gridLineType: 'boundary' },
       });
     }
     if (tMinY === cMinY) {
       specs.push({
-        startX: tMinX, startY: cMinY, endX: tMaxX, endY: cMinY, ts: ctx.yTs,
+        startX: tMinX,
+        startY: cMinY,
+        endX: tMaxX,
+        endY: cMinY,
+        ts: ctx.yTs,
         props: { gridValue: cMinY, gridAxis: 'y', gridLineType: 'boundary' },
       });
     }
     if (tMaxY === cMaxY) {
       specs.push({
-        startX: tMinX, startY: cMaxY, endX: tMaxX, endY: cMaxY, ts: ctx.yTs,
+        startX: tMinX,
+        startY: cMaxY,
+        endX: tMaxX,
+        endY: cMaxY,
+        ts: ctx.yTs,
         props: { gridValue: cMaxY, gridAxis: 'y', gridLineType: 'boundary' },
       });
     }
@@ -557,7 +715,9 @@ export class ProjectedGridSystem implements GridSystem {
 
 /** Stable string key for a view projection, for cache invalidation. */
 function projectionKey(projection: ProjectionLike): string {
-  return typeof projection === 'string' ? projection : (projection?.getCode() ?? '');
+  return typeof projection === 'string'
+    ? projection
+    : (projection?.getCode() ?? '');
 }
 
 /**
@@ -622,4 +782,3 @@ function sliceLineFeature(
   feature.setGeometry(new LineString(sliced, 'XY'));
   return feature;
 }
-

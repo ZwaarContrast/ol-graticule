@@ -18,7 +18,11 @@ const map = new Map({
     new TileLayer({ source: new OSM() }),
     createGraticule({
       gridSystem,
-      style: { line: { major: gridLine }, cellLabel: cellLabelHandler, hoverLens },
+      style: {
+        line: { major: gridLine },
+        cellLabel: cellLabelHandler,
+        hoverLens,
+      },
       // Kriegsmarine emits many short cell-boundary segments rather than
       // a handful of full-viewport lines, so the default cap (100 * 2)
       // truncates horizontals at world zoom. 500 is plenty of headroom.

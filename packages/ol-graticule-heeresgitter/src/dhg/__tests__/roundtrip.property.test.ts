@@ -3,8 +3,18 @@ import fc from 'fast-check';
 import { encodeDhg, encodeDhgText } from '../encode.js';
 import { parseDhg, decodeDhg } from '../decode.js';
 
-const lat = fc.double({ min: 45, max: 68, noNaN: true, noDefaultInfinity: true });
-const lon = fc.double({ min: 0, max: 30, noNaN: true, noDefaultInfinity: true });
+const lat = fc.double({
+  min: 45,
+  max: 68,
+  noNaN: true,
+  noDefaultInfinity: true,
+});
+const lon = fc.double({
+  min: 0,
+  max: 30,
+  noNaN: true,
+  noDefaultInfinity: true,
+});
 
 describe('DHG forward/inverse projection round-trip', () => {
   it('decodeDhg(encodeDhg(p)) ≈ p in WGS 84 degrees', () => {
@@ -42,8 +52,12 @@ describe('DHG text format round-trip', () => {
         // and the km coordinates round-trip cleanly.
         const original = encodeDhg([latV, lonV]);
         expect(parsed!.coord.kennziffer).toBe(original.kennziffer);
-        expect(parsed!.coord.easting).toBe(Math.floor(original.easting / 1000) * 1000);
-        expect(parsed!.coord.northing).toBe(Math.floor(original.northing / 1000) * 1000);
+        expect(parsed!.coord.easting).toBe(
+          Math.floor(original.easting / 1000) * 1000,
+        );
+        expect(parsed!.coord.northing).toBe(
+          Math.floor(original.northing / 1000) * 1000,
+        );
       }),
       { numRuns: 100 },
     );

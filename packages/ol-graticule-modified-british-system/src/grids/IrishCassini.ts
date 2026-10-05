@@ -5,10 +5,6 @@
  * the full credit.
  */
 
-import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
-import { IRISH_CASSINI_SCHEME } from '../formatters/schemes.js';
-import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
-
 /**
  * Irish Cassini, 1825 Ordnance Survey of Ireland Cassini-Soldner.
  * Projection origin 53°30'N, 8°W, Airy 1830, false E/N 200 / 250 km.
@@ -25,24 +21,16 @@ export const IRISH_CASSINI_PROJ4 =
   '+ellps=airy +units=m +no_defs +type=crs';
 
 /** WGS84 bbox `[lonMin, latMin, lonMax, latMax]` covering Ireland plus buffer. */
-export const IRISH_CASSINI_BBOX_WGS84: [number, number, number, number] = [-12.0, 50.0, -4.5, 56.5];
+export const IRISH_CASSINI_BBOX_WGS84: [number, number, number, number] = [
+  -12.0, 50.0, -4.5, 56.5,
+];
 
 /** MBS coverage polygon for Ireland in Cassini metres ({@link IRISH_CASSINI_CRS}). Open ring. */
 export const IRISH_CASSINI_CLIP_POLYGON: [number, number][] = [
-  [-4448, 504651], [200506, 503942], [404710, 504102],
-  [403253, -3106], [198965, -4687], [-3077, -4788],
+  [-4448, 504651],
+  [200506, 503942],
+  [404710, 504102],
+  [403253, -3106],
+  [198965, -4687],
+  [-3077, -4788],
 ];
-
-export type IrishCassiniGridSystemOptions = MBSGridSystemOptions;
-
-export function createIrishCassiniGridSystem(
-  options?: IrishCassiniGridSystemOptions,
-): PolygonClippedGridSystem {
-  return createMBSGridSystem(
-    IRISH_CASSINI_CRS,
-    IRISH_CASSINI_PROJ4,
-    IRISH_CASSINI_SCHEME,
-    IRISH_CASSINI_CLIP_POLYGON,
-    options,
-  );
-}

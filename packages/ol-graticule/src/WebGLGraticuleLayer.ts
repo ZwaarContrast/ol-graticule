@@ -5,14 +5,21 @@ import WebGLArrayBuffer from 'ol/webgl/Buffer';
 import LineString from 'ol/geom/LineString';
 import { ARRAY_BUFFER, ELEMENT_ARRAY_BUFFER, DYNAMIC_DRAW } from 'ol/webgl';
 import { create as createMat4, fromTransform } from 'ol/vec/mat4';
-import { create as createTransform, compose as composeTransform, apply as applyTransform } from 'ol/transform';
+import {
+  create as createTransform,
+  compose as composeTransform,
+  apply as applyTransform,
+} from 'ol/transform';
 import type OLMap from 'ol/Map';
 import type { FrameState } from 'ol/Map';
 import type { Options as LayerOptions } from 'ol/layer/Layer';
 import type Feature from 'ol/Feature';
 import type Geometry from 'ol/geom/Geometry';
 import type { GridSystem } from './types.js';
-import { resolveGraticuleOptions, createLabelEngine } from './resolveOptions.js';
+import {
+  resolveGraticuleOptions,
+  createLabelEngine,
+} from './resolveOptions.js';
 import type { GraticuleOptions } from './options.js';
 import type {
   GraticuleBlendMode,
@@ -20,12 +27,14 @@ import type {
   GraticuleLineStyle,
   ResolvedHoverLens,
 } from './style.js';
-import {
-  resolveHoverLens,
-} from './style.js';
+import { resolveHoverLens } from './style.js';
 import { applyBlend } from './util/blend.js';
 import { toRgbaNormalized } from './util/color.js';
-import { canonicalizeExtent, visibleWorldOffsets, worldOffsetOf } from './util/worldWrap.js';
+import {
+  canonicalizeExtent,
+  visibleWorldOffsets,
+  worldOffsetOf,
+} from './util/worldWrap.js';
 import { collectLensHoles, eachSegmentPx } from './rendering/lensGeometry.js';
 import { LensPointers } from './rendering/LensPointers.js';
 import { GlyphAtlas, type Glyph } from './rendering/GlyphAtlas.js';
@@ -140,15 +149,23 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
   private leadVfLen_ = 0;
   private leadIu_ = new Uint32Array(512);
   private leadIuLen_ = 0;
-  private readonly leaderColor_: [number, number, number, number] = [0, 0, 0, 1];
+  private readonly leaderColor_: [number, number, number, number] = [
+    0, 0, 0, 1,
+  ];
 
   protected override afterHelperCreated(): void {
     const helper = this.helper;
     const gl = helper.getGL();
 
-    this.lineProgram_ = helper.getProgram(LINE_FRAGMENT_SHADER, LINE_VERTEX_SHADER);
+    this.lineProgram_ = helper.getProgram(
+      LINE_FRAGMENT_SHADER,
+      LINE_VERTEX_SHADER,
+    );
     this.lineVertBuffer_ = new WebGLArrayBuffer(ARRAY_BUFFER, DYNAMIC_DRAW);
-    this.lineIndexBuffer_ = new WebGLArrayBuffer(ELEMENT_ARRAY_BUFFER, DYNAMIC_DRAW);
+    this.lineIndexBuffer_ = new WebGLArrayBuffer(
+      ELEMENT_ARRAY_BUFFER,
+      DYNAMIC_DRAW,
+    );
 
     this.swellProgram_ = helper.getProgram(SWELL_FRAGMENT, SWELL_VERTEX);
     this.dotProgram_ = helper.getProgram(DOT_FRAGMENT, DOT_VERTEX);
@@ -157,14 +174,26 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
     this.dotBuffer_ = new WebGLArrayBuffer(ARRAY_BUFFER, DYNAMIC_DRAW);
     this.dotIndex_ = new WebGLArrayBuffer(ELEMENT_ARRAY_BUFFER, DYNAMIC_DRAW);
 
-    this.labelProgram_ = helper.getProgram(LABEL_FRAGMENT_SHADER, LABEL_VERTEX_SHADER);
+    this.labelProgram_ = helper.getProgram(
+      LABEL_FRAGMENT_SHADER,
+      LABEL_VERTEX_SHADER,
+    );
     this.labelVertBuffer_ = new WebGLArrayBuffer(ARRAY_BUFFER, DYNAMIC_DRAW);
-    this.labelIndexBuffer_ = new WebGLArrayBuffer(ELEMENT_ARRAY_BUFFER, DYNAMIC_DRAW);
+    this.labelIndexBuffer_ = new WebGLArrayBuffer(
+      ELEMENT_ARRAY_BUFFER,
+      DYNAMIC_DRAW,
+    );
     this.texture_ = gl.createTexture();
 
-    this.leaderProgram_ = helper.getProgram(LEADER_FRAGMENT_SHADER, LEADER_VERTEX_SHADER);
+    this.leaderProgram_ = helper.getProgram(
+      LEADER_FRAGMENT_SHADER,
+      LEADER_VERTEX_SHADER,
+    );
     this.leaderVertBuffer_ = new WebGLArrayBuffer(ARRAY_BUFFER, DYNAMIC_DRAW);
-    this.leaderIndexBuffer_ = new WebGLArrayBuffer(ELEMENT_ARRAY_BUFFER, DYNAMIC_DRAW);
+    this.leaderIndexBuffer_ = new WebGLArrayBuffer(
+      ELEMENT_ARRAY_BUFFER,
+      DYNAMIC_DRAW,
+    );
 
     this.atlas_?.markDirty();
     applyBlend(helper.getCanvas(), this.getLayer().blend);
@@ -240,7 +269,11 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
       if (!grid || !grid.gridSystem) continue;
 
       // Queried once per grid per frame; lines, lens and labels all read this.
-      let features = grid.gridSystem.getFeatures(canonical, resolution, projection);
+      let features = grid.gridSystem.getFeatures(
+        canonical,
+        resolution,
+        projection,
+      );
       if (features.length > ceiling) features = features.slice(0, ceiling);
 
       // 1. Lines
@@ -256,7 +289,14 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
       // 2. Lens
       if (grid.lens && layer.pointers.count > 0) {
         layer.pointers.forEach((pointer) => {
-          this.buildLensForGrid_(frameState, grid.lens!, features, pointer.x, pointer.y, pointer.intensity);
+          this.buildLensForGrid_(
+            frameState,
+            grid.lens!,
+            features,
+            pointer.x,
+            pointer.y,
+            pointer.intensity,
+          );
         });
       }
 
@@ -278,12 +318,28 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
   private drawLines_(frameState: FrameState): void {
     const size = frameState.size;
     const batches = this.lineBatches_;
-    if (!size || !batches || !this.lineProgram_ || !this.lineVertBuffer_ || !this.lineIndexBuffer_) return;
+    if (
+      !size ||
+      !batches ||
+      !this.lineProgram_ ||
+      !this.lineVertBuffer_ ||
+      !this.lineIndexBuffer_
+    )
+      return;
 
     const { resolution, rotation } = frameState.viewState;
     const w = size[0] ?? 1;
     const h = size[1] ?? 1;
-    composeTransform(this.transform_, 0, 0, 2 / (resolution * w), 2 / (resolution * h), -rotation, 0, 0);
+    composeTransform(
+      this.transform_,
+      0,
+      0,
+      2 / (resolution * w),
+      2 / (resolution * h),
+      -rotation,
+      0,
+      0,
+    );
     fromTransform(this.mat4_, this.transform_);
 
     const helper = this.helper;
@@ -312,7 +368,10 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
       helper.setUniformFloatValue('u_dashPeriod', bucket.dashPeriod);
       helper.setUniformFloatValue('u_dashOffset', bucket.dashOffset);
       if (bucket.dashCount > 0) {
-        gl.uniform1fv(helper.getUniformLocation('u_dash[0]'), bucket.dashPattern);
+        gl.uniform1fv(
+          helper.getUniformLocation('u_dash[0]'),
+          bucket.dashPattern,
+        );
       }
 
       helper.drawElements(0, batch.iuLen);
@@ -333,10 +392,22 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
 
     const cursorMap: [number, number] = [cx, cy];
     applyTransform(frameState.pixelToCoordinateTransform, cursorMap);
-    const worldOffset = worldOffsetOf(cursorMap[0], frameState.viewState.projection);
+    const worldOffset = worldOffsetOf(
+      cursorMap[0],
+      frameState.viewState.projection,
+    );
 
     const { holes, cell } = collectLensHoles(
-      features, toPixel, 1, worldOffset, cx, cy, radius, lens.approachFraction, lens.approach, MAX_HOLES,
+      features,
+      toPixel,
+      1,
+      worldOffset,
+      cx,
+      cy,
+      radius,
+      lens.approachFraction,
+      lens.approach,
+      MAX_HOLES,
     );
 
     const dotStart = this.diLen_;
@@ -355,17 +426,35 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
     for (const feature of features) {
       const geom = feature.getGeometry();
       if (!(geom instanceof LineString)) continue;
-      eachSegmentPx(geom, toPixel, 1, worldOffset, scratch, (x0, y0, x1, y1) => {
-        if (Math.hypot(cx - (x0 + x1) / 2, cy - (y0 + y1) / 2) > radius + Math.hypot(x1 - x0, y1 - y0) / 2) return;
-        this.emitSwellQuad_(x0, y0, x1, y1, half);
-      });
+      eachSegmentPx(
+        geom,
+        toPixel,
+        1,
+        worldOffset,
+        scratch,
+        (x0, y0, x1, y1) => {
+          if (
+            Math.hypot(cx - (x0 + x1) / 2, cy - (y0 + y1) / 2) >
+            radius + Math.hypot(x1 - x0, y1 - y0) / 2
+          )
+            return;
+          this.emitSwellQuad_(x0, y0, x1, y1, half);
+        },
+      );
     }
 
     this.lensDraws_.push({
-      lens, x: cx, y: cy, intensity,
-      swellStart, swellEnd: this.siLen_,
-      dotStart, dotEnd,
-      holeOffset, holeCount: holes.length, cellPx: cell,
+      lens,
+      x: cx,
+      y: cy,
+      intensity,
+      swellStart,
+      swellEnd: this.siLen_,
+      dotStart,
+      dotEnd,
+      holeOffset,
+      holeCount: holes.length,
+      cellPx: cell,
     });
   }
 
@@ -375,7 +464,12 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
     const draws = this.lensDraws_;
     if (draws.length === 0) return;
 
-    if (this.siLen_ > 0 && this.swellProgram_ && this.swellBuffer_ && this.swellIndex_) {
+    if (
+      this.siLen_ > 0 &&
+      this.swellProgram_ &&
+      this.swellBuffer_ &&
+      this.swellIndex_
+    ) {
       this.swellBuffer_.setArray(this.sv_.subarray(0, this.svLen_));
       this.swellIndex_.setArray(this.si_.subarray(0, this.siLen_));
       helper.flushBufferData(this.swellBuffer_);
@@ -390,25 +484,42 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
         const lens = draw.lens;
         helper.setUniformFloatVec2('u_cursor', [draw.x, draw.y]);
         helper.setUniformFloatValue('u_radius', lens.radius);
-        helper.setUniformFloatValue('u_sigmaSq', (lens.radius / 2.2) * (lens.radius / 2.2));
+        helper.setUniformFloatValue(
+          'u_sigmaSq',
+          (lens.radius / 2.2) * (lens.radius / 2.2),
+        );
         helper.setUniformFloatValue('u_boost', lens.boost * draw.intensity);
         helper.setUniformFloatValue('u_intensity', draw.intensity);
         helper.setUniformFloatValue('u_quantum', 0.33);
         helper.setUniformFloatValue('u_minWidth', 0.33);
         helper.setUniformFloatVec4('u_color', toRgbaNormalized(lens.color));
-        const clearR = draw.cellPx > 0 ? Math.min(lens.clearRadius, draw.cellPx * 0.42) : lens.clearRadius;
+        const clearR =
+          draw.cellPx > 0
+            ? Math.min(lens.clearRadius, draw.cellPx * 0.42)
+            : lens.clearRadius;
         helper.setUniformFloatValue('u_clearR', clearR);
-        helper.setUniformFloatValue('u_holeFeather', Math.min(12, clearR * 0.85));
+        helper.setUniformFloatValue(
+          'u_holeFeather',
+          Math.min(12, clearR * 0.85),
+        );
         helper.setUniformFloatValue('u_holeCount', draw.holeCount);
         if (draw.holeCount > 0) {
           const end = draw.holeOffset + draw.holeCount * 3;
-          gl.uniform3fv(helper.getUniformLocation('u_holes[0]'), this.holes_.subarray(draw.holeOffset, end));
+          gl.uniform3fv(
+            helper.getUniformLocation('u_holes[0]'),
+            this.holes_.subarray(draw.holeOffset, end),
+          );
         }
         helper.drawElements(draw.swellStart, draw.swellEnd);
       }
     }
 
-    if (this.diLen_ > 0 && this.dotProgram_ && this.dotBuffer_ && this.dotIndex_) {
+    if (
+      this.diLen_ > 0 &&
+      this.dotProgram_ &&
+      this.dotBuffer_ &&
+      this.dotIndex_
+    ) {
       this.dotBuffer_.setArray(this.dv_.subarray(0, this.dvLen_));
       this.dotIndex_.setArray(this.di_.subarray(0, this.diLen_));
       helper.flushBufferData(this.dotBuffer_);
@@ -420,7 +531,10 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
       helper.setUniformFloatValue('u_glowR', DOT_GLOW_PX);
       for (const draw of draws) {
         if (draw.dotEnd === draw.dotStart) continue;
-        helper.setUniformFloatVec4('u_color', toRgbaNormalized(draw.lens.color));
+        helper.setUniformFloatVec4(
+          'u_color',
+          toRgbaNormalized(draw.lens.color),
+        );
         helper.drawElements(draw.dotStart, draw.dotEnd);
       }
     }
@@ -455,7 +569,15 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
 
   private drawLabels_(frameState: FrameState): void {
     const atlas = this.atlas_;
-    if (this.liLen_ === 0 || !atlas || !this.labelProgram_ || !this.labelVertBuffer_ || !this.labelIndexBuffer_ || !this.texture_) return;
+    if (
+      this.liLen_ === 0 ||
+      !atlas ||
+      !this.labelProgram_ ||
+      !this.labelVertBuffer_ ||
+      !this.labelIndexBuffer_ ||
+      !this.texture_
+    )
+      return;
 
     const gl = this.helper.getGL();
     if (atlas.takeDirty()) {
@@ -476,7 +598,11 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
     this.helper.drawElements(0, this.liLen_);
   }
 
-  private layoutLabel_(p: LabelPlacement, atlas: GlyphAtlas, dpr: number): void {
+  private layoutLabel_(
+    p: LabelPlacement,
+    atlas: GlyphAtlas,
+    dpr: number,
+  ): void {
     let totalWidth = 0;
     const glyphs: Glyph[] = [];
     for (const char of p.text) {
@@ -490,11 +616,14 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
     const anchorX = p.x + p.offsetX;
     const anchorY = p.y + p.offsetY;
     const alignDx =
-      p.align === 'left' || p.align === 'start' ? 0 :
-      p.align === 'right' || p.align === 'end' ? -totalWidth :
-      -totalWidth / 2;
+      p.align === 'left' || p.align === 'start'
+        ? 0
+        : p.align === 'right' || p.align === 'end'
+          ? -totalWidth
+          : -totalWidth / 2;
     const baselineDy = atlas.baselineOffset(p.font, p.baseline);
-    const haloEdge = atlas.fillEdge - (p.haloWidth * 0.5 * dpr) / atlas.radiusPx;
+    const haloEdge =
+      atlas.fillEdge - (p.haloWidth * 0.5 * dpr) / atlas.radiusPx;
 
     let penX = anchorX + alignDx;
     const baselineY = anchorY + baselineDy;
@@ -507,22 +636,87 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
         const y0 = baselineY + glyph.bearingTop;
         const x1 = x0 + glyph.cellW;
         const y1 = y0 + glyph.cellH;
-        this.emitLabelQuad_(x0, y0, x1, y1, glyph, anchorX, anchorY, cos, sin, p, haloEdge);
+        this.emitLabelQuad_(
+          x0,
+          y0,
+          x1,
+          y1,
+          glyph,
+          anchorX,
+          anchorY,
+          cos,
+          sin,
+          p,
+          haloEdge,
+        );
       }
       penX += glyph.advance;
     }
   }
 
   private emitLabelQuad_(
-    x0: number, y0: number, x1: number, y1: number,
-    glyph: Glyph, cx: number, cy: number, cos: number, sin: number, p: LabelPlacement, haloEdge: number,
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    glyph: Glyph,
+    cx: number,
+    cy: number,
+    cos: number,
+    sin: number,
+    p: LabelPlacement,
+    haloEdge: number,
   ): void {
     this.ensureLabelCapacity_(4 * LABEL_STRIDE, 6);
     const base = this.lvLen_ / LABEL_STRIDE;
-    this.labelVertex_(x0, y0, glyph.u0, glyph.v0, cx, cy, cos, sin, p, haloEdge);
-    this.labelVertex_(x1, y0, glyph.u1, glyph.v0, cx, cy, cos, sin, p, haloEdge);
-    this.labelVertex_(x0, y1, glyph.u0, glyph.v1, cx, cy, cos, sin, p, haloEdge);
-    this.labelVertex_(x1, y1, glyph.u1, glyph.v1, cx, cy, cos, sin, p, haloEdge);
+    this.labelVertex_(
+      x0,
+      y0,
+      glyph.u0,
+      glyph.v0,
+      cx,
+      cy,
+      cos,
+      sin,
+      p,
+      haloEdge,
+    );
+    this.labelVertex_(
+      x1,
+      y0,
+      glyph.u1,
+      glyph.v0,
+      cx,
+      cy,
+      cos,
+      sin,
+      p,
+      haloEdge,
+    );
+    this.labelVertex_(
+      x0,
+      y1,
+      glyph.u0,
+      glyph.v1,
+      cx,
+      cy,
+      cos,
+      sin,
+      p,
+      haloEdge,
+    );
+    this.labelVertex_(
+      x1,
+      y1,
+      glyph.u1,
+      glyph.v1,
+      cx,
+      cy,
+      cos,
+      sin,
+      p,
+      haloEdge,
+    );
     const iu = this.li_;
     iu[this.liLen_++] = base;
     iu[this.liLen_++] = base + 1;
@@ -533,8 +727,16 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
   }
 
   private labelVertex_(
-    x: number, y: number, u: number, v: number,
-    cx: number, cy: number, cos: number, sin: number, p: LabelPlacement, haloEdge: number,
+    x: number,
+    y: number,
+    u: number,
+    v: number,
+    cx: number,
+    cy: number,
+    cos: number,
+    sin: number,
+    p: LabelPlacement,
+    haloEdge: number,
   ): void {
     const dx = x - cx;
     const dy = y - cy;
@@ -588,7 +790,12 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
     }
   }
 
-  private leaderVertex_(x: number, y: number, along: number, edge: number): void {
+  private leaderVertex_(
+    x: number,
+    y: number,
+    along: number,
+    edge: number,
+  ): void {
     const vf = this.leadVf_;
     let o = this.leadVfLen_;
     vf[o++] = x;
@@ -598,7 +805,13 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
     this.leadVfLen_ = o;
   }
 
-  private emitSwellQuad_(x0: number, y0: number, x1: number, y1: number, half: number): void {
+  private emitSwellQuad_(
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    half: number,
+  ): void {
     const dx = x1 - x0;
     const dy = y1 - y0;
     const len = Math.hypot(dx, dy);
@@ -620,7 +833,14 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
     si[this.siLen_++] = base + 3;
   }
 
-  private swellVertex_(px: number, py: number, ax: number, ay: number, bx: number, by: number): void {
+  private swellVertex_(
+    px: number,
+    py: number,
+    ax: number,
+    ay: number,
+    bx: number,
+    by: number,
+  ): void {
     const sv = this.sv_;
     let o = this.svLen_;
     sv[o++] = px;
@@ -632,7 +852,12 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
     this.svLen_ = o;
   }
 
-  private emitDotQuad_(cx: number, cy: number, strength: number, intensity: number): void {
+  private emitDotQuad_(
+    cx: number,
+    cy: number,
+    strength: number,
+    intensity: number,
+  ): void {
     let df = (strength - 0.35) / 0.35;
     if (df <= 0) return;
     if (df > 1) df = 1;
@@ -653,7 +878,13 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
     di[this.diLen_++] = base + 3;
   }
 
-  private dotVertex_(px: number, py: number, cx: number, cy: number, alpha: number): void {
+  private dotVertex_(
+    px: number,
+    py: number,
+    cx: number,
+    cy: number,
+    alpha: number,
+  ): void {
     const dv = this.dv_;
     let o = this.dvLen_;
     dv[o++] = px;
@@ -706,15 +937,21 @@ class WebGLGraticuleRenderer extends WebGLLayerRenderer<WebGLGraticuleLayer> {
     if (this.dotBuffer_) this.helper.deleteBuffer(this.dotBuffer_);
     if (this.dotIndex_) this.helper.deleteBuffer(this.dotIndex_);
     if (this.labelVertBuffer_) this.helper.deleteBuffer(this.labelVertBuffer_);
-    if (this.labelIndexBuffer_) this.helper.deleteBuffer(this.labelIndexBuffer_);
-    if (this.leaderVertBuffer_) this.helper.deleteBuffer(this.leaderVertBuffer_);
-    if (this.leaderIndexBuffer_) this.helper.deleteBuffer(this.leaderIndexBuffer_);
+    if (this.labelIndexBuffer_)
+      this.helper.deleteBuffer(this.labelIndexBuffer_);
+    if (this.leaderVertBuffer_)
+      this.helper.deleteBuffer(this.leaderVertBuffer_);
+    if (this.leaderIndexBuffer_)
+      this.helper.deleteBuffer(this.leaderIndexBuffer_);
     super.disposeInternal();
   }
 }
 
 // --- WEBGL GRATICULE LAYER --------------------------------------------------
-export class WebGLGraticuleLayer extends Layer<VectorSource, WebGLGraticuleRenderer> {
+export class WebGLGraticuleLayer extends Layer<
+  VectorSource,
+  WebGLGraticuleRenderer
+> {
   readonly maxLines: number;
   readonly blend: GraticuleBlendMode | undefined;
   readonly pointers = new LensPointers();
@@ -746,7 +983,12 @@ export class WebGLGraticuleLayer extends Layer<VectorSource, WebGLGraticuleRende
         classify,
         bucketOffset,
         lens: resolveHoverLens(g.style?.hoverLens, g.style?.line),
-        labelEngine: createLabelEngine(g, edgeConfig, cfg.maxLines, new VectorSource({ useSpatialIndex: false })),
+        labelEngine: createLabelEngine(
+          g,
+          edgeConfig,
+          cfg.maxLines,
+          new VectorSource({ useSpatialIndex: false }),
+        ),
       });
     }
 
@@ -793,9 +1035,12 @@ export class WebGLGraticuleLayer extends Layer<VectorSource, WebGLGraticuleRende
 
   private updatePointers_(): void {
     const map = this.map_;
-    const hasLens = this.grids_.some((g) => g.lens !== null && g.gridSystem !== null);
+    const hasLens = this.grids_.some(
+      (g) => g.lens !== null && g.gridSystem !== null,
+    );
     const viewport = map?.getViewport();
-    if (map && viewport && hasLens) this.pointers.attach(viewport, () => map.render());
+    if (map && viewport && hasLens)
+      this.pointers.attach(viewport, () => map.render());
     else this.pointers.detach();
   }
 
@@ -805,7 +1050,11 @@ export class WebGLGraticuleLayer extends Layer<VectorSource, WebGLGraticuleRende
   }
 }
 
-function uploadTexture(gl: WebGLRenderingContext, texture: WebGLTexture, source: HTMLCanvasElement): void {
+function uploadTexture(
+  gl: WebGLRenderingContext,
+  texture: WebGLTexture,
+  source: HTMLCanvasElement,
+): void {
   gl.bindTexture(gl.TEXTURE_2D, texture);
   gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, source);
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);

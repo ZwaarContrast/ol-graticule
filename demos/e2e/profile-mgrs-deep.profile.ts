@@ -3,7 +3,11 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { blockExternalTiles, tallyHotFunctions, type CpuProfile } from './helpers.js';
+import {
+  blockExternalTiles,
+  tallyHotFunctions,
+  type CpuProfile,
+} from './helpers.js';
 
 /**
  * Deep-zoom MGRS profile: zoom all the way in (subdividing into 1 m grid
@@ -105,17 +109,23 @@ test('mgrs deep zoom: subdivide all the way in', async ({ page }) => {
   const cpuPath = join(OUT_DIR, 'mgrs-deep.cpuprofile');
   writeFileSync(cpuPath, JSON.stringify(profile));
 
-  const scriptDelta = (after.get('ScriptDuration') ?? 0) - (before.get('ScriptDuration') ?? 0);
-  const taskDelta = (after.get('TaskDuration') ?? 0) - (before.get('TaskDuration') ?? 0);
+  const scriptDelta =
+    (after.get('ScriptDuration') ?? 0) - (before.get('ScriptDuration') ?? 0);
+  const taskDelta =
+    (after.get('TaskDuration') ?? 0) - (before.get('TaskDuration') ?? 0);
   const heapMb = ((after.get('JSHeapUsedSize') ?? 0) / 1024 / 1024).toFixed(2);
 
   const lines: string[] = [];
   lines.push('Demo: mgrs DEEP ZOOM');
   lines.push(`Wall-clock interaction time: ${wallMs} ms`);
-  lines.push(`Script: ${scriptDelta.toFixed(3)} s, Tasks: ${taskDelta.toFixed(3)} s, Heap end: ${heapMb} MB`);
+  lines.push(
+    `Script: ${scriptDelta.toFixed(3)} s, Tasks: ${taskDelta.toFixed(3)} s, Heap end: ${heapMb} MB`,
+  );
   lines.push('');
   lines.push('Top 25 by self time:');
-  lines.push(`  ${'self ms'.padStart(9)}  ${'total ms'.padStart(9)}  function  [source]`);
+  lines.push(
+    `  ${'self ms'.padStart(9)}  ${'total ms'.padStart(9)}  function  [source]`,
+  );
   for (const fn of hot) {
     lines.push(
       `  ${fn.selfMs.toFixed(1).padStart(9)}  ${fn.totalMs.toFixed(1).padStart(9)}  ${fn.name}  [${fn.source}]`,

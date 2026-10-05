@@ -10,9 +10,7 @@ import type { GridLabel, GridCellLabel } from './types.js';
 
 /** Grid-line styling: stroke, `{ major, minor?, boundary? }`, or a `StyleLike`. */
 export type GraticuleLineStyle =
-  | Stroke
-  | { major: Stroke; minor?: Stroke; boundary?: Stroke }
-  | StyleLike;
+  Stroke | { major: Stroke; minor?: Stroke; boundary?: Stroke } | StyleLike;
 
 /**
  * Pointer "lens": as the cursor moves over the grid, every line swells towards
@@ -244,9 +242,15 @@ export function createDefaultEdgeLabelHandler(
 
       // Style by the edge actually anchored to (rotation may move a label off its
       // axis's usual edge); fall back to the axis's configured side.
-      const edge = ctx.edge ?? (label.axis === 'x'
-        ? (atTop ? 'top' : 'bottom')
-        : (atLeft ? 'left' : 'right'));
+      const edge =
+        ctx.edge ??
+        (label.axis === 'x'
+          ? atTop
+            ? 'top'
+            : 'bottom'
+          : atLeft
+            ? 'left'
+            : 'right');
       styleForEdge(slot.text, edge, ctx);
       return true;
     },
@@ -258,25 +262,37 @@ export function createDefaultEdgeLabelHandler(
  * dropping in from top/bottom, middle-aligned and pushed in from left/right. The
  * inward offset is the config value for that edge's orientation.
  */
-function styleForEdge(text: Text, edge: EdgeLabelEdge, ctx: EdgeLabelContext): void {
+function styleForEdge(
+  text: Text,
+  edge: EdgeLabelEdge,
+  ctx: EdgeLabelContext,
+): void {
   const horizontal = edge === 'top' || edge === 'bottom';
   const off = horizontal ? ctx.xLabelOffset : ctx.yLabelOffset;
   switch (edge) {
     case 'top':
-      text.setTextBaseline('top'); text.setTextAlign('center');
-      text.setOffsetX(0); text.setOffsetY(off);
+      text.setTextBaseline('top');
+      text.setTextAlign('center');
+      text.setOffsetX(0);
+      text.setOffsetY(off);
       break;
     case 'bottom':
-      text.setTextBaseline('bottom'); text.setTextAlign('center');
-      text.setOffsetX(0); text.setOffsetY(-off);
+      text.setTextBaseline('bottom');
+      text.setTextAlign('center');
+      text.setOffsetX(0);
+      text.setOffsetY(-off);
       break;
     case 'left':
-      text.setTextBaseline('middle'); text.setTextAlign('left');
-      text.setOffsetX(off); text.setOffsetY(0);
+      text.setTextBaseline('middle');
+      text.setTextAlign('left');
+      text.setOffsetX(off);
+      text.setOffsetY(0);
       break;
     case 'right':
-      text.setTextBaseline('middle'); text.setTextAlign('right');
-      text.setOffsetX(-off); text.setOffsetY(0);
+      text.setTextBaseline('middle');
+      text.setTextAlign('right');
+      text.setOffsetX(-off);
+      text.setOffsetY(0);
       break;
   }
 }
@@ -310,18 +326,22 @@ export interface DefaultCellLabelOptions {
 export function createDefaultCellLabelHandler(
   options: DefaultCellLabelOptions = {},
 ): CellLabelStyleHandler {
-  const fontFamily = options.fontFamily ?? 'system-ui, -apple-system, sans-serif';
+  const fontFamily =
+    options.fontFamily ?? 'system-ui, -apple-system, sans-serif';
   const fontWeight = options.fontWeight ?? 700;
   const fontStyle = options.fontStyle ?? '';
   const fillColor =
-    options.fillColor ?? ((o: number) => `rgba(255, 255, 255, ${o.toFixed(2)})`);
+    options.fillColor ??
+    ((o: number) => `rgba(255, 255, 255, ${o.toFixed(2)})`);
   const strokeColor =
-    options.strokeColor ?? ((o: number) => `rgba(0, 0, 0, ${(o * 0.8).toFixed(2)})`);
+    options.strokeColor ??
+    ((o: number) => `rgba(0, 0, 0, ${(o * 0.8).toFixed(2)})`);
   const strokeWidth = options.strokeWidth ?? 3;
   const [minSize, maxSize] = options.fontSizeRange ?? [12, 32];
   const sizeFactor = options.fontSizeFactor ?? 0.15;
-  const [fadeInStart, fullStart, fullEnd, fadeOutEnd] =
-    options.fadeStops ?? [40, 80, 400, 800];
+  const [fadeInStart, fullStart, fullEnd, fadeOutEnd] = options.fadeStops ?? [
+    40, 80, 400, 800,
+  ];
   const peak = options.peakOpacity ?? 0.45;
   const rotation = options.rotation ?? 0;
 
@@ -374,13 +394,20 @@ export function createDefaultCellLabelHandler(
       if (size < fadeInStart || size >= fadeOutEnd) return false;
 
       const rawOpacity =
-        size < fullStart ? ((size - fadeInStart) / (fullStart - fadeInStart)) * peak :
-        size < fullEnd   ? peak :
-                           Math.max(0, peak * (1 - (size - fullEnd) / (fadeOutEnd - fullEnd)));
+        size < fullStart
+          ? ((size - fadeInStart) / (fullStart - fadeInStart)) * peak
+          : size < fullEnd
+            ? peak
+            : Math.max(
+                0,
+                peak * (1 - (size - fullEnd) / (fadeOutEnd - fullEnd)),
+              );
       if (rawOpacity < 0.02) return false;
 
       const opacity = Math.round(rawOpacity * 100) / 100;
-      const fontPx = Math.round(Math.min(maxSize, Math.max(minSize, size * sizeFactor)));
+      const fontPx = Math.round(
+        Math.min(maxSize, Math.max(minSize, size * sizeFactor)),
+      );
 
       slot.fill.setColor(fillOf(opacity));
       slot.stroke.setColor(strokeOf(opacity));
@@ -403,7 +430,9 @@ export function resolveEdgeLabelHandler(
 }
 
 /** Resolve a {@link GraticuleLineStyle} to an OL `StyleLike` for `setStyle`. */
-export function resolveLineStyle(input: GraticuleLineStyle | undefined): StyleLike {
+export function resolveLineStyle(
+  input: GraticuleLineStyle | undefined,
+): StyleLike {
   const config: GraticuleLineStyle = input ?? DEFAULT_LINE_STYLE;
 
   if (config instanceof Stroke) {
@@ -413,8 +442,12 @@ export function resolveLineStyle(input: GraticuleLineStyle | undefined): StyleLi
 
   if (isMajorMinor(config)) {
     const major = new Style({ stroke: config.major });
-    const minor = new Style({ stroke: config.minor ?? DEFAULT_MINOR_LINE_STROKE });
-    const boundary = config.boundary ? new Style({ stroke: config.boundary }) : major;
+    const minor = new Style({
+      stroke: config.minor ?? DEFAULT_MINOR_LINE_STROKE,
+    });
+    const boundary = config.boundary
+      ? new Style({ stroke: config.boundary })
+      : major;
     return (feature): Style => {
       const type = feature.get('gridLineType');
       if (type === 'minor') return minor;

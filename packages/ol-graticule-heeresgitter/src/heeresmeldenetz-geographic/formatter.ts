@@ -38,9 +38,13 @@ export function hmnGeoHierarchicalLabel(
   depth: HmnGeoRenderDepth,
 ): string | undefined {
   const grossNwLonSec =
-    ANCHOR_LON_SEC + Math.floor((midLonSec - ANCHOR_LON_SEC) / GROSSTRAPEZ_LON_SEC) * GROSSTRAPEZ_LON_SEC;
+    ANCHOR_LON_SEC +
+    Math.floor((midLonSec - ANCHOR_LON_SEC) / GROSSTRAPEZ_LON_SEC) *
+      GROSSTRAPEZ_LON_SEC;
   const grossNwLatSec =
-    ANCHOR_LAT_SEC + (Math.floor((midLatSec - ANCHOR_LAT_SEC) / GROSSTRAPEZ_LAT_SEC) + 1) * GROSSTRAPEZ_LAT_SEC;
+    ANCHOR_LAT_SEC +
+    (Math.floor((midLatSec - ANCHOR_LAT_SEC) / GROSSTRAPEZ_LAT_SEC) + 1) *
+      GROSSTRAPEZ_LAT_SEC;
 
   const kx = Math.floor((midLonSec - grossNwLonSec) / KLEINTRAPEZ_LON_SEC);
   const ky = Math.floor((grossNwLatSec - midLatSec) / KLEINTRAPEZ_LAT_SEC);

@@ -2,7 +2,11 @@ import { describe, expect, it } from 'vitest';
 import { mergeEdges, polyEdges, rectEdges } from '../edgeMerge.js';
 import type { PolySquare, RectSquare } from '../types.js';
 
-function rect(id: string, nw: [number, number], se: [number, number]): RectSquare {
+function rect(
+  id: string,
+  nw: [number, number],
+  se: [number, number],
+): RectSquare {
   return { id, nw, se };
 }
 
@@ -88,10 +92,7 @@ describe('mergeEdges', () => {
   it('deduplicates identical diagonal edges into one', () => {
     const r1 = rect('X', [60, 170], [50, -170]);
     const r2 = rect('Y', [60, 170], [50, -170]);
-    const merged = mergeEdges([
-      ...rectEdges(r1, 0),
-      ...rectEdges(r2, 0),
-    ]);
+    const merged = mergeEdges([...rectEdges(r1, 0), ...rectEdges(r2, 0)]);
     expect(merged.length).toBe(4);
   });
 });

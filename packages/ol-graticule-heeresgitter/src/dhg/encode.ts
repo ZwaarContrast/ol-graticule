@@ -26,14 +26,20 @@ export interface DhgFormatOptions {
 }
 
 /** Format the Rechtswert as printed on a wartime sheet (default: `"5600"` long form). */
-export function formatEasting(coord: DhgCoord, options: DhgFormatOptions = {}): string {
+export function formatEasting(
+  coord: DhgCoord,
+  options: DhgFormatOptions = {},
+): string {
   const km = Math.floor(coord.easting / 1000);
   if (options.form === 'short') return String(km % 100).padStart(2, '0');
   return `${coord.kennziffer}${String(km).padStart(3, '0')}`;
 }
 
 /** Format the Hochwert as printed on a wartime sheet (default: `"5760"` long form). */
-export function formatNorthing(coord: DhgCoord, options: DhgFormatOptions = {}): string {
+export function formatNorthing(
+  coord: DhgCoord,
+  options: DhgFormatOptions = {},
+): string {
   const km = Math.floor(coord.northing / 1000);
   if (options.form === 'short') return String(km % 100).padStart(2, '0');
   return String(km);
@@ -45,7 +51,9 @@ export function formatNorthing(coord: DhgCoord, options: DhgFormatOptions = {}):
  * zone (useful when straddling a boundary).
  */
 export function encodeDhg(point: LatLon, kennziffer?: number): DhgCoord {
-  return kennziffer === undefined ? forward(point) : forwardInZone(point, kennziffer);
+  return kennziffer === undefined
+    ? forward(point)
+    : forwardInZone(point, kennziffer);
 }
 
 /**

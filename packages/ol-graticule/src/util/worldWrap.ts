@@ -7,7 +7,8 @@ import type { ProjectionLike } from 'ol/proj';
 export function wrapParams(
   projection: ProjectionLike,
 ): { projExtent: Extent; worldWidth: number } | null {
-  const projObj = typeof projection === 'string' ? getProjection(projection) : projection;
+  const projObj =
+    typeof projection === 'string' ? getProjection(projection) : projection;
   const projExtent = projObj?.getExtent();
   if (!projExtent || !projObj?.canWrapX()) return null;
   const worldWidth = projExtent[2] - projExtent[0];
@@ -19,7 +20,11 @@ export function wrapParams(
  * The x-offsets (map units) of every world copy `extent` touches, given the
  * projection's `projExtent` and wrap `worldWidth`. Always returns at least [0].
  */
-export function worldOffsets(extent: Extent, projExtent: Extent, worldWidth: number): number[] {
+export function worldOffsets(
+  extent: Extent,
+  projExtent: Extent,
+  worldWidth: number,
+): number[] {
   const minN = Math.floor((extent[0] - projExtent[2]) / worldWidth) + 1;
   const maxN = Math.floor((extent[2] - projExtent[0]) / worldWidth);
   const offsets: number[] = [];
@@ -29,7 +34,10 @@ export function worldOffsets(extent: Extent, projExtent: Extent, worldWidth: num
 
 /** Visible world x-offsets for `extent` under `projection` (just [0] if it does
  * not wrap). */
-export function visibleWorldOffsets(extent: Extent, projection: ProjectionLike): number[] {
+export function visibleWorldOffsets(
+  extent: Extent,
+  projection: ProjectionLike,
+): number[] {
   const wrap = wrapParams(projection);
   if (!wrap) return [0];
   return worldOffsets(extent, wrap.projExtent, wrap.worldWidth);
@@ -37,7 +45,10 @@ export function visibleWorldOffsets(extent: Extent, projection: ProjectionLike):
 
 /** The x-offset of the world copy a map coordinate sits in, or 0 when the
  * projection does not wrap. */
-export function worldOffsetOf(coordinateX: number, projection: ProjectionLike): number {
+export function worldOffsetOf(
+  coordinateX: number,
+  projection: ProjectionLike,
+): number {
   const wrap = wrapParams(projection);
   if (!wrap) return 0;
   return wrap.worldWidth * Math.round(coordinateX / wrap.worldWidth);
@@ -48,7 +59,10 @@ export function worldOffsetOf(coordinateX: number, projection: ProjectionLike): 
  * the grid system should generate for, so callers can then repeat it across the
  * visible world copies. Leaves the extent unchanged for non-wrapping projections.
  */
-export function canonicalizeExtent(extent: Extent, projection: ProjectionLike): Extent {
+export function canonicalizeExtent(
+  extent: Extent,
+  projection: ProjectionLike,
+): Extent {
   const wrap = wrapParams(projection);
   if (!wrap) return extent;
   const { projExtent, worldWidth } = wrap;

@@ -15,7 +15,11 @@
 
 import proj4 from 'proj4';
 
-import { DEFAULT_DATUM_SHIFT, datumShiftKey, registerZoneCrs } from '../gaussKrueger.js';
+import {
+  DEFAULT_DATUM_SHIFT,
+  datumShiftKey,
+  registerZoneCrs,
+} from '../gaussKrueger.js';
 import type { DatumShift, DrgCoord, DrgZone, LatLon } from './types.js';
 import { ALL_ZONES, zoneByKennziffer, zoneForLon } from './zones.js';
 
@@ -24,7 +28,10 @@ export { DEFAULT_DATUM_SHIFT };
 let activeDatumShift: DatumShift = DEFAULT_DATUM_SHIFT;
 
 /** CRS code identifying a 3° strip for a given datum shift in the proj4 registry. */
-export function drgCrsCode(kennziffer: number, shift: DatumShift = activeDatumShift): string {
+export function drgCrsCode(
+  kennziffer: number,
+  shift: DatumShift = activeDatumShift,
+): string {
   return `DRG:Z${String(kennziffer).padStart(2, '0')}${datumShiftKey(shift)}`;
 }
 
@@ -56,8 +63,13 @@ export function resetDrgDatumShift(): void {
 }
 
 /** Register a strip's CRS with proj4 and OpenLayers. Idempotent. */
-export function registerZone(zone: DrgZone, shift: DatumShift = activeDatumShift): string {
-  return registerZoneCrs(drgCrsCode(zone.kennziffer, shift), () => proj4DefFor(zone, shift));
+export function registerZone(
+  zone: DrgZone,
+  shift: DatumShift = activeDatumShift,
+): string {
+  return registerZoneCrs(drgCrsCode(zone.kennziffer, shift), () =>
+    proj4DefFor(zone, shift),
+  );
 }
 
 /** Register every supported strip under the given shift. */
@@ -66,7 +78,10 @@ export function registerAllZones(shift: DatumShift = activeDatumShift): void {
 }
 
 /** Forward project WGS 84 `(lat, lon)` into the strip whose CM is nearest `lon`. */
-export function forward(point: LatLon, shift: DatumShift = activeDatumShift): DrgCoord {
+export function forward(
+  point: LatLon,
+  shift: DatumShift = activeDatumShift,
+): DrgCoord {
   return forwardInZone(point, zoneForLon(point[1]).kennziffer, shift);
 }
 
@@ -84,7 +99,10 @@ export function forwardInZone(
 }
 
 /** Inverse project a `DrgCoord` back to WGS 84 `(lat, lon)`. */
-export function inverse(coord: DrgCoord, shift: DatumShift = activeDatumShift): LatLon {
+export function inverse(
+  coord: DrgCoord,
+  shift: DatumShift = activeDatumShift,
+): LatLon {
   const zone = zoneByKennziffer(coord.kennziffer);
   const code = registerZone(zone, shift);
   const [lon, lat] = proj4(code, 'EPSG:4326', [coord.easting, coord.northing]);

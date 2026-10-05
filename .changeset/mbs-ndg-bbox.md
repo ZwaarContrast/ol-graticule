@@ -1,5 +1,5 @@
 ---
-"@zwaarcontrast/ol-graticule-modified-british-system": minor
+'@zwaarcontrast/ol-graticule-modified-british-system': minor
 ---
 
 Add `NORD_DE_GUERRE_BBOX_WGS84`. Every other MBS family already published a

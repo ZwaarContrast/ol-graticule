@@ -41,7 +41,7 @@ describe('LruCache', () => {
     c.set('b', 2);
     c.set('c', 3);
     c.set('a', 11); // touch via update
-    c.set('d', 4);  // evicts LRU, which is now 'b'
+    c.set('d', 4); // evicts LRU, which is now 'b'
     expect(c.get('b')).toBeUndefined();
     expect(c.get('a')).toBe(11);
   });

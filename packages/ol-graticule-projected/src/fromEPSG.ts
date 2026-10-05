@@ -6,8 +6,7 @@ import {
 
 import { ProjectedGridSystem } from './grid-systems/ProjectedGridSystem.js';
 import type { ProjectedGridSystemOptions } from './grid-systems/ProjectedGridSystem.js';
-import { register } from 'ol/proj/proj4';
-import { registerCRS } from './registerCRS.js';
+import { registerCRS, syncOlProjections } from './registerCRS.js';
 
 type Ring = Array<[number, number]>;
 
@@ -109,7 +108,7 @@ async function lookup(
     ),
   ]);
   if (def !== undefined) registerCRS(crs, optionalGrids(def.trim()));
-  else register(proj4);
+  else syncOlProjections();
   return areaOfUse(projjson);
 }
 

@@ -36,6 +36,10 @@
     ".": {
       "import": "./dist/index.js",
       "types": "./dist/index.d.ts"
+    },
+    "./headless": {
+      "import": "./dist/headless.js",
+      "types": "./dist/headless.d.ts"
     }
   },
   "files": [

@@ -6,10 +6,6 @@
  * package README for the full credit.
  */
 
-import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
-import { WAR_OFFICE_CASSINI_SCHEME } from '../formatters/schemes.js';
-import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
-
 /**
  * War Office Cassini Grid ("WOFO" / "Purple Grid"), WWII British Army
  * grid, used on GSGS series sheets 1927–WWII. Cassini-Soldner with natural
@@ -26,26 +22,26 @@ export const WAR_OFFICE_CASSINI_PROJ4 =
   '+ellps=airy +units=m +no_defs +type=crs';
 
 /** WGS84 bbox `[lonMin, latMin, lonMax, latMax]` covering Great Britain plus buffer. */
-export const WAR_OFFICE_CASSINI_BBOX_WGS84: [number, number, number, number] = [-10.5, 48.5, 4.5, 62.0];
+export const WAR_OFFICE_CASSINI_BBOX_WGS84: [number, number, number, number] = [
+  -10.5, 48.5, 4.5, 62.0,
+];
 
 /** MBS coverage polygon for Britain in WOFO metres ({@link WAR_OFFICE_CASSINI_CRS}). Open ring. */
 export const WAR_OFFICE_CASSINI_CLIP_POLYGON: [number, number][] = [
-  [97239, 1103633], [302001, 1103149], [500154, 1103049], [700872, 1103219],
-  [802575, 1103768], [802871, 196449], [703925, 196382], [704906, 96920],
-  [604481, 96446], [603676, -3480], [302917, -4050], [97843, -4545],
-  [96027, 203969], [195496, 204528], [195945, 596925], [95099, 595915],
+  [97239, 1103633],
+  [302001, 1103149],
+  [500154, 1103049],
+  [700872, 1103219],
+  [802575, 1103768],
+  [802871, 196449],
+  [703925, 196382],
+  [704906, 96920],
+  [604481, 96446],
+  [603676, -3480],
+  [302917, -4050],
+  [97843, -4545],
+  [96027, 203969],
+  [195496, 204528],
+  [195945, 596925],
+  [95099, 595915],
 ];
-
-export type WarOfficeCassiniGridSystemOptions = MBSGridSystemOptions;
-
-export function createWarOfficeCassiniGridSystem(
-  options?: WarOfficeCassiniGridSystemOptions,
-): PolygonClippedGridSystem {
-  return createMBSGridSystem(
-    WAR_OFFICE_CASSINI_CRS,
-    WAR_OFFICE_CASSINI_PROJ4,
-    WAR_OFFICE_CASSINI_SCHEME,
-    WAR_OFFICE_CASSINI_CLIP_POLYGON,
-    options,
-  );
-}

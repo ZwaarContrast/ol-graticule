@@ -5,7 +5,7 @@
  * register-once CRS registration.
  */
 
-import { registerCRS } from '@zwaarcontrast/ol-graticule-projected';
+import { registerProj4 } from '@zwaarcontrast/ol-graticule-projected/headless';
 
 import type { DatumShift } from './dhg/types.js';
 
@@ -30,13 +30,16 @@ export function datumShiftKey(shift: DatumShift): string {
 const registeredCodes = new Set<string>();
 
 /**
- * Register `code` with proj4 and OpenLayers on first use, returning `code`.
- * `buildDef` runs only when the code is not yet registered, so callers can
- * hand over a proj4 string that is expensive to assemble.
+ * Register `code` with proj4 on first use, returning `code`. `buildDef` runs
+ * only when the code is not yet registered, so callers can hand over a proj4
+ * string that is expensive to assemble.
+ *
+ * proj4 alone, so the codecs stay importable under plain Node. Grid systems
+ * hand these codes to `ol/proj` and call `syncOlProjections()` themselves.
  */
 export function registerZoneCrs(code: string, buildDef: () => string): string {
   if (registeredCodes.has(code)) return code;
-  registerCRS(code, buildDef());
+  registerProj4(code, buildDef());
   registeredCodes.add(code);
   return code;
 }

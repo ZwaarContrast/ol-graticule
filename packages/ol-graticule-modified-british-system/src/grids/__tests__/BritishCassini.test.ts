@@ -1,10 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import proj4 from 'proj4';
 import { transform } from 'ol/proj';
-import {
-  createBritishCassiniGridSystem,
-  BRITISH_CASSINI_CRS,
-} from '../BritishCassini';
+import { BRITISH_CASSINI_CRS } from '../BritishCassini';
+import { createBritishCassiniGridSystem } from '../BritishCassini.grid';
 
 /**
  * Ground truth: a handful of British cities cross-referenced against
@@ -14,7 +12,7 @@ import {
 const samples = [
   {
     name: 'Delamere Forest (grid origin vicinity)',
-    lonLat: [-2.68432278, 53.2214650] as [number, number],
+    lonLat: [-2.68432278, 53.221465] as [number, number],
     // Delamere sits near the false origin (500 km E, 100 km N) inside cell vE.
     expected: /^v[A-Z] \d{3} \d{3}$/,
   },
@@ -38,7 +36,8 @@ describe('British Cassini MBS factory', () => {
       const grid = createBritishCassiniGridSystem();
       const [x, y] = transform(lonLat, 'EPSG:4326', BRITISH_CASSINI_CRS);
       const formatted = grid.formatCoordinate([x!, y!], BRITISH_CASSINI_CRS);
-      if (!('combined' in formatted)) throw new Error('expected combined label');
+      if (!('combined' in formatted))
+        throw new Error('expected combined label');
       expect(formatted.combined).toMatch(expected);
     });
   }
@@ -46,7 +45,9 @@ describe('British Cassini MBS factory', () => {
   it('reports offshore coordinates as invalid', () => {
     const grid = createBritishCassiniGridSystem();
     // Mid-Atlantic, well outside the bbox AOI.
-    expect(grid.isValidCoordinate!([-500_000, -500_000], BRITISH_CASSINI_CRS)).toBe(false);
+    expect(
+      grid.isValidCoordinate!([-500_000, -500_000], BRITISH_CASSINI_CRS),
+    ).toBe(false);
   });
 
   /**
@@ -86,24 +87,36 @@ describe('British Cassini MBS factory', () => {
       // https://maps.nls.uk/view/239259997
       // Hellyer feet:   W: -3 690   E: +138 870   N: +48 940   S: -46 100
       {
-        sheet: 'Pop. Ed. 44 (Macclesfield)', corner: 'NW',
-        lat: 53.355510, lon: -2.701216,
-        expectedX: 500_000 + (-3_690 * 0.3048), expectedY: 100_000 + ( 48_940 * 0.3048),
+        sheet: 'Pop. Ed. 44 (Macclesfield)',
+        corner: 'NW',
+        lat: 53.35551,
+        lon: -2.701216,
+        expectedX: 500_000 + -3_690 * 0.3048,
+        expectedY: 100_000 + 48_940 * 0.3048,
       },
       {
-        sheet: 'Pop. Ed. 44 (Macclesfield)', corner: 'NE',
-        lat: 53.353818, lon: -2.048580,
-        expectedX: 500_000 + (138_870 * 0.3048), expectedY: 100_000 + ( 48_940 * 0.3048),
+        sheet: 'Pop. Ed. 44 (Macclesfield)',
+        corner: 'NE',
+        lat: 53.353818,
+        lon: -2.04858,
+        expectedX: 500_000 + 138_870 * 0.3048,
+        expectedY: 100_000 + 48_940 * 0.3048,
       },
       {
-        sheet: 'Pop. Ed. 44 (Macclesfield)', corner: 'SW',
-        lat: 53.095193, lon: -2.701114,
-        expectedX: 500_000 + (-3_690 * 0.3048), expectedY: 100_000 + (-46_100 * 0.3048),
+        sheet: 'Pop. Ed. 44 (Macclesfield)',
+        corner: 'SW',
+        lat: 53.095193,
+        lon: -2.701114,
+        expectedX: 500_000 + -3_690 * 0.3048,
+        expectedY: 100_000 + -46_100 * 0.3048,
       },
       {
-        sheet: 'Pop. Ed. 44 (Macclesfield)', corner: 'SE',
-        lat: 53.093517, lon: -2.052423,
-        expectedX: 500_000 + (138_870 * 0.3048), expectedY: 100_000 + (-46_100 * 0.3048),
+        sheet: 'Pop. Ed. 44 (Macclesfield)',
+        corner: 'SE',
+        lat: 53.093517,
+        lon: -2.052423,
+        expectedX: 500_000 + 138_870 * 0.3048,
+        expectedY: 100_000 + -46_100 * 0.3048,
       },
     ];
 
@@ -111,7 +124,10 @@ describe('British Cassini MBS factory', () => {
       it(`${a.sheet} ${a.corner}, Hellyer Delamere ft → factory metres`, () => {
         // Side-effect: register the CRS with proj4/OL.
         createBritishCassiniGridSystem();
-        const [x, y] = proj4(AIRY_LL, BRITISH_CASSINI_CRS).forward([a.lon, a.lat]);
+        const [x, y] = proj4(AIRY_LL, BRITISH_CASSINI_CRS).forward([
+          a.lon,
+          a.lat,
+        ]);
         expect(Math.abs(x - a.expectedX)).toBeLessThan(1); // 1 m tolerance
         expect(Math.abs(y - a.expectedY)).toBeLessThan(1);
       });
@@ -153,8 +169,9 @@ describe('British Cassini MBS factory', () => {
    */
   describe("factory's projection of printed Sheet 44 parallel labels lands in the correct printed row", () => {
     // Sheet 44 row N-edges in factory metres (top→bottom). Hellyer values.
-    const rowYBoundsM = [48940, 38380, 27820, 17260, 6700, -3860, -14420, -24980, -35540, -46100]
-      .map(ft => 100_000 + ft * 0.3048);
+    const rowYBoundsM = [
+      48940, 38380, 27820, 17260, 6700, -3860, -14420, -24980, -35540, -46100,
+    ].map((ft) => 100_000 + ft * 0.3048);
     const rowLetters = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'J'];
     const rowYRange = (letter: string) => {
       const i = rowLetters.indexOf(letter);
@@ -163,7 +180,11 @@ describe('British Cassini MBS factory', () => {
     };
 
     // Label positions read off the printed left edge of Sheet 44.
-    const parallels: Array<{ latDeg: number; latMin: number; expectedRow: string }> = [
+    const parallels: Array<{
+      latDeg: number;
+      latMin: number;
+      expectedRow: string;
+    }> = [
       { latDeg: 53, latMin: 20, expectedRow: 'A' }, // "Lat. 53°20'" annotated alongside row A
       { latDeg: 53, latMin: 15, expectedRow: 'D' }, // "15'" annotated alongside row D
       { latDeg: 53, latMin: 10, expectedRow: 'G' }, // "Lat. 53°10'" annotated alongside row G

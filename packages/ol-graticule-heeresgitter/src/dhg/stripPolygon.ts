@@ -44,7 +44,13 @@ export function stripClipPolygon(zone: DhgZone, overlapDeg = 0): PolygonClip {
     // Degenerate triangle: zone outside the validity envelope.
     return {
       crs: 'EPSG:4326',
-      rings: [[[0, 0], [0, 0.0001], [0.0001, 0]]],
+      rings: [
+        [
+          [0, 0],
+          [0, 0.0001],
+          [0.0001, 0],
+        ],
+      ],
     };
   }
 

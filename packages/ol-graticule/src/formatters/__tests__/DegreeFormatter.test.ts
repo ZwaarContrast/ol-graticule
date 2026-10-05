@@ -36,7 +36,9 @@ describe('DegreeFormatter', () => {
 
     it('formats degrees with minutes and seconds', () => {
       // 10.5086111... = 10° 30' 31"
-      expect(formatter.format(10 + 30 / 60 + 31 / 3600, 'x')).toBe('10\u00B030\u203231\u2033E');
+      expect(formatter.format(10 + 30 / 60 + 31 / 3600, 'x')).toBe(
+        '10\u00B030\u203231\u2033E',
+      );
     });
   });
 
@@ -127,10 +129,22 @@ describe('DegreeFormatter', () => {
     });
 
     it('parses lenient DMS variants', () => {
-      expect(formatter.parse("50 37 2 N", 'y')).toBeCloseTo(50 + 37 / 60 + 2 / 3600, 6);
-      expect(formatter.parse("50d37m02sN", 'y')).toBeCloseTo(50 + 37 / 60 + 2 / 3600, 6);
-      expect(formatter.parse("N50 37 02", 'y')).toBeCloseTo(50 + 37 / 60 + 2 / 3600, 6);
-      expect(formatter.parse("50\u00B037'02\"", 'y')).toBeCloseTo(50 + 37 / 60 + 2 / 3600, 6);
+      expect(formatter.parse('50 37 2 N', 'y')).toBeCloseTo(
+        50 + 37 / 60 + 2 / 3600,
+        6,
+      );
+      expect(formatter.parse('50d37m02sN', 'y')).toBeCloseTo(
+        50 + 37 / 60 + 2 / 3600,
+        6,
+      );
+      expect(formatter.parse('N50 37 02', 'y')).toBeCloseTo(
+        50 + 37 / 60 + 2 / 3600,
+        6,
+      );
+      expect(formatter.parse('50\u00B037\'02"', 'y')).toBeCloseTo(
+        50 + 37 / 60 + 2 / 3600,
+        6,
+      );
     });
 
     it('parses bare numbers (no hemisphere, no sign)', () => {

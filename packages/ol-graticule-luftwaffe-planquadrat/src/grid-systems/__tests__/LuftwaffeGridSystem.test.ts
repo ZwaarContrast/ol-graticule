@@ -4,7 +4,11 @@ import type { Point } from 'ol/geom';
 import { ParseError, isCombinedFormatted } from '@zwaarcontrast/ol-graticule';
 import { LuftwaffeGridSystem } from '../LuftwaffeGridSystem.js';
 
-function latsOfHorizontalLines(grid: LuftwaffeGridSystem, extent: [number, number, number, number], resolution: number): number[] {
+function latsOfHorizontalLines(
+  grid: LuftwaffeGridSystem,
+  extent: [number, number, number, number],
+  resolution: number,
+): number[] {
   const features = grid.getFeatures(extent, resolution, 'EPSG:4326');
   return features
     .filter((f) => f.get('gridAxis') === 'y')
@@ -12,7 +16,11 @@ function latsOfHorizontalLines(grid: LuftwaffeGridSystem, extent: [number, numbe
     .sort((a, b) => a - b);
 }
 
-function depthsOfHorizontalLines(grid: LuftwaffeGridSystem, extent: [number, number, number, number], resolution: number): Map<number, number> {
+function depthsOfHorizontalLines(
+  grid: LuftwaffeGridSystem,
+  extent: [number, number, number, number],
+  resolution: number,
+): Map<number, number> {
   const features = grid.getFeatures(extent, resolution, 'EPSG:4326');
   const out = new Map<number, number>();
   for (const f of features) {
@@ -81,16 +89,31 @@ describe('LuftwaffeGridSystem cell labels', () => {
 describe('LuftwaffeGridSystem JMN era coercion', () => {
   it('ignores era=pre-1943 when system is JMN (JMN only existed in its post-1943 form)', () => {
     const jmnPre = new LuftwaffeGridSystem({ system: 'jmn', era: 'pre-1943' });
-    const jmnPost = new LuftwaffeGridSystem({ system: 'jmn', era: 'post-1943' });
+    const jmnPost = new LuftwaffeGridSystem({
+      system: 'jmn',
+      era: 'post-1943',
+    });
     const extent: [number, number, number, number] = [6.8, 50.9, 7.0, 51.0];
-    const labelsPre = jmnPre.getCellLabels(extent, 1e-6, 'EPSG:4326').map((l) => l.text).sort();
-    const labelsPost = jmnPost.getCellLabels(extent, 1e-6, 'EPSG:4326').map((l) => l.text).sort();
+    const labelsPre = jmnPre
+      .getCellLabels(extent, 1e-6, 'EPSG:4326')
+      .map((l) => l.text)
+      .sort();
+    const labelsPost = jmnPost
+      .getCellLabels(extent, 1e-6, 'EPSG:4326')
+      .map((l) => l.text)
+      .sort();
     expect(labelsPre).toEqual(labelsPost);
   });
 
   it('GNMV still honours era=pre-1943 (regression guard)', () => {
-    const gnmvPre = new LuftwaffeGridSystem({ system: 'gnmv', era: 'pre-1943' });
-    const text = gnmvPre.formatCoordinate([13.376257, 52.518720], 'EPSG:4326').combined;
+    const gnmvPre = new LuftwaffeGridSystem({
+      system: 'gnmv',
+      era: 'pre-1943',
+    });
+    const text = gnmvPre.formatCoordinate(
+      [13.376257, 52.51872],
+      'EPSG:4326',
+    ).combined;
     expect(text).toMatch(/(lo|ro|lu|ru)$/);
   });
 });
@@ -98,19 +121,28 @@ describe('LuftwaffeGridSystem JMN era coercion', () => {
 describe('LuftwaffeGridSystem formatCoordinate', () => {
   it('JMN at maxDepth=5 produces a complete reference at Köln', () => {
     const grid = new LuftwaffeGridSystem({ system: 'jmn' });
-    const text = grid.formatCoordinate([6.895, 50.991111], 'EPSG:4326').combined;
+    const text = grid.formatCoordinate(
+      [6.895, 50.991111],
+      'EPSG:4326',
+    ).combined;
     expect(text).toBe('05 Ost S NO 3 2 a');
   });
 
   it('GNMV at maxDepth=5 produces a complete reference at Berlin', () => {
     const grid = new LuftwaffeGridSystem({ system: 'gnmv' });
-    const text = grid.formatCoordinate([13.376257, 52.518720], 'EPSG:4326').combined;
+    const text = grid.formatCoordinate(
+      [13.376257, 52.51872],
+      'EPSG:4326',
+    ).combined;
     expect(text).toBe('15 Ost 33 3 9 7 c');
   });
 
   it('JMN truncates gracefully at maxDepth=1 (no orphan KT/MelT/AT)', () => {
     const grid = new LuftwaffeGridSystem({ system: 'jmn', maxDepth: 1 });
-    const text = grid.formatCoordinate([6.895, 50.991111], 'EPSG:4326').combined;
+    const text = grid.formatCoordinate(
+      [6.895, 50.991111],
+      'EPSG:4326',
+    ).combined;
     expect(text).toBe('05 Ost S');
   });
 
@@ -191,12 +223,18 @@ describe('LuftwaffeGridSystem.parseCoordinate', () => {
 
   it('throws ParseError on garbage input', () => {
     const grid = new LuftwaffeGridSystem({ system: 'gnmv' });
-    expect(() => grid.parseCoordinate('not-a-ref', 'EPSG:4326')).toThrow(ParseError);
+    expect(() => grid.parseCoordinate('not-a-ref', 'EPSG:4326')).toThrow(
+      ParseError,
+    );
   });
 });
 
 describe('LuftwaffeGridSystem.parseCoordinate — property: format ↔ parse round-trip', () => {
-  function expectRoundTrip(system: 'gnmv' | 'jmn', maxDepth: number, numRuns = 100): void {
+  function expectRoundTrip(
+    system: 'gnmv' | 'jmn',
+    maxDepth: number,
+    numRuns = 100,
+  ): void {
     const grid = new LuftwaffeGridSystem({ system, maxDepth });
     fc.assert(
       fc.property(
@@ -233,9 +271,15 @@ describe('LuftwaffeGridSystem.parseCoordinate — property: invalid inputs alway
   it('throws on lowercase-letter-only strings (no digits, no valid suffix)', () => {
     fc.assert(
       fc.property(
-        fc.string({ minLength: 1, maxLength: 8, unit: fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz') }),
+        fc.string({
+          minLength: 1,
+          maxLength: 8,
+          unit: fc.constantFrom(...'abcdefghijklmnopqrstuvwxyz'),
+        }),
         (s) => {
-          expect(() => grid.parseCoordinate(s, 'EPSG:4326')).toThrow(ParseError);
+          expect(() => grid.parseCoordinate(s, 'EPSG:4326')).toThrow(
+            ParseError,
+          );
         },
       ),
       { numRuns: 100 },
@@ -245,9 +289,15 @@ describe('LuftwaffeGridSystem.parseCoordinate — property: invalid inputs alway
   it('throws on punctuation-only strings (no parsable token)', () => {
     fc.assert(
       fc.property(
-        fc.string({ minLength: 1, maxLength: 6, unit: fc.constantFrom(...'!@#$%^&*+=<>?~`|\\') }),
+        fc.string({
+          minLength: 1,
+          maxLength: 6,
+          unit: fc.constantFrom(...'!@#$%^&*+=<>?~`|\\'),
+        }),
         (s) => {
-          expect(() => grid.parseCoordinate(s, 'EPSG:4326')).toThrow(ParseError);
+          expect(() => grid.parseCoordinate(s, 'EPSG:4326')).toThrow(
+            ParseError,
+          );
         },
       ),
       { numRuns: 100 },
@@ -260,7 +310,9 @@ describe('LuftwaffeGridSystem.parseCoordinate — property: invalid inputs alway
         fc.constantFrom('O', 'W', 'N', 'S'),
         fc.integer({ min: 1, max: 99 }),
         (suffix, n) => {
-          expect(() => grid.parseCoordinate(`${suffix}${n}`, 'EPSG:4326')).toThrow(ParseError);
+          expect(() =>
+            grid.parseCoordinate(`${suffix}${n}`, 'EPSG:4326'),
+          ).toThrow(ParseError);
         },
       ),
       { numRuns: 50 },
@@ -270,9 +322,15 @@ describe('LuftwaffeGridSystem.parseCoordinate — property: invalid inputs alway
   it('throws on the empty string and on whitespace-only input', () => {
     fc.assert(
       fc.property(
-        fc.string({ minLength: 0, maxLength: 6, unit: fc.constantFrom(' ', '\t', '\n') }),
+        fc.string({
+          minLength: 0,
+          maxLength: 6,
+          unit: fc.constantFrom(' ', '\t', '\n'),
+        }),
         (s) => {
-          expect(() => grid.parseCoordinate(s, 'EPSG:4326')).toThrow(ParseError);
+          expect(() => grid.parseCoordinate(s, 'EPSG:4326')).toThrow(
+            ParseError,
+          );
         },
       ),
       { numRuns: 30 },
@@ -285,7 +343,9 @@ describe('LuftwaffeGridSystem.parseCoordinate — property: invalid inputs alway
         fc.integer({ min: 10, max: 18 }),
         fc.constantFrom('O', 'W', 'SO', 'SW'),
         (lonTens, suffix) => {
-          expect(() => grid.parseCoordinate(`${lonTens}9${suffix}`, 'EPSG:4326')).toThrow(ParseError);
+          expect(() =>
+            grid.parseCoordinate(`${lonTens}9${suffix}`, 'EPSG:4326'),
+          ).toThrow(ParseError);
         },
       ),
       { numRuns: 50 },
@@ -299,7 +359,9 @@ describe('LuftwaffeGridSystem.parseCoordinate — property: invalid inputs alway
         fc.integer({ min: 0, max: 8 }),
         fc.constantFrom('O', 'W'),
         (lonTens, latTens, suffix) => {
-          expect(() => grid.parseCoordinate(`${lonTens}${latTens}${suffix}`, 'EPSG:4326')).toThrow(ParseError);
+          expect(() =>
+            grid.parseCoordinate(`${lonTens}${latTens}${suffix}`, 'EPSG:4326'),
+          ).toThrow(ParseError);
         },
       ),
       { numRuns: 50 },
@@ -309,9 +371,15 @@ describe('LuftwaffeGridSystem.parseCoordinate — property: invalid inputs alway
   it('throws on ZZG with trailing chars outside the [\\s/,;] separator set', () => {
     fc.assert(
       fc.property(
-        fc.string({ minLength: 1, maxLength: 4, unit: fc.constantFrom(...'!@#$%^&*+=<>?~`|\\') }),
+        fc.string({
+          minLength: 1,
+          maxLength: 4,
+          unit: fc.constantFrom(...'!@#$%^&*+=<>?~`|\\'),
+        }),
         (garbage) => {
-          expect(() => grid.parseCoordinate(`15O${garbage}`, 'EPSG:4326')).toThrow(ParseError);
+          expect(() =>
+            grid.parseCoordinate(`15O${garbage}`, 'EPSG:4326'),
+          ).toThrow(ParseError);
         },
       ),
       { numRuns: 100 },

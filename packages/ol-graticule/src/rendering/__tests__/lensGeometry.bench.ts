@@ -10,8 +10,24 @@ import { collectLensHoles } from '../lensGeometry.js';
 
 const features: Feature[] = [];
 for (let i = 0; i < 40; i++) {
-  features.push(new Feature({ geometry: new LineString([[i * 25, 0], [i * 25, 1000]]), gridAxis: 'x' }));
-  features.push(new Feature({ geometry: new LineString([[0, i * 25], [1000, i * 25]]), gridAxis: 'y' }));
+  features.push(
+    new Feature({
+      geometry: new LineString([
+        [i * 25, 0],
+        [i * 25, 1000],
+      ]),
+      gridAxis: 'x',
+    }),
+  );
+  features.push(
+    new Feature({
+      geometry: new LineString([
+        [0, i * 25],
+        [1000, i * 25],
+      ]),
+      gridAxis: 'y',
+    }),
+  );
 }
 const toPixel = createTransform();
 const CX = 500;

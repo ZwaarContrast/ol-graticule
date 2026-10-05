@@ -5,8 +5,18 @@ import { coordinateToGridRef, gridRefToCoordinate } from '../format.js';
 // Atlantic / Mediterranean / North Sea band where MQK has full coverage.
 // Stay well clear of MQK cell edges (~8° lat tall and 5-25° lon wide):
 // existing unit tests in lookup.test.ts pin boundary behaviour.
-const lat = fc.double({ min: -40, max: 60, noNaN: true, noDefaultInfinity: true });
-const lon = fc.double({ min: -50, max: 15, noNaN: true, noDefaultInfinity: true });
+const lat = fc.double({
+  min: -40,
+  max: 60,
+  noNaN: true,
+  noDefaultInfinity: true,
+});
+const lon = fc.double({
+  min: -50,
+  max: 15,
+  noNaN: true,
+  noDefaultInfinity: true,
+});
 
 describe('MQK encode → parse round-trip property', () => {
   it('deeper-depth ref is always at least as long as a shallower-depth ref', () => {

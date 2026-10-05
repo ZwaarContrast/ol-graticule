@@ -30,15 +30,19 @@ import {
   ensureIndexed,
   getLargeSquaresInLatRange,
 } from '../kriegsmarine/lookup.js';
-import { coordinateToGridRef, formatGridRef, childRefCandidates, gridRefToCoordinate } from '../kriegsmarine/format.js';
+import {
+  coordinateToGridRef,
+  formatGridRef,
+  childRefCandidates,
+  gridRefToCoordinate,
+} from '../kriegsmarine/format.js';
 import { ParseError } from '@zwaarcontrast/ol-graticule';
 import {
   squareExtent,
-  squareScreenSize,
-  squareCenter,
   densityForPxSize,
   interpolateLon,
 } from '../kriegsmarine/geo.js';
+import { squareScreenSize, squareCenter } from '../kriegsmarine/screen.js';
 import type { Square } from '../kriegsmarine/types.js';
 import { isPolySquare, isRectSquare } from '../kriegsmarine/types.js';
 import {
@@ -61,8 +65,12 @@ interface Leaf {
   depth: number;
 }
 
-function cursorKey(coordinate: [number, number], projection: ProjectionLike): string {
-  const code = typeof projection === 'string' ? projection : projection?.getCode() ?? '';
+function cursorKey(
+  coordinate: [number, number],
+  projection: ProjectionLike,
+): string {
+  const code =
+    typeof projection === 'string' ? projection : (projection?.getCode() ?? '');
   return `${code}|${Math.round(coordinate[0])}|${Math.round(coordinate[1])}`;
 }
 
@@ -72,7 +80,9 @@ export class KriegsmarineGridSystem implements GridSystem {
   private readonly traversalCache_ = new RenderCache<Leaf[]>();
   private readonly specsCache_ = new RenderCache<FlatLineSpec[]>();
   private readonly projScratch_ = new ProjectionScratch();
-  private readonly cursorCache_ = new BoundedCache<string, FormattedCoordinate>(512);
+  private readonly cursorCache_ = new BoundedCache<string, FormattedCoordinate>(
+    512,
+  );
   private readonly transformCache_ = new TransformCache();
 
   constructor(options?: KriegsmarineGridSystemOptions | undefined) {
@@ -81,101 +91,131 @@ export class KriegsmarineGridSystem implements GridSystem {
     ensureIndexed();
   }
 
-  getFeatures(extent: Extent, resolution: number, viewProjection: ProjectionLike): Feature<Geometry>[] {
-    const specs = this.specsCache_.get(extent, resolution, viewProjection, () => {
-      const leaves = this.traverse_(extent, resolution, viewProjection);
-      const geoExtent = transformExtent(extent, viewProjection, 'EPSG:4326');
-      const [vMinLon, vMinLat, vMaxLon, vMaxLat] = geoExtent;
+  getFeatures(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): Feature<Geometry>[] {
+    const specs = this.specsCache_.get(
+      extent,
+      resolution,
+      viewProjection,
+      () => {
+        const leaves = this.traverse_(extent, resolution, viewProjection);
+        const geoExtent = transformExtent(extent, viewProjection, 'EPSG:4326');
+        const [vMinLon, vMinLat, vMaxLon, vMaxLat] = geoExtent;
 
-      const classified: RawEdge[] = [];
-      for (let i = 0; i < leaves.length; i++) {
-        const { sq, depth } = leaves[i]!;
-        if (isPolySquare(sq)) {
-          polyEdges(sq, depth, classified);
-        } else {
-          rectEdges(sq, depth, classified);
+        const classified: RawEdge[] = [];
+        for (let i = 0; i < leaves.length; i++) {
+          const { sq, depth } = leaves[i]!;
+          if (isPolySquare(sq)) {
+            polyEdges(sq, depth, classified);
+          } else {
+            rectEdges(sq, depth, classified);
+          }
         }
-      }
 
-      const merged = mergeEdges(classified);
-      if (merged.length === 0) return [];
+        const merged = mergeEdges(classified);
+        if (merged.length === 0) return [];
 
-      // Drop edges that fall entirely outside the visible viewport.
-      const visible: typeof merged = [];
-      for (const e of merged) {
-        if (e.axis === 'v') {
-          if (e.lon! < vMinLon || e.lon! > vMaxLon) continue;
-          if (e.latHi! < vMinLat || e.latLo! > vMaxLat) continue;
-        } else if (e.axis === 'h') {
-          if (e.lat! < vMinLat || e.lat! > vMaxLat) continue;
-          if (e.lonHi! < vMinLon || e.lonLo! > vMaxLon) continue;
-        } else {
-          const dMinLon = Math.min(e.p1![1], e.p2![1]);
-          const dMaxLon = Math.max(e.p1![1], e.p2![1]);
-          const dMinLat = Math.min(e.p1![0], e.p2![0]);
-          const dMaxLat = Math.max(e.p1![0], e.p2![0]);
-          if (dMaxLon < vMinLon || dMinLon > vMaxLon) continue;
-          if (dMaxLat < vMinLat || dMinLat > vMaxLat) continue;
+        // Drop edges that fall entirely outside the visible viewport.
+        const visible: typeof merged = [];
+        for (const e of merged) {
+          if (e.axis === 'v') {
+            if (e.lon! < vMinLon || e.lon! > vMaxLon) continue;
+            if (e.latHi! < vMinLat || e.latLo! > vMaxLat) continue;
+          } else if (e.axis === 'h') {
+            if (e.lat! < vMinLat || e.lat! > vMaxLat) continue;
+            if (e.lonHi! < vMinLon || e.lonLo! > vMaxLon) continue;
+          } else {
+            const dMinLon = Math.min(e.p1![1], e.p2![1]);
+            const dMaxLon = Math.max(e.p1![1], e.p2![1]);
+            const dMinLat = Math.min(e.p1![0], e.p2![0]);
+            const dMaxLat = Math.max(e.p1![0], e.p2![0]);
+            if (dMaxLon < vMinLon || dMinLon > vMaxLon) continue;
+            if (dMaxLat < vMinLat || dMinLat > vMaxLat) continue;
+          }
+          visible.push(e);
         }
-        visible.push(e);
-      }
-      if (visible.length === 0) return [];
+        if (visible.length === 0) return [];
 
-      const transformFn = requireTransform('EPSG:4326', viewProjection);
+        const transformFn = requireTransform('EPSG:4326', viewProjection);
 
-      const probe = new Array<number>(visible.length * 4);
-      for (let i = 0; i < visible.length; i++) {
-        const e = visible[i]!;
-        const o = i * 4;
-        if (e.axis === 'v') {
-          probe[o] = e.lon!;     probe[o + 1] = e.latLo!;
-          probe[o + 2] = e.lon!; probe[o + 3] = e.latHi!;
-        } else if (e.axis === 'h') {
-          probe[o] = e.lonLo!;     probe[o + 1] = e.lat!;
-          probe[o + 2] = e.lonHi!; probe[o + 3] = e.lat!;
-        } else {
-          probe[o] = e.p1![1];     probe[o + 1] = e.p1![0];
-          probe[o + 2] = e.p2![1]; probe[o + 3] = e.p2![0];
+        const probe = new Array<number>(visible.length * 4);
+        for (let i = 0; i < visible.length; i++) {
+          const e = visible[i]!;
+          const o = i * 4;
+          if (e.axis === 'v') {
+            probe[o] = e.lon!;
+            probe[o + 1] = e.latLo!;
+            probe[o + 2] = e.lon!;
+            probe[o + 3] = e.latHi!;
+          } else if (e.axis === 'h') {
+            probe[o] = e.lonLo!;
+            probe[o + 1] = e.lat!;
+            probe[o + 2] = e.lonHi!;
+            probe[o + 3] = e.lat!;
+          } else {
+            probe[o] = e.p1![1];
+            probe[o + 1] = e.p1![0];
+            probe[o + 2] = e.p2![1];
+            probe[o + 3] = e.p2![0];
+          }
         }
-      }
-      transformBatchCached(probe, probe, 2, transformFn, this.transformCache_);
+        transformBatchCached(
+          probe,
+          probe,
+          2,
+          transformFn,
+          this.transformCache_,
+        );
 
-      const built: FlatLineSpec[] = new Array(visible.length);
-      for (let i = 0; i < visible.length; i++) {
-        const e = visible[i]!;
-        const o = i * 4;
-        const dx = probe[o + 2]! - probe[o]!;
-        const dy = probe[o + 3]! - probe[o + 1]!;
-        const pxSize = Math.sqrt(dx * dx + dy * dy) / resolution;
-        const ts = uniformTs(densityForPxSize(pxSize));
-        const props = {
-          gridSquare: e.squareIds[0],
-          gridSquares: e.squareIds,
-          gridDepth: e.depth,
-        };
-        if (e.axis === 'v') {
-          built[i] = {
-            startX: e.lon!, startY: e.latLo!,
-            endX: e.lon!, endY: e.latHi!,
-            ts, props,
+        const built: FlatLineSpec[] = new Array(visible.length);
+        for (let i = 0; i < visible.length; i++) {
+          const e = visible[i]!;
+          const o = i * 4;
+          const dx = probe[o + 2]! - probe[o]!;
+          const dy = probe[o + 3]! - probe[o + 1]!;
+          const pxSize = Math.sqrt(dx * dx + dy * dy) / resolution;
+          const ts = uniformTs(densityForPxSize(pxSize));
+          const props = {
+            gridSquare: e.squareIds[0],
+            gridSquares: e.squareIds,
+            gridDepth: e.depth,
           };
-        } else if (e.axis === 'h') {
-          built[i] = {
-            startX: e.lonLo!, startY: e.lat!,
-            endX: e.lonHi!, endY: e.lat!,
-            ts, props,
-          };
-        } else {
-          built[i] = {
-            startX: e.p1![1], startY: e.p1![0],
-            endX: e.p2![1], endY: e.p2![0],
-            ts, props,
-            xInterp: interpolateLon,
-          };
+          if (e.axis === 'v') {
+            built[i] = {
+              startX: e.lon!,
+              startY: e.latLo!,
+              endX: e.lon!,
+              endY: e.latHi!,
+              ts,
+              props,
+            };
+          } else if (e.axis === 'h') {
+            built[i] = {
+              startX: e.lonLo!,
+              startY: e.lat!,
+              endX: e.lonHi!,
+              endY: e.lat!,
+              ts,
+              props,
+            };
+          } else {
+            built[i] = {
+              startX: e.p1![1],
+              startY: e.p1![0],
+              endX: e.p2![1],
+              endY: e.p2![0],
+              ts,
+              props,
+              xInterp: interpolateLon,
+            };
+          }
         }
-      }
-      return built;
-    });
+        return built;
+      },
+    );
 
     if (specs.length === 0) return [];
     const transformFn = requireTransform('EPSG:4326', viewProjection);
@@ -184,11 +224,19 @@ export class KriegsmarineGridSystem implements GridSystem {
     return features;
   }
 
-  getLabels(_extent: Extent, _resolution: number, _viewProjection: ProjectionLike): GridLabel[] {
+  getLabels(
+    _extent: Extent,
+    _resolution: number,
+    _viewProjection: ProjectionLike,
+  ): GridLabel[] {
     return [];
   }
 
-  getCellLabels(extent: Extent, resolution: number, viewProjection: ProjectionLike): GridCellLabel[] {
+  getCellLabels(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): GridCellLabel[] {
     const leaves = this.traverse_(extent, resolution, viewProjection);
     const labels: GridCellLabel[] = [];
     for (const { sq, pxSize } of leaves) {
@@ -202,7 +250,10 @@ export class KriegsmarineGridSystem implements GridSystem {
     return labels;
   }
 
-  formatCoordinate(coordinate: [number, number], viewProjection: ProjectionLike): FormattedCoordinate {
+  formatCoordinate(
+    coordinate: [number, number],
+    viewProjection: ProjectionLike,
+  ): FormattedCoordinate {
     const key = cursorKey(coordinate, viewProjection);
     const cached = this.cursorCache_.get(key);
     if (cached !== undefined) return cached;
@@ -218,19 +269,31 @@ export class KriegsmarineGridSystem implements GridSystem {
     return result;
   }
 
-  parseCoordinate(text: string, viewProjection: ProjectionLike): [number, number] {
+  parseCoordinate(
+    text: string,
+    viewProjection: ProjectionLike,
+  ): [number, number] {
     const [lat, lon] = gridRefToCoordinate(text);
     const projected = transform([lon, lat], 'EPSG:4326', viewProjection);
     const px = projected[0];
     const py = projected[1];
-    if (px === undefined || py === undefined || !Number.isFinite(px) || !Number.isFinite(py)) {
+    if (
+      px === undefined ||
+      py === undefined ||
+      !Number.isFinite(px) ||
+      !Number.isFinite(py)
+    ) {
       throw new ParseError(text, 'transform produced non-finite coordinate');
     }
     return [px, py];
   }
 
   /** Walk the grid tree and return every leaf square; memoized per render frame. */
-  private traverse_(extent: Extent, resolution: number, viewProjection: ProjectionLike): Leaf[] {
+  private traverse_(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): Leaf[] {
     return this.traversalCache_.get(extent, resolution, viewProjection, () => {
       const leaves: Leaf[] = [];
       const geoExtent = transformExtent(extent, viewProjection, 'EPSG:4326');
@@ -248,7 +311,15 @@ export class KriegsmarineGridSystem implements GridSystem {
         if (!willSubdivide) {
           leaves.push({ sq, pxSize, depth: 0 });
         } else {
-          this.subdivide_(sq, 1, resolution, viewProjection, geoExtent, subdivideThreshold, leaves);
+          this.subdivide_(
+            sq,
+            1,
+            resolution,
+            viewProjection,
+            geoExtent,
+            subdivideThreshold,
+            leaves,
+          );
         }
       }
       return leaves;
@@ -272,12 +343,21 @@ export class KriegsmarineGridSystem implements GridSystem {
       if (!olExtentsIntersect(geoExtent, squareExtent(sub))) continue;
 
       const subPxSize = squareScreenSize(sub, resolution, viewProjection);
-      const willSubdivide = depth < this.maxDepth_ && subPxSize > subdivideThreshold;
+      const willSubdivide =
+        depth < this.maxDepth_ && subPxSize > subdivideThreshold;
 
       if (!willSubdivide) {
         out.push({ sq: sub, pxSize: subPxSize, depth });
       } else {
-        this.subdivide_(sub, depth + 1, resolution, viewProjection, geoExtent, subdivideThreshold, out);
+        this.subdivide_(
+          sub,
+          depth + 1,
+          resolution,
+          viewProjection,
+          geoExtent,
+          subdivideThreshold,
+          out,
+        );
       }
     }
   }

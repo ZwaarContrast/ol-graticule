@@ -76,14 +76,14 @@ describe('zonesContainingLon', () => {
     expect(zones[0]!.kennziffer).toBe(3);
   });
 
-  it('returns two zones inside the 30\' overlap band west of CM', () => {
+  it("returns two zones inside the 30' overlap band west of CM", () => {
     const zones = zonesContainingLon(11.9);
     expect(zones.length).toBe(2);
     const kzs = zones.map((z) => z.kennziffer).sort();
     expect(kzs).toEqual([2, 3]);
   });
 
-  it('returns two zones inside the 30\' overlap band east of CM', () => {
+  it("returns two zones inside the 30' overlap band east of CM", () => {
     const zones = zonesContainingLon(17.9);
     expect(zones.length).toBe(2);
     const kzs = zones.map((z) => z.kennziffer).sort();

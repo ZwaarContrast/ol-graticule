@@ -10,7 +10,11 @@ import Style from 'ol/style/Style';
 import type Feature from 'ol/Feature';
 import type Geometry from 'ol/geom/Geometry';
 import type { GraticuleLineStyle } from '../style.js';
-import { isMajorMinor, DEFAULT_LINE_STROKE, DEFAULT_MINOR_LINE_STROKE } from '../style.js';
+import {
+  isMajorMinor,
+  DEFAULT_LINE_STROKE,
+  DEFAULT_MINOR_LINE_STROKE,
+} from '../style.js';
 import { toRgbaNormalized } from '../util/color.js';
 import { MAX_DASH, LINE_STRIDE } from './shaders.js';
 
@@ -34,7 +38,13 @@ export interface LineBatch {
 }
 
 function writeLineVertex(
-  batch: LineBatch, x: number, y: number, dx: number, dy: number, side: number, dist: number,
+  batch: LineBatch,
+  x: number,
+  y: number,
+  dx: number,
+  dy: number,
+  side: number,
+  dist: number,
 ): void {
   const vf = batch.vf;
   let o = batch.vfLen;
@@ -70,7 +80,11 @@ export function growU32(
   return grown;
 }
 
-function ensureLineCapacity(batch: LineBatch, vFloats: number, iInts: number): void {
+function ensureLineCapacity(
+  batch: LineBatch,
+  vFloats: number,
+  iInts: number,
+): void {
   batch.vf = growF32(batch.vf, batch.vfLen, vFloats);
   batch.iu = growU32(batch.iu, batch.iuLen, iInts);
 }
@@ -83,7 +97,16 @@ export function appendGeometryFlat(
   batch: LineBatch,
 ): void {
   if (geom instanceof LineString) {
-    appendFlatLine(geom.getFlatCoordinates(), geom.getStride(), 0, geom.getFlatCoordinates().length, offset, cx, cy, batch);
+    appendFlatLine(
+      geom.getFlatCoordinates(),
+      geom.getStride(),
+      0,
+      geom.getFlatCoordinates().length,
+      offset,
+      cx,
+      cy,
+      batch,
+    );
   } else if (geom instanceof MultiLineString) {
     const flat = geom.getFlatCoordinates();
     const stride = geom.getStride();
@@ -125,7 +148,13 @@ function appendFlatLine(
 }
 
 function appendSegment(
-  batch: LineBatch, ax: number, ay: number, bx: number, by: number, distA: number, distB: number,
+  batch: LineBatch,
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+  distA: number,
+  distB: number,
 ): void {
   ensureLineCapacity(batch, 4 * LINE_STRIDE, 6);
   const dx = bx - ax;
@@ -144,15 +173,23 @@ function appendSegment(
   iu[batch.iuLen++] = base + 3;
 }
 
-export function resolveBuckets(style: GraticuleLineStyle | undefined): BucketSpec {
-  const config = style ?? { major: DEFAULT_LINE_STROKE, minor: DEFAULT_MINOR_LINE_STROKE };
+export function resolveBuckets(
+  style: GraticuleLineStyle | undefined,
+): BucketSpec {
+  const config = style ?? {
+    major: DEFAULT_LINE_STROKE,
+    minor: DEFAULT_MINOR_LINE_STROKE,
+  };
 
   if (config instanceof Stroke) {
     return { list: [strokeToBucket(config)], classify: () => 0 };
   }
 
   if (isMajorMinor(config)) {
-    const list = [strokeToBucket(config.major), strokeToBucket(config.minor ?? DEFAULT_MINOR_LINE_STROKE)];
+    const list = [
+      strokeToBucket(config.major),
+      strokeToBucket(config.minor ?? DEFAULT_MINOR_LINE_STROKE),
+    ];
     let boundaryIdx = 0;
     if (config.boundary) {
       list.push(strokeToBucket(config.boundary));
@@ -175,7 +212,7 @@ export function resolveBuckets(style: GraticuleLineStyle | undefined): BucketSpe
 
   throw new TypeError(
     'WebGLGraticuleLayer line style must be a Stroke or { major, minor?, boundary? }; ' +
-    'a raw StyleLike cannot render on the WebGL line layer.',
+      'a raw StyleLike cannot render on the WebGL line layer.',
   );
 }
 

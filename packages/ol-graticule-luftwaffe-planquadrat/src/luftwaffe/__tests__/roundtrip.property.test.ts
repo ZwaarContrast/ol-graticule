@@ -14,9 +14,11 @@ function awayFromCellBoundary(v: number): boolean {
   return frac > 0.05 && frac < 0.95;
 }
 
-const lat = fc.double({ min: 5, max: 80, noNaN: true, noDefaultInfinity: true })
+const lat = fc
+  .double({ min: 5, max: 80, noNaN: true, noDefaultInfinity: true })
   .filter(awayFromCellBoundary);
-const lon = fc.double({ min: -160, max: 160, noNaN: true, noDefaultInfinity: true })
+const lon = fc
+  .double({ min: -160, max: 160, noNaN: true, noDefaultInfinity: true })
   .filter(awayFromCellBoundary);
 
 describe('GNMV encode → parse round-trip', () => {
@@ -39,7 +41,9 @@ describe('GNMV encode → parse round-trip', () => {
   it('cell area shrinks monotonically as depth increases (5 ≤ 4 ≤ 3 ≤ 2 ≤ 1)', () => {
     fc.assert(
       fc.property(lat, lon, (latV, lonV) => {
-        const refs = [1, 2, 3, 4, 5].map((d) => encodeGnmv([latV, lonV], 'post-1943', d));
+        const refs = [1, 2, 3, 4, 5].map((d) =>
+          encodeGnmv([latV, lonV], 'post-1943', d),
+        );
         if (refs.some((r) => r === undefined)) return true;
         const areas = refs.map((r) => {
           const bbox = parseGnmvRef(r!).bbox;

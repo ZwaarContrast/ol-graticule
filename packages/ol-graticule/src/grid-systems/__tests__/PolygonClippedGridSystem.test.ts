@@ -15,7 +15,9 @@ function makeSystem(
   opts: {
     labels?: GridLabel[];
     cellLabels?: GridCellLabel[];
-    formatter?: (coord: [number, number]) => { x: string; y: string } | { combined: string };
+    formatter?: (
+      coord: [number, number],
+    ) => { x: string; y: string } | { combined: string };
     isValidInner?: ((coord: [number, number]) => boolean) | undefined;
   } = {},
 ): GridSystem {
@@ -30,40 +32,58 @@ function makeSystem(
     system.getCellLabels = vi.fn().mockReturnValue(opts.cellLabels);
   }
   if (opts.isValidInner !== undefined) {
-    system.isValidCoordinate = vi.fn((c) => opts.isValidInner!(c as [number, number]));
+    system.isValidCoordinate = vi.fn((c) =>
+      opts.isValidInner!(c as [number, number]),
+    );
   }
   return system;
 }
 
 const square: [number, number][] = [
-  [0, 0], [10, 0], [10, 10], [0, 10],
+  [0, 0],
+  [10, 0],
+  [10, 10],
+  [0, 10],
 ];
 
 describe('PolygonClippedGridSystem', () => {
   describe('construction', () => {
     it('throws if the outer ring has fewer than 3 vertices', () => {
       const source = makeSystem([]);
-      expect(() =>
-        new PolygonClippedGridSystem({
-          source,
-          clipPolygon: { rings: [[[0, 0], [1, 1]]], crs: 'EPSG:3857' },
-        }),
+      expect(
+        () =>
+          new PolygonClippedGridSystem({
+            source,
+            clipPolygon: {
+              rings: [
+                [
+                  [0, 0],
+                  [1, 1],
+                ],
+              ],
+              crs: 'EPSG:3857',
+            },
+          }),
       ).toThrow();
     });
 
     it('throws if rings is empty', () => {
       const source = makeSystem([]);
-      expect(() =>
-        new PolygonClippedGridSystem({
-          source,
-          clipPolygon: { rings: [], crs: 'EPSG:3857' },
-        }),
+      expect(
+        () =>
+          new PolygonClippedGridSystem({
+            source,
+            clipPolygon: { rings: [], crs: 'EPSG:3857' },
+          }),
       ).toThrow();
     });
   });
 
   describe('getFeatures', () => {
-    const buildLine = (coords: [number, number][], gridLineType = 'major'): Feature<Geometry> => {
+    const buildLine = (
+      coords: [number, number][],
+      gridLineType = 'major',
+    ): Feature<Geometry> => {
       const f = new Feature<Geometry>({ geometry: new LineString(coords) });
       f.set('gridLineType', gridLineType);
       f.set('gridAxis', 'x');
@@ -72,7 +92,12 @@ describe('PolygonClippedGridSystem', () => {
     };
 
     it('clips a crossing line at the polygon boundary', () => {
-      const source = makeSystem([buildLine([[-5, 5], [15, 5]])]);
+      const source = makeSystem([
+        buildLine([
+          [-5, 5],
+          [15, 5],
+        ]),
+      ]);
       const clipped = new PolygonClippedGridSystem({
         source,
         clipPolygon: { rings: [square], crs: 'EPSG:3857' },
@@ -86,18 +111,35 @@ describe('PolygonClippedGridSystem', () => {
     });
 
     it('drops lines entirely outside the polygon', () => {
-      const source = makeSystem([buildLine([[100, 100], [200, 200]])]);
+      const source = makeSystem([
+        buildLine([
+          [100, 100],
+          [200, 200],
+        ]),
+      ]);
       const clipped = new PolygonClippedGridSystem({
         source,
         clipPolygon: { rings: [square], crs: 'EPSG:3857' },
         emitBoundary: false,
       });
-      const features = clipped.getFeatures([-10, -10, 300, 300], 1, 'EPSG:3857');
+      const features = clipped.getFeatures(
+        [-10, -10, 300, 300],
+        1,
+        'EPSG:3857',
+      );
       expect(features).toHaveLength(0);
     });
 
     it('preserves grid-line metadata (gridLineType, gridAxis, gridValue) on clipped pieces', () => {
-      const source = makeSystem([buildLine([[-5, 5], [15, 5]], 'minor')]);
+      const source = makeSystem([
+        buildLine(
+          [
+            [-5, 5],
+            [15, 5],
+          ],
+          'minor',
+        ),
+      ]);
       const clipped = new PolygonClippedGridSystem({
         source,
         clipPolygon: { rings: [square], crs: 'EPSG:3857' },
@@ -117,9 +159,13 @@ describe('PolygonClippedGridSystem', () => {
         clipPolygon: { rings: [square], crs: 'EPSG:3857' },
       });
       const features = clipped.getFeatures([-10, -10, 20, 20], 1, 'EPSG:3857');
-      const boundary = features.filter((f) => f.get('gridLineType') === 'boundary');
+      const boundary = features.filter(
+        (f) => f.get('gridLineType') === 'boundary',
+      );
       expect(boundary).toHaveLength(1);
-      const coords = (boundary[0]!.getGeometry() as LineString).getCoordinates();
+      const coords = (
+        boundary[0]!.getGeometry() as LineString
+      ).getCoordinates();
       // Ring is closed (first point duplicated at end).
       expect(coords[0]).toEqual(coords[coords.length - 1]);
       // Densified: 4 edges × 4 stepsPerEdge + 1 closing = 17 vertices.
@@ -175,7 +221,12 @@ describe('PolygonClippedGridSystem', () => {
       // inflated, projected copy used by the line clipper) so that a label
       // x value coinciding exactly with a column boundary still registers
       // as a hit. Regression for the disappearing-edge-labels bug.
-      const ring: [number, number][] = [[0, 0], [10, 0], [10, 5], [0, 5]];
+      const ring: [number, number][] = [
+        [0, 0],
+        [10, 0],
+        [10, 5],
+        [0, 5],
+      ];
       const inner: GridLabel[] = [
         // x=5 is the interior column boundary of the snapped staircase.
         { point: new Point([5, 0]), text: '5', axis: 'x' },
@@ -199,7 +250,12 @@ describe('PolygonClippedGridSystem', () => {
       // *exactly* at the column boundary the label sits on. Simulates the
       // drift directly here so the test runs without any cross-CRS proj4
       // setup.
-      const ring: [number, number][] = [[0, 0], [10, 0], [10, 5], [0, 5]];
+      const ring: [number, number][] = [
+        [0, 0],
+        [10, 0],
+        [10, 5],
+        [0, 5],
+      ];
       const drift = 1e-9;
       const inner: GridLabel[] = [
         { point: new Point([5 + drift, 0]), text: '5', axis: 'x' },
@@ -222,7 +278,10 @@ describe('PolygonClippedGridSystem', () => {
       // grid line passes through the polygon along its visible portion.
       // Midpoint-inside-polygon fast path catches these.
       const big: [number, number][] = [
-        [-1000, -1000], [1000, -1000], [1000, 1000], [-1000, 1000],
+        [-1000, -1000],
+        [1000, -1000],
+        [1000, 1000],
+        [-1000, 1000],
       ];
       const inner: GridLabel[] = [
         { point: new Point([5, 0]), text: 'x', axis: 'x' },
@@ -267,7 +326,11 @@ describe('PolygonClippedGridSystem', () => {
         source,
         clipPolygon: { rings: [square], crs: 'EPSG:3857' },
       });
-      const cellLabels = clipped.getCellLabels!([-10, -10, 100, 100], 1, 'EPSG:3857');
+      const cellLabels = clipped.getCellLabels!(
+        [-10, -10, 100, 100],
+        1,
+        'EPSG:3857',
+      );
       expect(cellLabels.map((l) => l.text)).toEqual(['in']);
     });
 
@@ -277,12 +340,17 @@ describe('PolygonClippedGridSystem', () => {
         source,
         clipPolygon: { rings: [square], crs: 'EPSG:3857' },
       });
-      expect(clipped.getCellLabels!([-10, -10, 100, 100], 1, 'EPSG:3857')).toEqual([]);
+      expect(
+        clipped.getCellLabels!([-10, -10, 100, 100], 1, 'EPSG:3857'),
+      ).toEqual([]);
     });
 
     it('recentres labels on the centroid of the visible portion when cellRing is provided', () => {
       const cellRing: [number, number][] = [
-        [4, 4], [14, 4], [14, 6], [4, 6],
+        [4, 4],
+        [14, 4],
+        [14, 6],
+        [4, 6],
       ];
       const inner: GridCellLabel[] = [
         { point: new Point([9, 5]), text: 'split', cellSizePx: 100, cellRing },
@@ -302,23 +370,36 @@ describe('PolygonClippedGridSystem', () => {
 
     it('drops cell labels whose cellRing falls entirely outside the clip polygon', () => {
       const cellRing: [number, number][] = [
-        [20, 20], [30, 20], [30, 30], [20, 30],
+        [20, 20],
+        [30, 20],
+        [30, 30],
+        [20, 30],
       ];
       const inner: GridCellLabel[] = [
-        { point: new Point([25, 25]), text: 'outside', cellSizePx: 100, cellRing },
+        {
+          point: new Point([25, 25]),
+          text: 'outside',
+          cellSizePx: 100,
+          cellRing,
+        },
       ];
       const source = makeSystem([], { cellLabels: inner });
       const clipped = new PolygonClippedGridSystem({
         source,
         clipPolygon: { rings: [square], crs: 'EPSG:3857' },
       });
-      expect(clipped.getCellLabels!([-10, -10, 100, 100], 1, 'EPSG:3857')).toEqual([]);
+      expect(
+        clipped.getCellLabels!([-10, -10, 100, 100], 1, 'EPSG:3857'),
+      ).toEqual([]);
     });
 
     it('scales cellSizePx by the visible portion so labels in narrow slivers fade out', () => {
       // 10x10 cell, 90% clipped away (visible: 1x10) → cellSizePx scales by 0.1.
       const cellRing: [number, number][] = [
-        [9, 0], [19, 0], [19, 10], [9, 10],
+        [9, 0],
+        [19, 0],
+        [19, 10],
+        [9, 10],
       ];
       const inner: GridCellLabel[] = [
         { point: new Point([14, 5]), text: 'narrow', cellSizePx: 80, cellRing },
@@ -335,7 +416,10 @@ describe('PolygonClippedGridSystem', () => {
 
     it('keeps the original centre when the cell is fully inside the clip polygon', () => {
       const cellRing: [number, number][] = [
-        [2, 2], [4, 2], [4, 4], [2, 4],
+        [2, 2],
+        [4, 2],
+        [4, 4],
+        [2, 4],
       ];
       const inner: GridCellLabel[] = [
         { point: new Point([3, 3]), text: 'inside', cellSizePx: 100, cellRing },
@@ -372,7 +456,7 @@ describe('PolygonClippedGridSystem', () => {
       expect(clipped.isValidCoordinate!([50, 50], 'EPSG:3857')).toBe(false);
     });
 
-    it('AND-combines with the inner grid system\'s isValidCoordinate', () => {
+    it("AND-combines with the inner grid system's isValidCoordinate", () => {
       const source = makeSystem([], { isValidInner: () => false });
       const clipped = new PolygonClippedGridSystem({
         source,
@@ -390,8 +474,14 @@ describe('PolygonClippedGridSystem', () => {
         source,
         clipPolygon: { rings: [square], crs: 'EPSG:3857' },
       });
-      expect(clipped.formatCoordinate([5, 5], 'EPSG:3857')).toEqual({ x: 'x=5', y: 'y=5' });
-      expect(clipped.formatCoordinate([50, 50], 'EPSG:3857')).toEqual({ x: '-', y: '-' });
+      expect(clipped.formatCoordinate([5, 5], 'EPSG:3857')).toEqual({
+        x: 'x=5',
+        y: 'y=5',
+      });
+      expect(clipped.formatCoordinate([50, 50], 'EPSG:3857')).toEqual({
+        x: '-',
+        y: '-',
+      });
     });
 
     it('formatCoordinate preserves the combined-label shape when the inner grid uses one', () => {
@@ -402,7 +492,9 @@ describe('PolygonClippedGridSystem', () => {
         source,
         clipPolygon: { rings: [square], crs: 'EPSG:3857' },
       });
-      expect(clipped.formatCoordinate([50, 50], 'EPSG:3857')).toEqual({ combined: '-' });
+      expect(clipped.formatCoordinate([50, 50], 'EPSG:3857')).toEqual({
+        combined: '-',
+      });
     });
   });
 
@@ -417,9 +509,17 @@ describe('PolygonClippedGridSystem', () => {
       // Source ring is 17 × 17 (NOT cell-aligned). With a 5-unit snap grid,
       // the snapped staircase is the 3×3 block of cells whose midpoints
       // fall inside the ring: x ∈ [0, 15], y ∈ [0, 15].
-      const offAligned: [number, number][] = [[1, 1], [17, 1], [17, 17], [1, 17]];
+      const offAligned: [number, number][] = [
+        [1, 1],
+        [17, 1],
+        [17, 17],
+        [1, 17],
+      ];
       const source = makeSystem([
-        buildLine([[-10, 7.5], [30, 7.5]]),
+        buildLine([
+          [-10, 7.5],
+          [30, 7.5],
+        ]),
       ]);
       const clipped = new PolygonClippedGridSystem({
         source,
@@ -429,20 +529,32 @@ describe('PolygonClippedGridSystem', () => {
       });
       const features = clipped.getFeatures([-20, -20, 40, 40], 1, 'EPSG:3857');
       expect(features).toHaveLength(1);
-      const coords = (features[0]!.getGeometry() as LineString).getCoordinates();
+      const coords = (
+        features[0]!.getGeometry() as LineString
+      ).getCoordinates();
       // Should clip to the cell-aligned bounds [0, 15] on the x-axis, not
       // to the source ring's raw bounds [1, 17]. The boundary is inflated
       // outward by a few screen pixels, capped at 5% of the interval (= 0.25
       // here), to stabilise PIP at grid-line-vs-ring-edge coincidences, see
       // PolygonClippedGridSystem.
       expect(Math.abs(coords[0]![0]! - 0)).toBeLessThanOrEqual(0.25);
-      expect(Math.abs(coords[coords.length - 1]![0]! - 15)).toBeLessThanOrEqual(0.25);
+      expect(Math.abs(coords[coords.length - 1]![0]! - 15)).toBeLessThanOrEqual(
+        0.25,
+      );
     });
 
     it('falls back to smooth clipping when the callback returns undefined', () => {
-      const offAligned: [number, number][] = [[1, 1], [17, 1], [17, 17], [1, 17]];
+      const offAligned: [number, number][] = [
+        [1, 1],
+        [17, 1],
+        [17, 17],
+        [1, 17],
+      ];
       const source = makeSystem([
-        buildLine([[-10, 7.5], [30, 7.5]]),
+        buildLine([
+          [-10, 7.5],
+          [30, 7.5],
+        ]),
       ]);
       const clipped = new PolygonClippedGridSystem({
         source,
@@ -451,7 +563,9 @@ describe('PolygonClippedGridSystem', () => {
         cellSnapInterval: () => undefined,
       });
       const features = clipped.getFeatures([-20, -20, 40, 40], 1, 'EPSG:3857');
-      const coords = (features[0]!.getGeometry() as LineString).getCoordinates();
+      const coords = (
+        features[0]!.getGeometry() as LineString
+      ).getCoordinates();
       // Smooth clip to the raw ring at x = 1 and x = 17.
       expect(coords[0]![0]).toBe(1);
       expect(coords[coords.length - 1]![0]).toBe(17);
@@ -462,7 +576,12 @@ describe('PolygonClippedGridSystem', () => {
       // rendering a separate boundary feature on top would paint a duplicate
       // staircase over those grid lines. The wrapper therefore skips the
       // boundary in snap mode even when `emitBoundary` defaults to true.
-      const offAligned: [number, number][] = [[1, 1], [17, 1], [17, 17], [1, 17]];
+      const offAligned: [number, number][] = [
+        [1, 1],
+        [17, 1],
+        [17, 17],
+        [1, 17],
+      ];
       const source = makeSystem([]);
       const clipped = new PolygonClippedGridSystem({
         source,
@@ -470,11 +589,18 @@ describe('PolygonClippedGridSystem', () => {
         cellSnapInterval: () => 5,
       });
       const features = clipped.getFeatures([-20, -20, 40, 40], 1, 'EPSG:3857');
-      expect(features.find((f) => f.get('gridLineType') === 'boundary')).toBeUndefined();
+      expect(
+        features.find((f) => f.get('gridLineType') === 'boundary'),
+      ).toBeUndefined();
     });
 
     it('caches the snapped ring per interval and reuses it across renders', () => {
-      const offAligned: [number, number][] = [[1, 1], [17, 1], [17, 17], [1, 17]];
+      const offAligned: [number, number][] = [
+        [1, 1],
+        [17, 1],
+        [17, 17],
+        [1, 17],
+      ];
       const source = makeSystem([]);
       const callCounts: number[] = [];
       let invocations = 0;
@@ -497,7 +623,9 @@ describe('PolygonClippedGridSystem', () => {
       // No boundary feature in snap mode (grid lines draw the outline); the
       // check here is just that the extra render didn't throw.
       const features = clipped.getFeatures([-20, -20, 40, 40], 1, 'EPSG:3857');
-      expect(features.every((f) => f.get('gridLineType') !== 'boundary')).toBe(true);
+      expect(features.every((f) => f.get('gridLineType') !== 'boundary')).toBe(
+        true,
+      );
     });
   });
 
@@ -506,7 +634,10 @@ describe('PolygonClippedGridSystem', () => {
       // 1° × 1° square around [5E, 51N], small enough that Web Mercator
       // distortion is negligible at this latitude.
       const ringLonLat: [number, number][] = [
-        [5, 51], [6, 51], [6, 52], [5, 52],
+        [5, 51],
+        [6, 51],
+        [6, 52],
+        [5, 52],
       ];
       const source = makeSystem([]);
       const clipped = new PolygonClippedGridSystem({
@@ -516,9 +647,13 @@ describe('PolygonClippedGridSystem', () => {
 
       // Point inside the ring, given in Web Mercator: ~[5.5E, 51.5N]
       // lon=5.5 ≈ 612300, lat=51.5 ≈ 6708000
-      expect(clipped.isValidCoordinate!([612300, 6708000], 'EPSG:3857')).toBe(true);
+      expect(clipped.isValidCoordinate!([612300, 6708000], 'EPSG:3857')).toBe(
+        true,
+      );
       // Point outside (in London)
-      expect(clipped.isValidCoordinate!([-13000, 6710000], 'EPSG:3857')).toBe(false);
+      expect(clipped.isValidCoordinate!([-13000, 6710000], 'EPSG:3857')).toBe(
+        false,
+      );
     });
   });
 
@@ -530,8 +665,13 @@ describe('PolygonClippedGridSystem', () => {
         source,
         clipPolygon: { rings: [square], crs: 'EPSG:3857' },
       });
-      expect(clipped.parseCoordinate!('whatever', 'EPSG:3857')).toEqual([42, 99]);
-      expect(source.parseCoordinate).toHaveBeenCalledWith('whatever', 'EPSG:3857');
+      expect(clipped.parseCoordinate!('whatever', 'EPSG:3857')).toEqual([
+        42, 99,
+      ]);
+      expect(source.parseCoordinate).toHaveBeenCalledWith(
+        'whatever',
+        'EPSG:3857',
+      );
     });
 
     it('throws ParseError when source has no parseCoordinate', () => {

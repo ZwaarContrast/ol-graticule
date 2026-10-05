@@ -1,7 +1,10 @@
 /** UPS (Universal Polar Stereographic) MGRS support for lat >= 84 and lat < -80. */
 
 /** Letter for the polar UPS zone covering `(lon, lat)`, or `undefined` outside polar coverage. */
-export function upsZoneLetter(lon: number, lat: number): 'Y' | 'Z' | 'A' | 'B' | undefined {
+export function upsZoneLetter(
+  lon: number,
+  lat: number,
+): 'Y' | 'Z' | 'A' | 'B' | undefined {
   if (!Number.isFinite(lon) || !Number.isFinite(lat)) return undefined;
   if (lat >= 84) return lon < 0 ? 'Y' : 'Z';
   if (lat < -80) return lon < 0 ? 'A' : 'B';
@@ -29,13 +32,13 @@ export function upsCrsCode(north: boolean): string {
 const UPS_COLS = {
   Y: { offset: 13, letters: 'RSTUXYZ' },
   Z: { offset: 20, letters: 'ABCFGHJ' },
-  A: { offset:  8, letters: 'JKLPQRSTUXYZ' },
+  A: { offset: 8, letters: 'JKLPQRSTUXYZ' },
   B: { offset: 20, letters: 'ABCFGHJKLPQR' },
 } as const;
 
 const UPS_ROWS = {
   N: { offset: 13, letters: 'ABCDEFGHJKLMNP' },
-  S: { offset:  8, letters: 'ABCDEFGHJKLMNPQRSTUVWXYZ' },
+  S: { offset: 8, letters: 'ABCDEFGHJKLMNPQRSTUVWXYZ' },
 } as const;
 
 /** Column letter for an easting `E` (metres) in UPS `zone`. */
@@ -56,7 +59,7 @@ export function upsRowLetter(
   northing: number,
 ): string | undefined {
   const yh = Math.floor(northing / 100_000);
-  const tab = (zone === 'Y' || zone === 'Z') ? UPS_ROWS.N : UPS_ROWS.S;
+  const tab = zone === 'Y' || zone === 'Z' ? UPS_ROWS.N : UPS_ROWS.S;
   const idx = yh - tab.offset;
   if (idx < 0 || idx >= tab.letters.length) return undefined;
   return tab.letters[idx];
@@ -76,14 +79,19 @@ export function upsSquareLetters(
 }
 
 /** Lat/lon range of a UPS zone's geographic footprint. */
-export function upsZoneLonLatBounds(
-  zone: 'Y' | 'Z' | 'A' | 'B',
-): { lon: readonly [number, number]; lat: readonly [number, number] } {
+export function upsZoneLonLatBounds(zone: 'Y' | 'Z' | 'A' | 'B'): {
+  lon: readonly [number, number];
+  lat: readonly [number, number];
+} {
   switch (zone) {
-    case 'Y': return { lon: [-180, 0], lat: [84, 90] };
-    case 'Z': return { lon: [0, 180], lat: [84, 90] };
-    case 'A': return { lon: [-180, 0], lat: [-90, -80] };
-    case 'B': return { lon: [0, 180], lat: [-90, -80] };
+    case 'Y':
+      return { lon: [-180, 0], lat: [84, 90] };
+    case 'Z':
+      return { lon: [0, 180], lat: [84, 90] };
+    case 'A':
+      return { lon: [-180, 0], lat: [-90, -80] };
+    case 'B':
+      return { lon: [0, 180], lat: [-90, -80] };
   }
 }
 
@@ -103,7 +111,7 @@ export function upsRowLetterToNorthing(
   zone: 'Y' | 'Z' | 'A' | 'B',
   letter: string,
 ): number | undefined {
-  const tab = (zone === 'Y' || zone === 'Z') ? UPS_ROWS.N : UPS_ROWS.S;
+  const tab = zone === 'Y' || zone === 'Z' ? UPS_ROWS.N : UPS_ROWS.S;
   const idx = tab.letters.indexOf(letter);
   if (idx < 0) return undefined;
   return (tab.offset + idx) * 100_000;

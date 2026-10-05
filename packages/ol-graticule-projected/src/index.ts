@@ -7,7 +7,8 @@ export type { ProjectedGridSystemOptions } from './grid-systems/ProjectedGridSys
 export { MetricIntervals, MetricFormatter } from '@zwaarcontrast/ol-graticule';
 export type { MetricFormatterOptions } from '@zwaarcontrast/ol-graticule';
 
-export { registerCRS } from './registerCRS.js';
+export { registerCRS, syncOlProjections } from './registerCRS.js';
+export { registerProj4 } from './registerProj4.js';
 export { loadNadgrid } from './loadNadgrid.js';
 export { createProjectedGridSystemFromEPSG } from './fromEPSG.js';
 export type { EPSGGridSystemOptions, EPSGSources } from './fromEPSG.js';

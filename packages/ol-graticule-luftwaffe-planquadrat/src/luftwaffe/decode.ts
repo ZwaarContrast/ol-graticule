@@ -14,7 +14,7 @@
  * full credit.
  */
 
-import { ParseError } from '@zwaarcontrast/ol-graticule';
+import { ParseError } from '@zwaarcontrast/ol-graticule/headless';
 
 import {
   ZZG_LAT_DEG,
@@ -42,23 +42,31 @@ import type {
 } from './types.js';
 import { suffixToken } from './encode.js';
 
-const SUFFIX_TABLE: Array<{ token: string; suffix: ZzgSuffix; isEast: boolean; isSouth: boolean }> = [
-  { token: 'SUEDOST',  suffix: 'Südost',  isEast: true,  isSouth: true  },
-  { token: 'SUEDWEST', suffix: 'Südwest', isEast: false, isSouth: true  },
-  { token: 'SUDOST',   suffix: 'Südost',  isEast: true,  isSouth: true  },
-  { token: 'SUDWEST',  suffix: 'Südwest', isEast: false, isSouth: true  },
-  { token: 'SOST',     suffix: 'Südost',  isEast: true,  isSouth: true  },
-  { token: 'SWEST',    suffix: 'Südwest', isEast: false, isSouth: true  },
-  { token: 'OST',      suffix: 'Ost',     isEast: true,  isSouth: false },
-  { token: 'WEST',     suffix: 'West',    isEast: false, isSouth: false },
-  { token: 'SO',       suffix: 'Südost',  isEast: true,  isSouth: true  },
-  { token: 'SW',       suffix: 'Südwest', isEast: false, isSouth: true  },
-  { token: 'O',        suffix: 'Ost',     isEast: true,  isSouth: false },
-  { token: 'W',        suffix: 'West',    isEast: false, isSouth: false },
+const SUFFIX_TABLE: Array<{
+  token: string;
+  suffix: ZzgSuffix;
+  isEast: boolean;
+  isSouth: boolean;
+}> = [
+  { token: 'SUEDOST', suffix: 'Südost', isEast: true, isSouth: true },
+  { token: 'SUEDWEST', suffix: 'Südwest', isEast: false, isSouth: true },
+  { token: 'SUDOST', suffix: 'Südost', isEast: true, isSouth: true },
+  { token: 'SUDWEST', suffix: 'Südwest', isEast: false, isSouth: true },
+  { token: 'SOST', suffix: 'Südost', isEast: true, isSouth: true },
+  { token: 'SWEST', suffix: 'Südwest', isEast: false, isSouth: true },
+  { token: 'OST', suffix: 'Ost', isEast: true, isSouth: false },
+  { token: 'WEST', suffix: 'West', isEast: false, isSouth: false },
+  { token: 'SO', suffix: 'Südost', isEast: true, isSouth: true },
+  { token: 'SW', suffix: 'Südwest', isEast: false, isSouth: true },
+  { token: 'O', suffix: 'Ost', isEast: true, isSouth: false },
+  { token: 'W', suffix: 'West', isEast: false, isSouth: false },
 ];
 
 const PRE_AT_INDEX: Record<string, [number, number]> = {
-  lo: [0, 0], ro: [0, 1], lu: [1, 0], ru: [1, 1],
+  lo: [0, 0],
+  ro: [0, 1],
+  lu: [1, 0],
+  ru: [1, 1],
 };
 
 class Cursor {
@@ -105,8 +113,10 @@ function takeZzgDigits(c: Cursor): { lonTens: number; latTens: number } {
   c.take(digits.length);
   const latTens = Number(digits.slice(-1));
   const lonTens = Number(digits.slice(0, -1));
-  if (latTens > 8) c.fail(`latitude ten-count out of range (got ${latTens}, max 8)`);
-  if (lonTens > 18) c.fail(`longitude ten-count out of range (got ${lonTens}, max 18)`);
+  if (latTens > 8)
+    c.fail(`latitude ten-count out of range (got ${latTens}, max 8)`);
+  if (lonTens > 18)
+    c.fail(`longitude ten-count out of range (got ${lonTens}, max 18)`);
   return { lonTens, latTens };
 }
 
@@ -118,12 +128,18 @@ function takeZzgHead(c: Cursor): {
   const { lonTens, latTens } = takeZzgDigits(c);
   const suf = takeSuffix(c);
   if (lonTens === 18 && suf.isEast) {
-    c.fail('longitude ten-count 18 is only valid west of the antimeridian (W or SW)');
+    c.fail(
+      'longitude ten-count 18 is only valid west of the antimeridian (W or SW)',
+    );
   }
   return { lonTens, latTens, suf };
 }
 
-function takeSuffix(c: Cursor): { suffix: ZzgSuffix; isEast: boolean; isSouth: boolean } {
+function takeSuffix(c: Cursor): {
+  suffix: ZzgSuffix;
+  isEast: boolean;
+  isSouth: boolean;
+} {
   for (const entry of SUFFIX_TABLE) {
     if (c.rest.startsWith(entry.token)) {
       c.take(entry.token.length);
@@ -133,7 +149,12 @@ function takeSuffix(c: Cursor): { suffix: ZzgSuffix; isEast: boolean; isSouth: b
   return c.fail('expected ZZG suffix (O, W, SO, or SW)');
 }
 
-function zzgBoxFromTens(lonTens: number, latTens: number, isEast: boolean, isSouth: boolean): GeoBox {
+function zzgBoxFromTens(
+  lonTens: number,
+  latTens: number,
+  isEast: boolean,
+  isSouth: boolean,
+): GeoBox {
   const nwLat = isSouth
     ? ZZG_BASELINE_LAT - ZZG_LAT_DEG * latTens
     : ZZG_BASELINE_LAT + ZZG_LAT_DEG + ZZG_LAT_DEG * latTens;
@@ -143,15 +164,20 @@ function zzgBoxFromTens(lonTens: number, latTens: number, isEast: boolean, isSou
 
 function takeDigit(c: Cursor, label: string, max: number): number {
   const ch = c.peek();
-  if (ch === undefined || !/[1-9]/.test(ch)) c.fail(`expected ${label} digit (1..${max})`);
+  if (ch === undefined || !/[1-9]/.test(ch))
+    c.fail(`expected ${label} digit (1..${max})`);
   const n = Number(ch);
   if (n > max) c.fail(`${label} digit out of range (got ${n}, max ${max})`);
   c.take(1);
   return n;
 }
 
-function takeTwoDigits(c: Cursor, label: string): { lonOnes: number; latOnes: number } {
-  if (c.rest.length < 2 || !/^\d{2}/.test(c.rest)) c.fail(`expected 2 ${label} digits`);
+function takeTwoDigits(
+  c: Cursor,
+  label: string,
+): { lonOnes: number; latOnes: number } {
+  if (c.rest.length < 2 || !/^\d{2}/.test(c.rest))
+    c.fail(`expected 2 ${label} digits`);
   const head = c.take(2);
   return { lonOnes: Number(head[0]!), latOnes: Number(head[1]!) };
 }
@@ -165,7 +191,11 @@ function takeJmnHalf(c: Cursor): 'N' | 'S' {
   return c.fail('expected Jagdtrapez half (N or S)');
 }
 
-function takeJmnLetters(c: Cursor): { row: number; col: number; letters: string } {
+function takeJmnLetters(c: Cursor): {
+  row: number;
+  col: number;
+  letters: string;
+} {
   if (c.rest.length < 2) c.fail('expected JMN Mitteltrapez letter pair');
   const head = c.take(2);
   const row = letterToIndex(head[0]!);
@@ -174,18 +204,23 @@ function takeJmnLetters(c: Cursor): { row: number; col: number; letters: string 
   return { row, col, letters: head };
 }
 
-function takeAtLabel(c: Cursor, era: LuftwaffeEra): { row: number; col: number; label: string } {
+function takeAtLabel(
+  c: Cursor,
+  era: LuftwaffeEra,
+): { row: number; col: number; label: string } {
   if (era === 'pre-1943') {
     const head = c.rest.slice(0, 2).toLowerCase();
     const idx = PRE_AT_INDEX[head];
-    if (!idx) c.fail('expected pre-1943 Arbeitstrapez label (lo, ro, lu, or ru)');
+    if (!idx)
+      c.fail('expected pre-1943 Arbeitstrapez label (lo, ro, lu, or ru)');
     c.take(2);
     return { row: idx[0], col: idx[1], label: head };
   }
   const ch = c.peek();
   if (ch === undefined) c.fail('expected Arbeitstrapez label (a..i)');
   const lower = ch.toLowerCase();
-  if (lower < 'a' || lower > 'i') c.fail(`expected Arbeitstrapez label (a..i), got "${ch}"`);
+  if (lower < 'a' || lower > 'i')
+    c.fail(`expected Arbeitstrapez label (a..i), got "${ch}"`);
   const offset = lower.charCodeAt(0) - 'a'.charCodeAt(0);
   c.take(1);
   return { row: Math.floor(offset / 3), col: offset % 3, label: lower };
@@ -195,7 +230,13 @@ function endIfTrailing(c: Cursor): void {
   if (!c.empty()) c.fail(`unexpected trailing characters "${c.rest}"`);
 }
 
-function childBox(parentBbox: GeoBox, latSpan: number, lonSpan: number, row: number, col: number): GeoBox {
+function childBox(
+  parentBbox: GeoBox,
+  latSpan: number,
+  lonSpan: number,
+  row: number,
+  col: number,
+): GeoBox {
   const parentNwLat = parentBbox[3];
   const parentNwLon = parentBbox[0];
   const nwLat = parentNwLat - latSpan * row;
@@ -210,7 +251,10 @@ function findGtNwLat(zzgBbox: GeoBox, latOnes: number): number {
   for (let lat = nwLat; lat > swLat; lat -= GT_LAT_DEG) {
     if (Math.abs(Math.round(lat)) % 10 === latOnes) return lat;
   }
-  throw new ParseError(String(latOnes), `Großtrapez latitude digit ${latOnes} is outside this ZZG`);
+  throw new ParseError(
+    String(latOnes),
+    `Großtrapez latitude digit ${latOnes} is outside this ZZG`,
+  );
 }
 
 /** Find the GT NW longitude inside a ZZG whose ones-digit equals `lonOnes`. */
@@ -220,14 +264,21 @@ function findGtNwLon(zzgBbox: GeoBox, lonOnes: number): number {
   for (let lon = nwLon; lon < seLon; lon += GT_LON_DEG) {
     if (((Math.abs(Math.round(lon)) % 10) + 10) % 10 === lonOnes) return lon;
   }
-  throw new ParseError(String(lonOnes), `Großtrapez longitude digit ${lonOnes} is outside this ZZG`);
+  throw new ParseError(
+    String(lonOnes),
+    `Großtrapez longitude digit ${lonOnes} is outside this ZZG`,
+  );
 }
 
 function bboxCentre(bbox: GeoBox): LatLon {
   return [(bbox[1] + bbox[3]) / 2, (bbox[0] + bbox[2]) / 2];
 }
 
-function decodeKtMeltAt(c: Cursor, bbox: GeoBox, era: LuftwaffeEra): { bbox: GeoBox; depth: number; pieces: string[] } {
+function decodeKtMeltAt(
+  c: Cursor,
+  bbox: GeoBox,
+  era: LuftwaffeEra,
+): { bbox: GeoBox; depth: number; pieces: string[] } {
   const pieces: string[] = [];
   let depth = 2;
   if (c.empty()) return { bbox, depth, pieces };
@@ -235,14 +286,26 @@ function decodeKtMeltAt(c: Cursor, bbox: GeoBox, era: LuftwaffeEra): { bbox: Geo
   const ktDigit = takeDigit(c, 'Kleintrapez', 9);
   depth = 3;
   pieces.push(String(ktDigit));
-  bbox = childBox(bbox, KT_LAT_DEG, KT_LON_DEG, Math.floor((ktDigit - 1) / 3), (ktDigit - 1) % 3);
+  bbox = childBox(
+    bbox,
+    KT_LAT_DEG,
+    KT_LON_DEG,
+    Math.floor((ktDigit - 1) / 3),
+    (ktDigit - 1) % 3,
+  );
   if (c.empty()) return { bbox, depth, pieces };
 
   const dims = meldetrapezDims(era);
   const meltDigit = takeDigit(c, 'Meldetrapez', dims.rows * dims.cols);
   depth = 4;
   pieces.push(String(meltDigit));
-  bbox = childBox(bbox, dims.latDeg, dims.lonDeg, Math.floor((meltDigit - 1) / dims.cols), (meltDigit - 1) % dims.cols);
+  bbox = childBox(
+    bbox,
+    dims.latDeg,
+    dims.lonDeg,
+    Math.floor((meltDigit - 1) / dims.cols),
+    (meltDigit - 1) % dims.cols,
+  );
   if (c.empty()) return { bbox, depth, pieces };
 
   const at = takeAtLabel(c, era);
@@ -255,7 +318,12 @@ function decodeKtMeltAt(c: Cursor, bbox: GeoBox, era: LuftwaffeEra): { bbox: Geo
   return { bbox, depth, pieces };
 }
 
-function makeDecoded(canonical: string, formatted: string, bbox: GeoBox, depth: number): DecodedRef {
+function makeDecoded(
+  canonical: string,
+  formatted: string,
+  bbox: GeoBox,
+  depth: number,
+): DecodedRef {
   if (bbox[3] > ZZG_NORTH_LIMIT + 1e-9) {
     throw new ParseError(canonical, 'reference is above 89°N');
   }
@@ -263,8 +331,12 @@ function makeDecoded(canonical: string, formatted: string, bbox: GeoBox, depth: 
 }
 
 /** Parse a Gradnetzmeldeverfahren (GNMV) reference. Pre-1943 era understands `lo/ro/lu/ru` labels. */
-export function parseGnmvRef(text: string, era: LuftwaffeEra = 'post-1943'): DecodedRef {
-  if (typeof text !== 'string') throw new ParseError(String(text), 'expected string input');
+export function parseGnmvRef(
+  text: string,
+  era: LuftwaffeEra = 'post-1943',
+): DecodedRef {
+  if (typeof text !== 'string')
+    throw new ParseError(String(text), 'expected string input');
   const normalized = normalizeInput(text);
   if (normalized.length === 0) throw new ParseError(text, 'empty input');
 
@@ -290,7 +362,13 @@ export function parseGnmvRef(text: string, era: LuftwaffeEra = 'post-1943'): Dec
   const mtDigit = takeDigit(c, 'Mitteltrapez', 8);
   canonical += String(mtDigit);
   formatted += ` ${mtDigit}`;
-  bbox = childBox(bbox, MT_LAT_DEG, MT_LON_DEG, Math.floor((mtDigit - 1) / 2), (mtDigit - 1) % 2);
+  bbox = childBox(
+    bbox,
+    MT_LAT_DEG,
+    MT_LON_DEG,
+    Math.floor((mtDigit - 1) / 2),
+    (mtDigit - 1) % 2,
+  );
 
   const tail = decodeKtMeltAt(c, bbox, era);
   bbox = tail.bbox;
@@ -304,7 +382,8 @@ export function parseGnmvRef(text: string, era: LuftwaffeEra = 'post-1943'): Dec
 
 /** Parse a Jägermeldenetz (JMN) reference. JMN is post-1943 only. */
 export function parseJmnRef(text: string): DecodedRef {
-  if (typeof text !== 'string') throw new ParseError(String(text), 'expected string input');
+  if (typeof text !== 'string')
+    throw new ParseError(String(text), 'expected string input');
   const normalized = normalizeInput(text);
   if (normalized.length === 0) throw new ParseError(text, 'empty input');
 
@@ -347,10 +426,14 @@ export interface ParseResult {
   system: LuftwaffeSystem;
 }
 
-const ZZG_DISPATCH_PATTERN = /^(\d{2,3})(SUEDOST|SUEDWEST|SUDOST|SUDWEST|SOST|SWEST|OST|WEST|SO|SW|O|W)(.*)$/;
+const ZZG_DISPATCH_PATTERN =
+  /^(\d{2,3})(SUEDOST|SUEDWEST|SUDOST|SUDWEST|SOST|SWEST|OST|WEST|SO|SW|O|W)(.*)$/;
 
 /** Parse either system. Routes on the char after the ZZG suffix: N/S → JMN, digit → GNMV. */
-export function parseRef(text: string, era: LuftwaffeEra = 'post-1943'): ParseResult {
+export function parseRef(
+  text: string,
+  era: LuftwaffeEra = 'post-1943',
+): ParseResult {
   const normalized = normalizeInput(text);
   const dispatch = normalized.match(ZZG_DISPATCH_PATTERN);
   if (dispatch) {
@@ -374,6 +457,9 @@ export function parseRef(text: string, era: LuftwaffeEra = 'post-1943'): ParseRe
     return { decoded: parseGnmvRef(text, era), system: 'gnmv' };
   } catch (err) {
     if (!(err instanceof ParseError)) throw err;
-    throw new ParseError(text, `not JMN (${jmnError.reason}), not GNMV (${err.reason})`);
+    throw new ParseError(
+      text,
+      `not JMN (${jmnError.reason}), not GNMV (${err.reason})`,
+    );
   }
 }

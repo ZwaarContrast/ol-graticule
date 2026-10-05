@@ -37,7 +37,9 @@ describe('projectionKey', () => {
 
 describe('cursorKey', () => {
   it('encodes the projection and integer-rounded coordinates', () => {
-    expect(cursorKey([12345.4, 67890.6], 'EPSG:3857')).toBe('EPSG:3857|12345|67891');
+    expect(cursorKey([12345.4, 67890.6], 'EPSG:3857')).toBe(
+      'EPSG:3857|12345|67891',
+    );
   });
 
   it('produces distinct keys for distinct projections at the same coordinate', () => {
@@ -67,7 +69,9 @@ describe('sampleCornerLons', () => {
   });
 
   it('passes through a degenerate (single-point) extent', () => {
-    const point: [number, number, number, number] = [0, 5_621_521, 0, 5_621_521];
+    const point: [number, number, number, number] = [
+      0, 5_621_521, 0, 5_621_521,
+    ];
     const lons = sampleCornerLons(point, 'EPSG:3857');
     expect(lons).toHaveLength(4);
     for (const lon of lons) expect(lon).toBeCloseTo(0, 3);
@@ -85,7 +89,9 @@ describe('toFiniteLonLat', () => {
 
   it('returns null when the transform yields a non-finite coordinate', () => {
     expect(toFiniteLonLat([NaN, NaN], 'EPSG:3857')).toBeNull();
-    expect(toFiniteLonLat([Number.POSITIVE_INFINITY, 0], 'EPSG:3857')).toBeNull();
+    expect(
+      toFiniteLonLat([Number.POSITIVE_INFINITY, 0], 'EPSG:3857'),
+    ).toBeNull();
   });
 });
 

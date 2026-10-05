@@ -2,19 +2,19 @@ import { describe, it, expect } from 'vitest';
 import { get as getProjection, transform } from 'ol/proj';
 import type { Extent } from 'ol/extent';
 import {
-  createRDNewGridSystem,
   RD_NEW_CRS,
   RD_NEW_PROJ4,
   RD_NEW_EXTENT,
   RD_NEW_CLIP_POLYGON,
 } from '../RDNew.js';
+import { createRDNewGridSystem } from '../RDNew.grid.js';
 import {
-  createRDOldGridSystem,
   RD_OLD_CRS,
   RD_OLD_PROJ4,
   RD_OLD_EXTENT,
   RD_OLD_CLIP_POLYGON,
 } from '../RDOld.js';
+import { createRDOldGridSystem } from '../RDOld.grid.js';
 
 describe('@zwaarcontrast/ol-graticule-rd', () => {
   describe('constants', () => {
@@ -33,18 +33,25 @@ describe('@zwaarcontrast/ol-graticule-rd', () => {
       // in Position Vector convention (sign-flipped from EPSG's Coordinate
       // Frame publication), the previous µrad / Coord-Frame values
       // produced ~170 m error through proj4's pipeline.
-      expect(RD_NEW_PROJ4).toContain('+towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725');
+      expect(RD_NEW_PROJ4).toContain(
+        '+towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725',
+      );
       expect(RD_NEW_PROJ4).toContain('+nadgrids=@rdtrans2018,@null');
     });
 
     it('RD Old proj4Def includes the canonical EPSG:4833 towgs84 fallback', () => {
-      expect(RD_OLD_PROJ4).toContain('+towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725');
+      expect(RD_OLD_PROJ4).toContain(
+        '+towgs84=565.4171,50.3319,465.5524,-0.398957,0.343988,-1.87740,4.0725',
+      );
       expect(RD_OLD_PROJ4).toContain('+nadgrids=@rdtrans2018,@null');
     });
 
     it('RD New extent matches its clip-polygon bounding box', () => {
       const [minX, minY, maxX, maxY] = RD_NEW_EXTENT;
-      let pxMin = Infinity, pyMin = Infinity, pxMax = -Infinity, pyMax = -Infinity;
+      let pxMin = Infinity,
+        pyMin = Infinity,
+        pxMax = -Infinity,
+        pyMax = -Infinity;
       for (const [x, y] of RD_NEW_CLIP_POLYGON) {
         if (x < pxMin) pxMin = x;
         if (y < pyMin) pyMin = y;
@@ -59,7 +66,10 @@ describe('@zwaarcontrast/ol-graticule-rd', () => {
 
     it('RD Old extent matches its clip-polygon bounding box', () => {
       const [minX, minY, maxX, maxY] = RD_OLD_EXTENT;
-      let pxMin = Infinity, pyMin = Infinity, pxMax = -Infinity, pyMax = -Infinity;
+      let pxMin = Infinity,
+        pyMin = Infinity,
+        pxMax = -Infinity,
+        pyMax = -Infinity;
       for (const [x, y] of RD_OLD_CLIP_POLYGON) {
         if (x < pxMin) pxMin = x;
         if (y < pyMin) pyMin = y;
@@ -106,13 +116,17 @@ describe('@zwaarcontrast/ol-graticule-rd', () => {
       const system = createRDNewGridSystem();
       // Amersfoort (town), the origin of the RD system:
       // lon 5.387°E, lat 52.156°N → Web Mercator (599700, 6828929).
-      expect(system.isValidCoordinate([599700, 6828929], 'EPSG:3857')).toBe(true);
+      expect(system.isValidCoordinate([599700, 6828929], 'EPSG:3857')).toBe(
+        true,
+      );
     });
 
     it('isValidCoordinate returns false for a point in Australia', () => {
       const system = createRDNewGridSystem();
       // Sydney ≈ Web Mercator (16814500, -4009750).
-      expect(system.isValidCoordinate([16814500, -4009750], 'EPSG:3857')).toBe(false);
+      expect(system.isValidCoordinate([16814500, -4009750], 'EPSG:3857')).toBe(
+        false,
+      );
     });
 
     it('uses the RDNAPTRANS 2018 grid for WGS84 → RD conversions (sub-meter accuracy)', () => {
@@ -125,7 +139,7 @@ describe('@zwaarcontrast/ol-graticule-rd', () => {
       const [x, y] = transform([4.883517, 52.374538], 'EPSG:4326', RD_NEW_CRS);
       // Canonical RD of Westertoren: (120700.72, 487525.50).
       expect(x).toBeCloseTo(120700.72, 0);
-      expect(y).toBeCloseTo(487525.50, 0);
+      expect(y).toBeCloseTo(487525.5, 0);
     });
   });
 
@@ -151,7 +165,8 @@ describe('@zwaarcontrast/ol-graticule-rd', () => {
       const newFmt = newSystem.formatCoordinate(pt, 'EPSG:3857');
       const oldFmt = oldSystem.formatCoordinate(pt, 'EPSG:3857');
       // Both are axis-formatted (RD grids are metric, not compound).
-      if (!('x' in newFmt) || !('x' in oldFmt)) throw new Error('expected axis-formatted');
+      if (!('x' in newFmt) || !('x' in oldFmt))
+        throw new Error('expected axis-formatted');
       // Different false origins → different labels.
       expect(newFmt.x).not.toBe(oldFmt.x);
       expect(newFmt.y).not.toBe(oldFmt.y);
@@ -160,7 +175,12 @@ describe('@zwaarcontrast/ol-graticule-rd', () => {
 
   describe('clipPolygon override', () => {
     it('accepts a user-supplied clip polygon override', () => {
-      const tiny: [number, number][] = [[0, 300000], [1000, 300000], [1000, 301000], [0, 301000]];
+      const tiny: [number, number][] = [
+        [0, 300000],
+        [1000, 300000],
+        [1000, 301000],
+        [0, 301000],
+      ];
       const system = createRDNewGridSystem({ clipPolygon: tiny });
       // A coordinate inside the NL outline but outside our tiny polygon
       // should now be invalid.

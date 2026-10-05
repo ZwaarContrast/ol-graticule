@@ -66,7 +66,11 @@ export function densifyAndProject(
     const dy = p1[1] - p0[1];
     for (let k = 0; k < steps; k++) {
       const t = k / steps;
-      const [x, y] = transformFn([p0[0] + t * dx, p0[1] + t * dy], undefined, 2);
+      const [x, y] = transformFn(
+        [p0[0] + t * dx, p0[1] + t * dy],
+        undefined,
+        2,
+      );
       if (x === undefined || y === undefined) continue;
       if (!isFinite(x) || !isFinite(y)) continue;
       out.push([x, y]);

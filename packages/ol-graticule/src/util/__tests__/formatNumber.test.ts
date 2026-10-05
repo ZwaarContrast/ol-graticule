@@ -10,8 +10,8 @@ describe('formatDecimal', () => {
 
   it('strips trailing zeros from fractional values', () => {
     expect(formatDecimal(5.1, 2)).toBe('5.1');
-    expect(formatDecimal(5.10, 3)).toBe('5.1');
-    expect(formatDecimal(5.100, 4)).toBe('5.1');
+    expect(formatDecimal(5.1, 3)).toBe('5.1');
+    expect(formatDecimal(5.1, 4)).toBe('5.1');
   });
 
   it('strips the decimal point when all fractional digits round to zero', () => {
@@ -31,6 +31,6 @@ describe('formatDecimal', () => {
 
   it('handles negative fractional values', () => {
     expect(formatDecimal(-3.14, 2)).toBe('-3.14');
-    expect(formatDecimal(-3.10, 2)).toBe('-3.1');
+    expect(formatDecimal(-3.1, 2)).toBe('-3.1');
   });
 });

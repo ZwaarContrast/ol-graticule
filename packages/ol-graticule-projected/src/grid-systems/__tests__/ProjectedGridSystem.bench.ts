@@ -4,7 +4,10 @@ import { register } from 'ol/proj/proj4';
 import { ProjectedGridSystem } from '../ProjectedGridSystem.js';
 import type { Extent } from 'ol/extent';
 
-proj4.defs('EPSG:32633', '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +type=crs');
+proj4.defs(
+  'EPSG:32633',
+  '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +type=crs',
+);
 register(proj4);
 
 // Straight in Web Mercator: a lat/lon graticule is axis-aligned, so adaptive

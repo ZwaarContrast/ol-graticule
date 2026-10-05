@@ -26,18 +26,25 @@ export interface DrgFormatOptions {
 function format(value: number, options: DrgFormatOptions): string {
   const metres = Math.round(value);
   const km = Math.floor(metres / 1000);
-  const head = options.form === 'short' ? String(km % 100).padStart(2, '0') : String(km);
+  const head =
+    options.form === 'short' ? String(km % 100).padStart(2, '0') : String(km);
   if (options.unit !== 'm') return head;
   return `${head}${String(metres - km * 1000).padStart(3, '0')}`;
 }
 
 /** Format the Rechtswert as printed on a sheet (default: `"2512"`). */
-export function formatEasting(coord: DrgCoord, options: DrgFormatOptions = {}): string {
+export function formatEasting(
+  coord: DrgCoord,
+  options: DrgFormatOptions = {},
+): string {
   return format(coord.easting, options);
 }
 
 /** Format the Hochwert as printed on a sheet (default: `"5585"`). */
-export function formatNorthing(coord: DrgCoord, options: DrgFormatOptions = {}): string {
+export function formatNorthing(
+  coord: DrgCoord,
+  options: DrgFormatOptions = {},
+): string {
   return format(coord.northing, options);
 }
 
@@ -47,7 +54,9 @@ export function formatNorthing(coord: DrgCoord, options: DrgFormatOptions = {}):
  * 20' overlap band does.
  */
 export function encodeDrg(point: LatLon, kennziffer?: number): DrgCoord {
-  return kennziffer === undefined ? forward(point) : forwardInZone(point, kennziffer);
+  return kennziffer === undefined
+    ? forward(point)
+    : forwardInZone(point, kennziffer);
 }
 
 /** Encode `(lat, lon)` to its metre-precision text form, e.g. `"2512200 5585450"`. */
@@ -123,7 +132,9 @@ export function parseDrg(text: string): ParsedDrg | undefined {
 
 /** Values below `metreThreshold` digits are read as kilometres. */
 function toMetres(value: number, metreThreshold: number): number {
-  return String(Math.abs(value)).length >= metreThreshold ? value : value * 1000;
+  return String(Math.abs(value)).length >= metreThreshold
+    ? value
+    : value * 1000;
 }
 
 function isInt(n: unknown): n is number {

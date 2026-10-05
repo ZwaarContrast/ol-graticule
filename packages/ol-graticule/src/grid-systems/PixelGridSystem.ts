@@ -3,7 +3,13 @@ import type Feature from 'ol/Feature';
 import type { Extent } from 'ol/extent';
 import type { Geometry } from 'ol/geom';
 import type { ProjectionLike } from 'ol/proj';
-import type { GridSystem, GridLabel, IntervalStrategy, LabelFormatter, FormattedCoordinate } from '../types.js';
+import type {
+  GridSystem,
+  GridLabel,
+  IntervalStrategy,
+  LabelFormatter,
+  FormattedCoordinate,
+} from '../types.js';
 import { PixelIntervals } from '../intervals/PixelIntervals.js';
 import { PixelFormatter } from '../formatters/PixelFormatter.js';
 import { buildStraightGridLine, isOnMajorLine } from '../util/gridlines.js';
@@ -54,11 +60,16 @@ export class PixelGridSystem implements GridSystem {
 
   constructor(options?: PixelGridSystemOptions) {
     this.yMap_ = makeYMapping(options?.yInverted ?? false);
-    this.intervals_ = options?.intervals ?? new PixelIntervals(options?.targetScreenPx ?? 120);
+    this.intervals_ =
+      options?.intervals ?? new PixelIntervals(options?.targetScreenPx ?? 120);
     this.formatter_ = options?.formatter ?? new PixelFormatter();
   }
 
-  getFeatures(extent: Extent, resolution: number, _viewProjection: ProjectionLike): Feature<Geometry>[] {
+  getFeatures(
+    extent: Extent,
+    resolution: number,
+    _viewProjection: ProjectionLike,
+  ): Feature<Geometry>[] {
     const features: Feature<Geometry>[] = [];
     const interval = this.intervals_.getInterval(resolution);
     const minorInterval = this.intervals_.getMinorInterval?.(interval);
@@ -80,7 +91,9 @@ export class PixelGridSystem implements GridSystem {
     const [minX, minY, maxX, maxY] = extent;
     const epsilon = interval * MAJOR_SKIP_EPSILON_RATIO;
     const skipMinor = (v: number) =>
-      type === 'minor' && majorInterval !== undefined && isOnMajorLine(v, majorInterval, epsilon);
+      type === 'minor' &&
+      majorInterval !== undefined &&
+      isOnMajorLine(v, majorInterval, epsilon);
 
     const startX = Math.max(0, Math.floor(minX / interval) * interval);
     for (let x = startX; x <= maxX; x += interval) {
@@ -99,7 +112,11 @@ export class PixelGridSystem implements GridSystem {
     }
   }
 
-  getLabels(extent: Extent, resolution: number, _viewProjection: ProjectionLike): GridLabel[] {
+  getLabels(
+    extent: Extent,
+    resolution: number,
+    _viewProjection: ProjectionLike,
+  ): GridLabel[] {
     const labels: GridLabel[] = [];
     const interval = this.intervals_.getInterval(resolution);
 
@@ -131,7 +148,10 @@ export class PixelGridSystem implements GridSystem {
     return labels;
   }
 
-  formatCoordinate(coordinate: [number, number], _viewProjection: ProjectionLike): FormattedCoordinate {
+  formatCoordinate(
+    coordinate: [number, number],
+    _viewProjection: ProjectionLike,
+  ): FormattedCoordinate {
     const [x, y] = coordinate;
     return {
       x: this.formatter_.format(x, 'x'),
@@ -139,7 +159,10 @@ export class PixelGridSystem implements GridSystem {
     };
   }
 
-  parseCoordinate(text: string, _viewProjection: ProjectionLike): [number, number] {
+  parseCoordinate(
+    text: string,
+    _viewProjection: ProjectionLike,
+  ): [number, number] {
     const [x, displayY] = parsePairViaFormatter(this.formatter_, text);
     return [x, this.yMap_.toDisplayY(displayY)];
   }

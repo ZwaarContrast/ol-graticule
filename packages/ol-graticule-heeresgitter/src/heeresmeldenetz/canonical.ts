@@ -67,7 +67,8 @@ interface HmnTokens {
 
 function toArbeitstrapez(text: string): Arbeitstrapez | undefined {
   const lower = text.toLowerCase();
-  if (lower === 'a' || lower === 'b' || lower === 'c' || lower === 'd') return lower;
+  if (lower === 'a' || lower === 'b' || lower === 'c' || lower === 'd')
+    return lower;
   return undefined;
 }
 

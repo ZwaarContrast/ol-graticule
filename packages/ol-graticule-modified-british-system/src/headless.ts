@@ -1,0 +1,104 @@
+/**
+ * The ol-free surface of this package: the Modified British System letter
+ * schemes, per-theatre CRS codes, proj4 definitions, extents and coverage
+ * polygons, and the MBS grid-reference formatter, with no import of `ol`
+ * anywhere in the graph. Importable under plain `node`.
+ *
+ * The grid-system factories in the package root render these theatres and do
+ * need OpenLayers.
+ */
+
+export { MBSFormatter } from './formatters/MBSFormatter.js';
+
+export {
+  NORD_DE_GUERRE_FAMILY_LETTERS,
+  NORD_DE_GUERRE_SCHEME,
+  FRENCH_LAMBERT_1_SCHEME,
+  FRENCH_LAMBERT_2_SCHEME,
+  FRENCH_LAMBERT_3_SCHEME,
+  BRITISH_CASSINI_FAMILY_LETTERS,
+  BRITISH_CASSINI_SCHEME,
+  IRISH_CASSINI_SCHEME,
+  WAR_OFFICE_CASSINI_SCHEME,
+  SCANDINAVIAN_ZONE_3_FAMILY_LETTERS,
+  SCANDINAVIAN_ZONE_3_SCHEME,
+  ITALIAN_NORTHERN_FAMILY_LETTERS,
+  ITALIAN_NORTHERN_SCHEME,
+  ITALIAN_SOUTHERN_SCHEME,
+  IBERIAN_PENINSULA_SCHEME,
+} from './formatters/schemes.js';
+
+export type { MBSLetterGrids, MBSLetterScheme } from './formatters/schemes.js';
+
+export {
+  NORD_DE_GUERRE_CRS,
+  NORD_DE_GUERRE_PROJ4,
+  NORD_DE_GUERRE_EXTENT,
+  NORD_DE_GUERRE_BBOX_WGS84,
+  NORD_DE_GUERRE_CLIP_POLYGON,
+  NORD_DE_GUERRE_DEFAULT_TOWGS84,
+} from './grids/NordDeGuerre.js';
+
+export {
+  FRENCH_LAMBERT_1_CRS,
+  FRENCH_LAMBERT_1_PROJ4,
+  FRENCH_LAMBERT_1_BBOX_WGS84,
+  FRENCH_LAMBERT_1_CLIP_POLYGON,
+  FRENCH_LAMBERT_2_CRS,
+  FRENCH_LAMBERT_2_PROJ4,
+  FRENCH_LAMBERT_2_BBOX_WGS84,
+  FRENCH_LAMBERT_2_CLIP_POLYGON,
+  FRENCH_LAMBERT_3_CRS,
+  FRENCH_LAMBERT_3_PROJ4,
+  FRENCH_LAMBERT_3_BBOX_WGS84,
+  FRENCH_LAMBERT_3_CLIP_POLYGON,
+} from './grids/FrenchLambert.js';
+
+export {
+  BRITISH_CASSINI_CRS,
+  BRITISH_CASSINI_PROJ4,
+  BRITISH_CASSINI_BBOX_WGS84,
+  BRITISH_CASSINI_CLIP_POLYGON,
+} from './grids/BritishCassini.js';
+
+export {
+  IRISH_CASSINI_CRS,
+  IRISH_CASSINI_PROJ4,
+  IRISH_CASSINI_BBOX_WGS84,
+  IRISH_CASSINI_CLIP_POLYGON,
+} from './grids/IrishCassini.js';
+
+export {
+  WAR_OFFICE_CASSINI_CRS,
+  WAR_OFFICE_CASSINI_PROJ4,
+  WAR_OFFICE_CASSINI_BBOX_WGS84,
+  WAR_OFFICE_CASSINI_CLIP_POLYGON,
+} from './grids/WarOfficeCassini.js';
+
+export {
+  SCANDINAVIAN_ZONE_3_CRS,
+  SCANDINAVIAN_ZONE_3_PROJ4,
+  SCANDINAVIAN_ZONE_3_BBOX_WGS84,
+  SCANDINAVIAN_ZONE_3_CLIP_POLYGON,
+} from './grids/ScandinavianZone3.js';
+
+export {
+  ITALIAN_NORTHERN_CRS,
+  ITALIAN_NORTHERN_PROJ4,
+  ITALIAN_NORTHERN_BBOX_WGS84,
+  ITALIAN_NORTHERN_CLIP_POLYGON,
+} from './grids/ItalianNorthern.js';
+
+export {
+  ITALIAN_SOUTHERN_CRS,
+  ITALIAN_SOUTHERN_PROJ4,
+  ITALIAN_SOUTHERN_BBOX_WGS84,
+  ITALIAN_SOUTHERN_CLIP_POLYGON,
+} from './grids/ItalianSouthern.js';
+
+export {
+  IBERIAN_PENINSULA_CRS,
+  IBERIAN_PENINSULA_PROJ4,
+  IBERIAN_PENINSULA_BBOX_WGS84,
+  IBERIAN_PENINSULA_CLIP_POLYGON,
+} from './grids/IberianPeninsula.js';

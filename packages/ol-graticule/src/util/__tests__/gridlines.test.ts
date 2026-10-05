@@ -14,17 +14,19 @@ const identity: TransformFunction = (input, output) => {
 };
 
 /** Bows points by `k·x·(100−x)` in y, so horizontal lines (const y) curve. */
-const bow = (k: number): TransformFunction => (input, output, dimension = 2) => {
-  const out = output ?? input.slice();
-  for (let i = 0; i < input.length; i += dimension) {
-    const x = input[i];
-    const y = input[i + 1];
-    if (x === undefined || y === undefined) continue;
-    out[i] = x;
-    out[i + 1] = y + k * x * (100 - x);
-  }
-  return out;
-};
+const bow =
+  (k: number): TransformFunction =>
+  (input, output, dimension = 2) => {
+    const out = output ?? input.slice();
+    for (let i = 0; i < input.length; i += dimension) {
+      const x = input[i];
+      const y = input[i + 1];
+      if (x === undefined || y === undefined) continue;
+      out[i] = x;
+      out[i + 1] = y + k * x * (100 - x);
+    }
+    return out;
+  };
 
 const nanTransform: TransformFunction = (input, output) => {
   const out = output ?? input.slice();
@@ -62,7 +64,9 @@ describe('isOnMajorLine', () => {
 
 describe('adaptiveAxisTs', () => {
   const monotonic = (ts: number[]): boolean =>
-    ts[0] === 0 && ts[ts.length - 1] === 1 && ts.every((t, i) => i === 0 || t > ts[i - 1]!);
+    ts[0] === 0 &&
+    ts[ts.length - 1] === 1 &&
+    ts.every((t, i) => i === 0 || t > ts[i - 1]!);
 
   it('returns [0, 1] (2 points) under an identity transform', () => {
     expect(adaptiveAxisTs('x', unit, identity, 1, 64)).toEqual([0, 1]);
@@ -84,7 +88,9 @@ describe('adaptiveAxisTs', () => {
   });
 
   it('clamps to the cap', () => {
-    expect(adaptiveAxisTs('y', unit, bow(10), 1, 8).length).toBeLessThanOrEqual(9);
+    expect(adaptiveAxisTs('y', unit, bow(10), 1, 8).length).toBeLessThanOrEqual(
+      9,
+    );
   });
 
   it('treats a degenerate (all non-finite) transform as straight', () => {
@@ -102,7 +108,8 @@ describe('adaptiveAxisTs', () => {
     const hook: TransformFunction = (input, output, dimension = 2) => {
       const out = output ?? input.slice();
       for (let i = 0; i < input.length; i += dimension) {
-        const x = input[i]!, y = input[i + 1]!;
+        const x = input[i]!,
+          y = input[i + 1]!;
         out[i] = x;
         out[i + 1] = y + (x > 87.5 ? (x - 87.5) * (x - 87.5) : 0);
       }

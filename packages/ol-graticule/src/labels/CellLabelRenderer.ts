@@ -26,7 +26,9 @@ export class CellLabelRenderer {
   private readonly pxScratch_: number[] = [0, 0];
   private readonly reusablePoint_: Point = new Point([0, 0]);
   private readonly reusableLabel_: GridCellLabel = {
-    point: this.reusablePoint_, text: '', cellSizePx: 0,
+    point: this.reusablePoint_,
+    text: '',
+    cellSizePx: 0,
   };
 
   constructor(handler: CellLabelStyleHandler) {
@@ -78,7 +80,10 @@ export class CellLabelRenderer {
     this.pxScratch_[0] = nx;
     this.pxScratch_[1] = ny;
     applyTransform(screen.fromPixel, this.pxScratch_);
-    this.reusablePoint_.setCoordinates([this.pxScratch_[0] ?? 0, this.pxScratch_[1] ?? 0]);
+    this.reusablePoint_.setCoordinates([
+      this.pxScratch_[0] ?? 0,
+      this.pxScratch_[1] ?? 0,
+    ]);
     label.point = this.reusablePoint_;
   }
 

@@ -30,14 +30,28 @@ function recordingContext(): { ctx: VectorContext; drawn: Drawn[] } {
   const drawFeature = (feature: Feature<Geometry>): void => {
     const geom = feature.getGeometry();
     const coords = geom instanceof Point ? geom.getCoordinates() : null;
-    drawn.push({ feature, coords: coords ? [coords[0] ?? 0, coords[1] ?? 0] : null });
+    drawn.push({
+      feature,
+      coords: coords ? [coords[0] ?? 0, coords[1] ?? 0] : null,
+    });
   };
   const ctx: VectorContext = {
-    drawCustom: noop, drawGeometry: noop, setStyle: noop, drawCircle: noop,
-    drawFeature, drawGeometryCollection: noop, drawLineString: noop,
-    drawMultiLineString: noop, drawMultiPoint: noop, drawMultiPolygon: noop,
-    drawPoint: noop, drawPolygon: noop, drawText: noop, setFillStrokeStyle: noop,
-    setImageStyle: noop, setTextStyle: noop,
+    drawCustom: noop,
+    drawGeometry: noop,
+    setStyle: noop,
+    drawCircle: noop,
+    drawFeature,
+    drawGeometryCollection: noop,
+    drawLineString: noop,
+    drawMultiLineString: noop,
+    drawMultiPoint: noop,
+    drawMultiPolygon: noop,
+    drawPoint: noop,
+    drawPolygon: noop,
+    drawText: noop,
+    setFillStrokeStyle: noop,
+    setImageStyle: noop,
+    setTextStyle: noop,
   };
   return { ctx, drawn };
 }
@@ -53,7 +67,13 @@ function alwaysDrawHandler(): CellLabelStyleHandler {
       const text = new Text({});
       const fill = new Fill({});
       const stroke = new Stroke({});
-      return { feature: new Feature(), text, fill, stroke, style: new Style({ text }) };
+      return {
+        feature: new Feature(),
+        text,
+        fill,
+        stroke,
+        style: new Style({ text }),
+      };
     },
     update(slot, { label }) {
       slot.text.setText(label.text);
@@ -83,7 +103,11 @@ function draw(entries: CellDrawEntry[]): Drawn[] {
 
 describe('CellLabelRenderer', () => {
   it('draws a small cell label at its exact centroid (no clamp)', () => {
-    const label: GridCellLabel = { point: new Point([300, 700]), text: 'A', cellSizePx: 100 };
+    const label: GridCellLabel = {
+      point: new Point([300, 700]),
+      text: 'A',
+      cellSizePx: 100,
+    };
     const drawn = draw([entry(label)]);
 
     expect(drawn).toHaveLength(1);
@@ -93,7 +117,11 @@ describe('CellLabelRenderer', () => {
   it('pulls a giant cell label back inside the viewport when its centroid pans off screen', () => {
     // Centroid at px (500, -200) — 200px above the top edge. Clamp target is the
     // 20px top margin → px (500, 20) → map (500, 980).
-    const label: GridCellLabel = { point: new Point([500, 1200]), text: 'A', cellSizePx: 5000 };
+    const label: GridCellLabel = {
+      point: new Point([500, 1200]),
+      text: 'A',
+      cellSizePx: 5000,
+    };
     const drawn = draw([entry(label)]);
 
     expect(drawn[0]?.coords?.[0]).toBeCloseTo(500);
@@ -113,7 +141,11 @@ describe('CellLabelRenderer', () => {
   it('caps the pull at half the cell size, so the label never leaves the cell it names', () => {
     // Centroid at px (500, -2000); half-cell bound is 1200/2 - 20 = 580, so the
     // label rises only to px (500, -1420) → map (500, 2420) and stays off screen.
-    const label: GridCellLabel = { point: new Point([500, 3000]), text: 'A', cellSizePx: 1200 };
+    const label: GridCellLabel = {
+      point: new Point([500, 3000]),
+      text: 'A',
+      cellSizePx: 1200,
+    };
     const drawn = draw([entry(label)]);
 
     expect(drawn[0]?.coords?.[0]).toBeCloseTo(500);

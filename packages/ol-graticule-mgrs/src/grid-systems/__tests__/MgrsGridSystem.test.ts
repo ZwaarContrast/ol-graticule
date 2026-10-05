@@ -24,7 +24,8 @@ function meridianSegmentsAt(
     if (!(geom instanceof LineString)) continue;
     const coords = geom.getCoordinates();
     if (coords.length === 0) continue;
-    let lo = Infinity, hi = -Infinity;
+    let lo = Infinity,
+      hi = -Infinity;
     for (const [, lat] of coords) {
       if (lat! < lo) lo = lat!;
       if (lat! > hi) hi = lat!;
@@ -43,11 +44,7 @@ describe('MgrsGridSystem GZD outlines', () => {
     // line from lat 50 to 70 at lon=6 would be a phantom boundary inside
     // the widened 32V, we must instead emit two disjoint segments.
     const grid = new MgrsGridSystem();
-    const features = grid.getFeatures(
-      [-12, 50, 18, 70],
-      0.05,
-      'EPSG:4326',
-    );
+    const features = grid.getFeatures([-12, 50, 18, 70], 0.05, 'EPSG:4326');
 
     const segs = meridianSegmentsAt(features, 6);
     expect(segs.length).toBe(2);
@@ -63,11 +60,7 @@ describe('MgrsGridSystem GZD outlines', () => {
 
   it('emits the Norway 31V/32V boundary at lon=3 (only in V band)', () => {
     const grid = new MgrsGridSystem();
-    const features = grid.getFeatures(
-      [-12, 50, 18, 70],
-      0.05,
-      'EPSG:4326',
-    );
+    const features = grid.getFeatures([-12, 50, 18, 70], 0.05, 'EPSG:4326');
 
     const segs = meridianSegmentsAt(features, 3);
     expect(segs.length).toBe(1);
@@ -80,11 +73,7 @@ describe('MgrsGridSystem GZD outlines', () => {
     // W. The merge step must collapse the three touching segments into a
     // single polyline (otherwise we double-draw at the touch points).
     const grid = new MgrsGridSystem();
-    const features = grid.getFeatures(
-      [-12, 50, 18, 70],
-      0.05,
-      'EPSG:4326',
-    );
+    const features = grid.getFeatures([-12, 50, 18, 70], 0.05, 'EPSG:4326');
 
     const segs = meridianSegmentsAt(features, 12);
     expect(segs.length).toBe(1);
@@ -98,11 +87,7 @@ describe('MgrsGridSystem GZD outlines', () => {
     // the widened odd zones (31X 0-9, 33X 9-21, 35X 21-33, 37X 33-42)
     // make 9, 21, 33 the actual boundaries instead.
     const grid = new MgrsGridSystem();
-    const features = grid.getFeatures(
-      [-1, 73, 43, 83],
-      0.05,
-      'EPSG:4326',
-    );
+    const features = grid.getFeatures([-1, 73, 43, 83], 0.05, 'EPSG:4326');
 
     for (const dropped of [6, 12, 18, 24, 30, 36]) {
       expect(meridianSegmentsAt(features, dropped)).toEqual([]);
@@ -125,11 +110,7 @@ describe('MgrsGridSystem.getLabels', () => {
 describe('MgrsGridSystem.getCellLabels', () => {
   it('emits GZD labels for a UTM-band viewport (Western Europe)', () => {
     const grid = new MgrsGridSystem();
-    const labels = grid.getCellLabels(
-      [-2, 49, 8, 54],
-      0.01,
-      'EPSG:4326',
-    );
+    const labels = grid.getCellLabels([-2, 49, 8, 54], 0.01, 'EPSG:4326');
     expect(labels.length).toBeGreaterThan(0);
     const gzdRe = /^\d{1,2}[A-Z]$/;
     const cellRe = /^[A-Z]{2}$/;
@@ -145,22 +126,14 @@ describe('MgrsGridSystem.getCellLabels', () => {
 
   it('emits 100 km cell labels when the viewport is zoomed in enough', () => {
     const grid = new MgrsGridSystem();
-    const labels = grid.getCellLabels(
-      [4, 51, 6, 53],
-      0.005,
-      'EPSG:4326',
-    );
+    const labels = grid.getCellLabels([4, 51, 6, 53], 0.005, 'EPSG:4326');
     const cellLabels = labels.filter((l) => /^[A-Z]{2}$/.test(l.text));
     expect(cellLabels.length).toBeGreaterThan(0);
   });
 
   it('emits UPS labels for a north-polar viewport', () => {
     const grid = new MgrsGridSystem();
-    const labels = grid.getCellLabels(
-      [-30, 84, 30, 89],
-      0.02,
-      'EPSG:4326',
-    );
+    const labels = grid.getCellLabels([-30, 84, 30, 89], 0.02, 'EPSG:4326');
     expect(labels.length).toBeGreaterThan(0);
     expect(labels.some((l) => l.text === 'Y' || l.text === 'Z')).toBe(true);
   });
@@ -211,7 +184,9 @@ describe('MgrsGridSystem.parseCoordinate', () => {
 
   it('throws ParseError on garbage input', () => {
     const grid = new MgrsGridSystem();
-    expect(() => grid.parseCoordinate('not-an-mgrs-ref', 'EPSG:4326')).toThrow();
+    expect(() =>
+      grid.parseCoordinate('not-an-mgrs-ref', 'EPSG:4326'),
+    ).toThrow();
   });
 
   it('round-trips formatCoordinate ↔ parseCoordinate for a known location', () => {
@@ -237,7 +212,9 @@ describe('MgrsGridSystem.isValidCoordinate', () => {
   it('rejects non-finite coordinates', () => {
     const grid = new MgrsGridSystem();
     expect(grid.isValidCoordinate([Number.NaN, 52], 'EPSG:4326')).toBe(false);
-    expect(grid.isValidCoordinate([4, Number.POSITIVE_INFINITY], 'EPSG:4326')).toBe(false);
+    expect(
+      grid.isValidCoordinate([4, Number.POSITIVE_INFINITY], 'EPSG:4326'),
+    ).toBe(false);
   });
 
   it('rejects coordinates beyond the latitude range', () => {

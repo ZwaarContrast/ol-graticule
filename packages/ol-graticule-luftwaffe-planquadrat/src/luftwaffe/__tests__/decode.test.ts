@@ -8,8 +8,8 @@ describe('parseGnmvRef', () => {
     const decoded = parseGnmvRef('15 O 33 3 9 7 c');
     expect(decoded.canonical).toBe('15O33397c');
     expect(decoded.depth).toBe(5);
-    expect(decoded.bbox[1]).toBeLessThanOrEqual(52.518720);
-    expect(decoded.bbox[3]).toBeGreaterThanOrEqual(52.518720);
+    expect(decoded.bbox[1]).toBeLessThanOrEqual(52.51872);
+    expect(decoded.bbox[3]).toBeGreaterThanOrEqual(52.51872);
     expect(decoded.bbox[0]).toBeLessThanOrEqual(13.3762568);
     expect(decoded.bbox[2]).toBeGreaterThanOrEqual(13.3762568);
   });
@@ -88,12 +88,12 @@ describe('parseJmnRef', () => {
 
 describe('encode/decode round-trip', () => {
   const sites: Array<{ name: string; lat: number; lon: number }> = [
-    { name: 'Berlin', lat: 52.518720, lon: 13.3762568 },
-    { name: 'Köln',   lat: 50.991111, lon: 6.895 },
-    { name: 'Paris',  lat: 48.858370, lon: 2.294481 },
+    { name: 'Berlin', lat: 52.51872, lon: 13.3762568 },
+    { name: 'Köln', lat: 50.991111, lon: 6.895 },
+    { name: 'Paris', lat: 48.85837, lon: 2.294481 },
     { name: 'London', lat: 51.500729, lon: -0.124625 },
-    { name: 'Oslo',   lat: 59.913868, lon: 10.752245 },
-    { name: 'Rome',   lat: 41.890251, lon: 12.492373 },
+    { name: 'Oslo', lat: 59.913868, lon: 10.752245 },
+    { name: 'Rome', lat: 41.890251, lon: 12.492373 },
   ];
 
   for (const site of sites) {
@@ -135,12 +135,12 @@ describe('parseRef auto-detect', () => {
 
 describe('antimeridian round-trip', () => {
   const sites: Array<{ name: string; lat: number; lon: number }> = [
-    { name: 'lon=180 exactly', lat: 50.123, lon: 180     },
-    { name: 'lon=-179.5',      lat: 50.123, lon: -179.5  },
-    { name: 'lon=-175.4',      lat: 50.123, lon: -175.4  },
-    { name: 'lon=-169.9',      lat: 50.123, lon: -169.9  },
-    { name: 'lon=175.4',       lat: 50.123, lon: 175.4   },
-    { name: 'lon=170.1',       lat: 50.123, lon: 170.1   },
+    { name: 'lon=180 exactly', lat: 50.123, lon: 180 },
+    { name: 'lon=-179.5', lat: 50.123, lon: -179.5 },
+    { name: 'lon=-175.4', lat: 50.123, lon: -175.4 },
+    { name: 'lon=-169.9', lat: 50.123, lon: -169.9 },
+    { name: 'lon=175.4', lat: 50.123, lon: 175.4 },
+    { name: 'lon=170.1', lat: 50.123, lon: 170.1 },
   ];
   for (const site of sites) {
     it(`GNMV round-trips ${site.name}`, () => {

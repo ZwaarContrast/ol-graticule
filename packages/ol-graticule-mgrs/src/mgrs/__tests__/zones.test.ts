@@ -59,9 +59,9 @@ describe('zoneNumberFromLonLat', () => {
 
   it('applies the Svalbard exceptions (no 32X / 34X / 36X)', () => {
     expect(zoneNumberFromLonLat(8.99, 75)).toBe(31); // 0..9 -> 31
-    expect(zoneNumberFromLonLat(15, 75)).toBe(33);   // 9..21 -> 33
-    expect(zoneNumberFromLonLat(28, 75)).toBe(35);   // 21..33 -> 35
-    expect(zoneNumberFromLonLat(40, 75)).toBe(37);   // 33..42 -> 37
+    expect(zoneNumberFromLonLat(15, 75)).toBe(33); // 9..21 -> 33
+    expect(zoneNumberFromLonLat(28, 75)).toBe(35); // 21..33 -> 35
+    expect(zoneNumberFromLonLat(40, 75)).toBe(37); // 33..42 -> 37
   });
 });
 

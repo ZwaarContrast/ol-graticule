@@ -6,11 +6,6 @@
  * README for the full credit.
  */
 
-import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
-import { registerCRS } from '@zwaarcontrast/ol-graticule-projected';
-import { NORD_DE_GUERRE_SCHEME } from '../formatters/schemes.js';
-import { assembleMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
-
 /** Nord de Guerre CRS (EPSG:27500), French Lambert Conformal Conic, false E/N 500 000 / 300 000 m. */
 export const NORD_DE_GUERRE_CRS = 'EPSG:27500';
 
@@ -42,7 +37,9 @@ export const NORD_DE_GUERRE_DEFAULT_TOWGS84 = [
   1383.8, 38.7, 392, 0, 0, 0, 0,
 ] as const;
 
-function buildNordDeGuerreProj4(towgs84: readonly number[] | null): string {
+export function buildNordDeGuerreProj4(
+  towgs84: readonly number[] | null,
+): string {
   const base =
     '+proj=lcc +lat_1=49.5 +lat_0=49.5 +lon_0=5.4 ' +
     '+k_0=0.99950908 +x_0=500000 +y_0=300000 +a=6376523 +rf=308.64 ' +
@@ -105,47 +102,3 @@ export const NORD_DE_GUERRE_CLIP_POLYGON: [number, number][] = [
   [793852, 1011105],
   [990966, 1004936],
 ];
-
-export type NordDeGuerreGridSystemOptions = MBSGridSystemOptions & {
-  /**
-   * Override the Helmert shift baked into the registered proj4 string
-   * for datum transformation between EPSG:27500 and WGS84.
-   *
-   * - `undefined` (default): use {@link NORD_DE_GUERRE_DEFAULT_TOWGS84}.
-   * - `null`: register the canonical EPSG:27500 with no `+towgs84`.
-   *   proj4 falls back to a ballpark transformation (~100 m off across
-   *   the Western Front).
-   * - 3- or 7-element array (`[Tx, Ty, Tz]` or
-   *   `[Tx, Ty, Tz, Rx, Ry, Rz, Ds]`): use this Helmert.
-   *
-   * Calling the factory with a different `towgs84` re-registers
-   * `EPSG:27500` against the new string; last call wins.
-   */
-  towgs84?: readonly number[] | null | undefined;
-};
-
-/** Build a Nord de Guerre grid with the MBS letter-cell formatter and standard coverage polygon. */
-export function createNordDeGuerreGridSystem(
-  options?: NordDeGuerreGridSystemOptions,
-): PolygonClippedGridSystem {
-  const { clipPolygon: clipOverride, towgs84, ...projOptions } = options ?? {};
-  const towgs84Effective =
-    towgs84 === undefined ? NORD_DE_GUERRE_DEFAULT_TOWGS84 : towgs84;
-  if (
-    towgs84Effective !== null &&
-    towgs84Effective.length !== 3 &&
-    towgs84Effective.length !== 7
-  ) {
-    throw new Error(
-      `towgs84 must have 3 or 7 elements, got ${towgs84Effective.length}`,
-    );
-  }
-  registerCRS(NORD_DE_GUERRE_CRS, buildNordDeGuerreProj4(towgs84Effective));
-  return assembleMBSGridSystem(
-    NORD_DE_GUERRE_CRS,
-    NORD_DE_GUERRE_SCHEME,
-    clipOverride ?? NORD_DE_GUERRE_CLIP_POLYGON,
-    projOptions,
-    NORD_DE_GUERRE_EXTENT,
-  );
-}

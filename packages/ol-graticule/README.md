@@ -51,7 +51,10 @@ new Map({
 ```ts
 import Map from 'ol/Map';
 import View from 'ol/View';
-import { UniversalGraticule, PixelGridSystem } from '@zwaarcontrast/ol-graticule';
+import {
+  UniversalGraticule,
+  PixelGridSystem,
+} from '@zwaarcontrast/ol-graticule';
 
 const rulers = new UniversalGraticule({
   gridSystem: new PixelGridSystem({ yInverted: true }),
@@ -60,7 +63,7 @@ const rulers = new UniversalGraticule({
 
 new Map({
   target: 'map',
-  layers: [/* your IIIF / image layer */, rulers],
+  layers: [, /* your IIIF / image layer */ rulers],
   view: new View({ center: [0, 0], zoom: 0 }),
 });
 ```
@@ -75,8 +78,12 @@ slot as the single source of truth for what (and whether) they render. Pass a
 new grid to switch, pass `null` to deactivate, pass a grid again to reactivate, no separate visibility toggle required.
 
 ```ts
-const graticule = new UniversalGraticule({ gridSystem: new GeographicGridSystem() });
-const cursor = new CursorPositionControl({ gridSystem: new GeographicGridSystem() });
+const graticule = new UniversalGraticule({
+  gridSystem: new GeographicGridSystem(),
+});
+const cursor = new CursorPositionControl({
+  gridSystem: new GeographicGridSystem(),
+});
 
 // Switch to a different grid, both update in place.
 graticule.setGridSystem(new PixelGridSystem());
@@ -96,16 +103,16 @@ the layer and control into your map up front and activate them later.
 
 ## `UniversalGraticule` options
 
-| Option | Type | Default | What it does |
-|---|---|---|---|
-| `gridSystem` | `GridSystem \| null` | `null` | The grid to draw. `null` = inactive layer. |
-| `style` | `GraticuleStyle` | library defaults | Line / edge-label / cell-label config, see [Styling](#styling). |
-| `xLabelPosition` | `'top' \| 'bottom'` | `'top'` | Which edge gets x-axis (lon/easting) labels. |
-| `yLabelPosition` | `'left' \| 'right'` | `'left'` | Which edge gets y-axis (lat/northing) labels. |
-| `xLabelOffset` | `number` (px) | `2` | Inset for x-axis labels from the top/bottom edge. |
-| `yLabelOffset` | `number` (px) | `2` | Inset for y-axis labels from the left/right edge. |
-| `maxLines` | `number` | `100` | Safety cap on lines per axis per frame. |
-| `renderer` | `'auto' \| 'gl' \| 'canvas'` | `'auto'` | Which rasterizer to use, see [Rendering backends](#rendering-backends). |
+| Option           | Type                         | Default          | What it does                                                            |
+| ---------------- | ---------------------------- | ---------------- | ----------------------------------------------------------------------- |
+| `gridSystem`     | `GridSystem \| null`         | `null`           | The grid to draw. `null` = inactive layer.                              |
+| `style`          | `GraticuleStyle`             | library defaults | Line / edge-label / cell-label config, see [Styling](#styling).         |
+| `xLabelPosition` | `'top' \| 'bottom'`          | `'top'`          | Which edge gets x-axis (lon/easting) labels.                            |
+| `yLabelPosition` | `'left' \| 'right'`          | `'left'`         | Which edge gets y-axis (lat/northing) labels.                           |
+| `xLabelOffset`   | `number` (px)                | `2`              | Inset for x-axis labels from the top/bottom edge.                       |
+| `yLabelOffset`   | `number` (px)                | `2`              | Inset for y-axis labels from the left/right edge.                       |
+| `maxLines`       | `number`                     | `100`            | Safety cap on lines per axis per frame.                                 |
+| `renderer`       | `'auto' \| 'gl' \| 'canvas'` | `'auto'`         | Which rasterizer to use, see [Rendering backends](#rendering-backends). |
 
 Plus every `LayerGroup` option except `layers` (opacity, visible, zIndex,
 min/maxZoom, extent, properties). `UniversalGraticule` is a thin `LayerGroup`
@@ -130,7 +137,7 @@ line/lens styling are configured once at construction via `grids`
 (`GraticuleGridSpec[]`) and render together through one layer; swap the whole set
 by rebuilding the layer.
 
-**Bundle size.** Importing `UniversalGraticule` pulls in *both* backends,
+**Bundle size.** Importing `UniversalGraticule` pulls in _both_ backends,
 including the WebGL stack (shaders, glyph atlas, `@mapbox/tiny-sdf`). If you only
 ever want Canvas 2D, import `CanvasGraticuleLayer` directly instead and the WebGL
 code tree-shakes away.
@@ -205,15 +212,15 @@ new CursorPositionControl({
 
 These packages plug their own `GridSystem` into `UniversalGraticule`:
 
-| Package | What it draws |
-|---|---|
-| [`@zwaarcontrast/ol-graticule-projected`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-projected) | Any proj4 CRS (UTM, state plane, national grids). |
-| [`@zwaarcontrast/ol-graticule-rd`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-rd) | Dutch RD Amersfoort (EPSG:28992 / 28991) with bundled RDNAPTRANS 2018 datum-shift grid. |
-| [`@zwaarcontrast/ol-graticule-mgrs`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-mgrs) | Military Grid Reference System (MGRS / NATO grid) over UTM, with Norway/Svalbard exceptions. |
+| Package                                                                                                                                    | What it draws                                                                                                                                                                                                                      |
+| ------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`@zwaarcontrast/ol-graticule-projected`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-projected)                             | Any proj4 CRS (UTM, state plane, national grids).                                                                                                                                                                                  |
+| [`@zwaarcontrast/ol-graticule-rd`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-rd)                                           | Dutch RD Amersfoort (EPSG:28992 / 28991) with bundled RDNAPTRANS 2018 datum-shift grid.                                                                                                                                            |
+| [`@zwaarcontrast/ol-graticule-mgrs`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-mgrs)                                       | Military Grid Reference System (MGRS / NATO grid) over UTM, with Norway/Svalbard exceptions.                                                                                                                                       |
 | [`@zwaarcontrast/ol-graticule-modified-british-system`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-modified-british-system) | Modified British System letter-cell artillery grids for ten WWII theatres (Nord de Guerre, French Lambert I/II/III, British/Irish Cassini, War Office Cassini, Scandinavian Zone 3, Italian Northern/Southern, Iberian Peninsula). |
-| [`@zwaarcontrast/ol-graticule-luftwaffe-planquadrat`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-luftwaffe-planquadrat) | WWII Luftwaffe Planquadrat reference grids: Gradnetzmeldeverfahren (GNMV, pre/post-1943) and Jägermeldenetz (JMN) fighter reporting network. |
-| [`@zwaarcontrast/ol-graticule-heeresgitter`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-heeresgitter) | WWII Wehrmacht map reference grids: Deutsches Heeresgitter (DHG, 6° Gauß-Krüger on Bessel 1841) plus both Heeresmeldenetz letter-cell variants: planar (6 km, DHG-metric) and geographic (6' × 4' lat/lon). |
-| `@zwaarcontrast/ol-graticule-marinequadratkarte` | WWII Kriegsmarine naval grid (not yet published, see [repo](https://github.com/zwaarcontrast/ol-graticule)). |
+| [`@zwaarcontrast/ol-graticule-luftwaffe-planquadrat`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-luftwaffe-planquadrat)     | WWII Luftwaffe Planquadrat reference grids: Gradnetzmeldeverfahren (GNMV, pre/post-1943) and Jägermeldenetz (JMN) fighter reporting network.                                                                                       |
+| [`@zwaarcontrast/ol-graticule-heeresgitter`](https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-heeresgitter)                       | WWII Wehrmacht map reference grids: Deutsches Heeresgitter (DHG, 6° Gauß-Krüger on Bessel 1841) plus both Heeresmeldenetz letter-cell variants: planar (6 km, DHG-metric) and geographic (6' × 4' lat/lon).                        |
+| `@zwaarcontrast/ol-graticule-marinequadratkarte`                                                                                           | WWII Kriegsmarine naval grid (not yet published, see [repo](https://github.com/zwaarcontrast/ol-graticule)).                                                                                                                       |
 
 ### Reverse: parse a label back to a coordinate
 
@@ -226,7 +233,10 @@ import { ParseError } from '@zwaarcontrast/ol-graticule';
 const gridSystem = new GeographicGridSystem();
 
 try {
-  const [x, y] = gridSystem.parseCoordinate('50°51′N 4°21′E', map.getView().getProjection());
+  const [x, y] = gridSystem.parseCoordinate(
+    '50°51′N 4°21′E',
+    map.getView().getProjection(),
+  );
   map.getView().animate({ center: [x, y], duration: 400 });
 } catch (err) {
   if (err instanceof ParseError) console.warn(err.reason);
@@ -242,9 +252,9 @@ own `parseCoordinate`. Spatial validity is intentionally **not** checked, call `
 The underlying single-axis `parse` lives on the formatter:
 
 ```ts
-new DegreeFormatter().parse("50°37'02\"N", 'y');   // 50.6172…
-new MetricFormatter().parse('1.2345 km');           // 1234.5
-new PixelFormatter().parse('123 px');               // 123
+new DegreeFormatter().parse('50°37\'02"N', 'y'); // 50.6172…
+new MetricFormatter().parse('1.2345 km'); // 1234.5
+new PixelFormatter().parse('123 px'); // 123
 ```
 
 ## API reference

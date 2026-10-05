@@ -1,6 +1,6 @@
 ---
-"@zwaarcontrast/ol-graticule": minor
-"@zwaarcontrast/ol-graticule-projected": minor
+'@zwaarcontrast/ol-graticule': minor
+'@zwaarcontrast/ol-graticule-projected': minor
 ---
 
 Add an optional `getCellInterval` to `IntervalStrategy`, so a grid whose label

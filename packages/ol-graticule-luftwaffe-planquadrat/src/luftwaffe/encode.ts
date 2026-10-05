@@ -39,7 +39,7 @@ const POST_AT_LABELS = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i'] as const;
  */
 export function normalizeAntimeridian(lon: number): number {
   if (!Number.isFinite(lon)) return lon;
-  return (((lon + 180) % 360) + 360) % 360 - 180;
+  return ((((lon + 180) % 360) + 360) % 360) - 180;
 }
 
 /** ZZG digits + hemisphere suffix derived from the NW corner of the 10°×10° box. */
@@ -69,8 +69,12 @@ export function zzgFor(lat: number, lon: number): ZzgIdentity | undefined {
   const lonTens = Math.abs(nwLon) / ZZG_LON_DEG;
 
   const suffix: ZzgSuffix = isSouth
-    ? (isEast ? 'Südost' : 'Südwest')
-    : (isEast ? 'Ost' : 'West');
+    ? isEast
+      ? 'Südost'
+      : 'Südwest'
+    : isEast
+      ? 'Ost'
+      : 'West';
 
   return {
     digits: `${lonTens}${latTens}`,
@@ -138,17 +142,36 @@ function clamp(value: number, lo: number, hi: number): number {
 /** Mitteltrapez digit (1..8) inside the parent 1°×1° GT, indexed top-to-bottom, left-to-right (4 rows × 2 cols). */
 export function mtDigitFor(lat: number, lon: number): number {
   const cell = subcell(
-    lat, lon,
-    nwLat(lat, GT_LAT_DEG), nwLon(lon, GT_LON_DEG),
-    MT_LAT_DEG, MT_LON_DEG, 4, 2,
+    lat,
+    lon,
+    nwLat(lat, GT_LAT_DEG),
+    nwLon(lon, GT_LON_DEG),
+    MT_LAT_DEG,
+    MT_LON_DEG,
+    4,
+    2,
   );
   return cell.row * 2 + cell.col + 1;
 }
 
 /** JMN Mitteltrapez two-letter code (AA..UU, no I) inside a 5°×10° Jagdtrapez. */
-export function jmnMtLettersFor(lat: number, lon: number, zzg: ZzgIdentity, half: JmnHalf): string | undefined {
+export function jmnMtLettersFor(
+  lat: number,
+  lon: number,
+  zzg: ZzgIdentity,
+  half: JmnHalf,
+): string | undefined {
   const halfNwLat = half === 'N' ? zzg.nwLat : zzg.nwLat - JAGDTRAPEZ_LAT_DEG;
-  const cell = subcell(lat, lon, halfNwLat, zzg.nwLon, MT_LAT_DEG, MT_LON_DEG, 20, 20);
+  const cell = subcell(
+    lat,
+    lon,
+    halfNwLat,
+    zzg.nwLon,
+    MT_LAT_DEG,
+    MT_LON_DEG,
+    20,
+    20,
+  );
   const rowLetter = letterFromIndex(cell.row);
   const colLetter = letterFromIndex(cell.col);
   if (rowLetter === undefined || colLetter === undefined) return undefined;
@@ -158,32 +181,55 @@ export function jmnMtLettersFor(lat: number, lon: number, zzg: ZzgIdentity, half
 /** Kleintrapez digit (1..9) inside its parent Mitteltrapez (3 rows × 3 cols). */
 export function ktDigitFor(lat: number, lon: number): number {
   const cell = subcell(
-    lat, lon,
-    nwLat(lat, MT_LAT_DEG), nwLon(lon, MT_LON_DEG),
-    KT_LAT_DEG, KT_LON_DEG, 3, 3,
+    lat,
+    lon,
+    nwLat(lat, MT_LAT_DEG),
+    nwLon(lon, MT_LON_DEG),
+    KT_LAT_DEG,
+    KT_LON_DEG,
+    3,
+    3,
   );
   return cell.row * 3 + cell.col + 1;
 }
 
 /** Meldetrapez digit (1..9 post-1943, 1..4 pre-1943) inside its parent Kleintrapez. */
-export function meltDigitFor(lat: number, lon: number, era: LuftwaffeEra): number {
+export function meltDigitFor(
+  lat: number,
+  lon: number,
+  era: LuftwaffeEra,
+): number {
   const dims = meldetrapezDims(era);
   const cell = subcell(
-    lat, lon,
-    nwLat(lat, KT_LAT_DEG), nwLon(lon, KT_LON_DEG),
-    dims.latDeg, dims.lonDeg, dims.rows, dims.cols,
+    lat,
+    lon,
+    nwLat(lat, KT_LAT_DEG),
+    nwLon(lon, KT_LON_DEG),
+    dims.latDeg,
+    dims.lonDeg,
+    dims.rows,
+    dims.cols,
   );
   return cell.row * dims.cols + cell.col + 1;
 }
 
 /** Arbeitstrapez label (a..i post-1943, lo/ro/lu/ru pre-1943) inside its parent Meldetrapez. */
-export function atLabelFor(lat: number, lon: number, era: LuftwaffeEra): string {
+export function atLabelFor(
+  lat: number,
+  lon: number,
+  era: LuftwaffeEra,
+): string {
   const meltDims = meldetrapezDims(era);
   const atDims = arbeitstrapezDims(era);
   const cell = subcell(
-    lat, lon,
-    nwLat(lat, meltDims.latDeg), nwLon(lon, meltDims.lonDeg),
-    atDims.latDeg, atDims.lonDeg, atDims.rows, atDims.cols,
+    lat,
+    lon,
+    nwLat(lat, meltDims.latDeg),
+    nwLon(lon, meltDims.lonDeg),
+    atDims.latDeg,
+    atDims.lonDeg,
+    atDims.rows,
+    atDims.cols,
   );
   if (era === 'pre-1943') {
     return PRE_AT_LABELS[cell.row * 2 + cell.col]!;
@@ -201,7 +247,11 @@ export function atLabelFor(lat: number, lon: number, era: LuftwaffeEra): string 
  *   depth 4: + Meldetrapez                    e.g. "15O33397"
  *   depth 5: + Arbeitstrapez                  e.g. "15O33397c"
  */
-export function encodeGnmv(point: LatLon, era: LuftwaffeEra = 'post-1943', depth: number = 5): string | undefined {
+export function encodeGnmv(
+  point: LatLon,
+  era: LuftwaffeEra = 'post-1943',
+  depth: number = 5,
+): string | undefined {
   const [lat, rawLon] = point;
   const lon = normalizeAntimeridian(rawLon);
   const zzg = zzgFor(lat, lon);
@@ -238,7 +288,10 @@ export function encodeGnmv(point: LatLon, era: LuftwaffeEra = 'post-1943', depth
  *   depth 4: + Meldetrapez                    e.g. "15OSFG39"
  *   depth 5: + Arbeitstrapez                  e.g. "15OSFG39c"
  */
-export function encodeJmn(point: LatLon, depth: number = 5): string | undefined {
+export function encodeJmn(
+  point: LatLon,
+  depth: number = 5,
+): string | undefined {
   const [lat, rawLon] = point;
   const lon = normalizeAntimeridian(rawLon);
   const zzg = zzgFor(lat, lon);
@@ -269,9 +322,13 @@ export function encodeJmn(point: LatLon, depth: number = 5): string | undefined 
 /** Compact suffix token used in canonical, whitespace-free references (`O`, `W`, `SO`, `SW`). */
 export function suffixToken(suffix: ZzgSuffix): string {
   switch (suffix) {
-    case 'Ost':     return 'O';
-    case 'West':    return 'W';
-    case 'Südost':  return 'SO';
-    case 'Südwest': return 'SW';
+    case 'Ost':
+      return 'O';
+    case 'West':
+      return 'W';
+    case 'Südost':
+      return 'SO';
+    case 'Südwest':
+      return 'SW';
   }
 }

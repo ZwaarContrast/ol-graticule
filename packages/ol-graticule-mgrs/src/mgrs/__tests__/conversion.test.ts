@@ -58,24 +58,40 @@ describe('lonLatToMgrsParts', () => {
     const parts = lonLatToMgrsParts(lon, lat);
     expect(parts).toBeDefined();
     expect(parts!.zone).toBe(32);
-    expect(parts!.easting).toBe(0);          // exactly on a 100 km column
-    expect(parts!.northing).toBe(100);       // 100 m above the row boundary
+    expect(parts!.easting).toBe(0); // exactly on a 100 km column
+    expect(parts!.northing).toBe(100); // 100 m above the row boundary
   });
 });
 
 describe('formatMgrs', () => {
   it('produces a precision-0 GZD string', () => {
-    expect(formatMgrs({ zone: 31, band: 'U', square: 'DQ', easting: 0, northing: 0 }, 0))
-      .toBe('31U');
+    expect(
+      formatMgrs(
+        { zone: 31, band: 'U', square: 'DQ', easting: 0, northing: 0 },
+        0,
+      ),
+    ).toBe('31U');
   });
 
   it('produces precision-5 (1 m) at full digits with leading zeros', () => {
-    const parts = { zone: 31, band: 'U', square: 'DQ', easting: 48_512, northing: 11_999 };
+    const parts = {
+      zone: 31,
+      band: 'U',
+      square: 'DQ',
+      easting: 48_512,
+      northing: 11_999,
+    };
     expect(formatMgrs(parts, 5)).toBe('31U DQ 48512 11999');
   });
 
   it('truncates digits at lower precisions', () => {
-    const parts = { zone: 31, band: 'U', square: 'DQ', easting: 48_999, northing: 11_999 };
+    const parts = {
+      zone: 31,
+      band: 'U',
+      square: 'DQ',
+      easting: 48_999,
+      northing: 11_999,
+    };
     expect(formatMgrs(parts, 4)).toBe('31U DQ 4899 1199');
     expect(formatMgrs(parts, 3)).toBe('31U DQ 489 119');
     expect(formatMgrs(parts, 2)).toBe('31U DQ 48 11');

@@ -1,14 +1,16 @@
 import { describe, it, expect } from 'vitest';
 import { transform } from 'ol/proj';
-import {
-  createScandinavianZone3GridSystem,
-  SCANDINAVIAN_ZONE_3_CRS,
-} from '../ScandinavianZone3';
+import { SCANDINAVIAN_ZONE_3_CRS } from '../ScandinavianZone3';
+import { createScandinavianZone3GridSystem } from '../ScandinavianZone3.grid';
 
 describe('Scandinavian Zone 3 MBS factory', () => {
   it('Copenhagen labels under a 4-letter MBS reference', () => {
     const grid = createScandinavianZone3GridSystem();
-    const [x, y] = transform([12.5683, 55.6761], 'EPSG:4326', SCANDINAVIAN_ZONE_3_CRS);
+    const [x, y] = transform(
+      [12.5683, 55.6761],
+      'EPSG:4326',
+      SCANDINAVIAN_ZONE_3_CRS,
+    );
     const formatted = grid.formatCoordinate([x!, y!], SCANDINAVIAN_ZONE_3_CRS);
     if (!('combined' in formatted)) throw new Error('expected combined label');
     expect(formatted.combined).toMatch(/^[a-z][A-Z] \d{3} \d{3}$/);
@@ -16,7 +18,11 @@ describe('Scandinavian Zone 3 MBS factory', () => {
 
   it('Stockholm labels under a 4-letter MBS reference', () => {
     const grid = createScandinavianZone3GridSystem();
-    const [x, y] = transform([18.0686, 59.3293], 'EPSG:4326', SCANDINAVIAN_ZONE_3_CRS);
+    const [x, y] = transform(
+      [18.0686, 59.3293],
+      'EPSG:4326',
+      SCANDINAVIAN_ZONE_3_CRS,
+    );
     const formatted = grid.formatCoordinate([x!, y!], SCANDINAVIAN_ZONE_3_CRS);
     if (!('combined' in formatted)) throw new Error('expected combined label');
     expect(formatted.combined).toMatch(/^[a-z][A-Z] \d{3} \d{3}$/);
@@ -24,7 +30,11 @@ describe('Scandinavian Zone 3 MBS factory', () => {
 
   it('Oslo labels under a 4-letter MBS reference', () => {
     const grid = createScandinavianZone3GridSystem();
-    const [x, y] = transform([10.7522, 59.9139], 'EPSG:4326', SCANDINAVIAN_ZONE_3_CRS);
+    const [x, y] = transform(
+      [10.7522, 59.9139],
+      'EPSG:4326',
+      SCANDINAVIAN_ZONE_3_CRS,
+    );
     const formatted = grid.formatCoordinate([x!, y!], SCANDINAVIAN_ZONE_3_CRS);
     if (!('combined' in formatted)) throw new Error('expected combined label');
     expect(formatted.combined).toMatch(/^[a-z][A-Z] \d{3} \d{3}$/);

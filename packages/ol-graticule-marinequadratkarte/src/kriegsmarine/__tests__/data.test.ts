@@ -60,7 +60,9 @@ describe('kriegsmarine data integrity', () => {
       }
     }
     for (const poly of polygonalSquares) {
-      expect(poly.id, `polygon id ${poly.id}`).toMatch(/^[A-ZÄÖÜ][A-ZÄÖÜ][0-9]*$/);
+      expect(poly.id, `polygon id ${poly.id}`).toMatch(
+        /^[A-ZÄÖÜ][A-ZÄÖÜ][0-9]*$/,
+      );
     }
   });
 

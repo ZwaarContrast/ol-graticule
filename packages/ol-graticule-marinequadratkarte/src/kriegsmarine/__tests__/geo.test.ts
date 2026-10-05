@@ -4,8 +4,8 @@ import {
   interpolateLon,
   lonSpanDeg,
   squareExtent,
-  squareCenter,
 } from '../geo.js';
+import { squareCenter } from '../screen.js';
 import type { RectSquare, PolySquare } from '../types.js';
 
 describe('rectCrossesAntimeridian', () => {
@@ -14,7 +14,7 @@ describe('rectCrossesAntimeridian', () => {
     expect(rectCrossesAntimeridian([55, 170], [50, -170])).toBe(true);
   });
 
-  it('is false for ordinary rectangles that don\'t cross the date line', () => {
+  it("is false for ordinary rectangles that don't cross the date line", () => {
     expect(rectCrossesAntimeridian([55, -10], [50, 10])).toBe(false);
     expect(rectCrossesAntimeridian([55, 170], [50, 179])).toBe(false);
   });
@@ -92,7 +92,10 @@ describe('squareExtent', () => {
     const sq: PolySquare = {
       id: 'P1',
       poly: [
-        [60, -30], [65, -20], [55, -10], [50, -40],
+        [60, -30],
+        [65, -20],
+        [55, -10],
+        [50, -40],
       ],
     };
     expect(squareExtent(sq)).toEqual([-40, 50, -10, 65]);
@@ -124,11 +127,15 @@ describe('squareCenter', () => {
   it('returns the centroid of a polygonal extent for PolySquares', () => {
     const sq: PolySquare = {
       id: 'PC1',
-      poly: [[60, -30], [60, 10], [40, 10], [40, -30]],
+      poly: [
+        [60, -30],
+        [60, 10],
+        [40, 10],
+        [40, -30],
+      ],
     };
     const [x, y] = squareCenter(sq, 'EPSG:4326');
     expect(x).toBeCloseTo(-10); // ((-30) + 10) / 2
     expect(y).toBeCloseTo(50); // (40 + 60) / 2
   });
 });
-

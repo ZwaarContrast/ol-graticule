@@ -42,7 +42,10 @@ function buildBackground(): string {
 
   ctx.fillStyle = 'rgba(234, 88, 12, 0.85)';
   for (const [x, y] of [
-    [400, 300], [1200, 300], [800, 800], [1600, 900],
+    [400, 300],
+    [1200, 300],
+    [800, 800],
+    [1600, 900],
   ] as const) {
     ctx.beginPath();
     ctx.arc(x, y, 60, 0, Math.PI * 2);
@@ -57,7 +60,11 @@ function buildBackground(): string {
 
   ctx.fillStyle = 'rgba(245, 239, 230, 0.55)';
   ctx.font = '400 22px ui-monospace, "SF Mono", Menlo, monospace';
-  ctx.fillText('image-coordinate ruler  ·  yInverted: y grows downward', WIDTH / 2, HEIGHT / 2 + 20);
+  ctx.fillText(
+    'image-coordinate ruler  ·  yInverted: y grows downward',
+    WIDTH / 2,
+    HEIGHT / 2 + 20,
+  );
 
   ctx.fillStyle = 'rgba(180, 215, 245, 0.7)';
   ctx.font = '500 18px ui-monospace, monospace';
@@ -87,7 +94,11 @@ const map = new Map({
   target: 'map',
   layers: [
     new ImageLayer({
-      source: new ImageStatic({ url: buildBackground(), projection, imageExtent: extent }),
+      source: new ImageStatic({
+        url: buildBackground(),
+        projection,
+        imageExtent: extent,
+      }),
     }),
     createGraticule({
       gridSystem,

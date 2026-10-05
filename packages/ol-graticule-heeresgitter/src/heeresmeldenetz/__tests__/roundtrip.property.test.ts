@@ -8,15 +8,27 @@ import { parseHmn } from '../decode.js';
 // equator and high latitudes where the Bessel + Gauß-Krüger projection
 // stretches significantly. The existing unit tests pin specific named
 // points (Kolosjoki, Hadres, Berlin).
-const lat = fc.double({ min: 45, max: 68, noNaN: true, noDefaultInfinity: true });
-const lon = fc.double({ min: 0, max: 30, noNaN: true, noDefaultInfinity: true });
+const lat = fc.double({
+  min: 45,
+  max: 68,
+  noNaN: true,
+  noDefaultInfinity: true,
+});
+const lon = fc.double({
+  min: 0,
+  max: 30,
+  noNaN: true,
+  noDefaultInfinity: true,
+});
 
 describe('HMN encode → parse round-trip property', () => {
   it('parse(encode(p), { grossquadrat }).center recovers p within the cell', () => {
     fc.assert(
       fc.property(lat, lon, (latV, lonV) => {
         const ref = encodeHmn([latV, lonV], { depth: 5 });
-        const parsed = parseHmn(ref.canonical, { grossquadrat: ref.grossquadrat });
+        const parsed = parseHmn(ref.canonical, {
+          grossquadrat: ref.grossquadrat,
+        });
         if (!parsed) return true;
         const [centreLat, centreLon] = parsed.center;
         // Depth 5 tenths cells are 100 m. At these latitudes 100 m ≈ 0.001°.

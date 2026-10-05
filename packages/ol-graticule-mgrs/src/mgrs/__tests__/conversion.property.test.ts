@@ -11,8 +11,18 @@ import { zoneNumberFromLonLat } from '../zones.js';
 
 // UTM band (excluding the polar caps and a small antimeridian fuzz to avoid
 // flapping right on zone boundaries).
-const utmLat = fc.double({ min: -78, max: 82, noNaN: true, noDefaultInfinity: true });
-const safeLon = fc.double({ min: -179, max: 179, noNaN: true, noDefaultInfinity: true });
+const utmLat = fc.double({
+  min: -78,
+  max: 82,
+  noNaN: true,
+  noDefaultInfinity: true,
+});
+const safeLon = fc.double({
+  min: -179,
+  max: 179,
+  noNaN: true,
+  noDefaultInfinity: true,
+});
 
 describe('UTM forward/back round-trip (property)', () => {
   it('utmToLonLat(lonLatToUtm(p)) ≈ p inside the UTM band', () => {
@@ -20,7 +30,12 @@ describe('UTM forward/back round-trip (property)', () => {
       fc.property(safeLon, utmLat, (lonV, latV) => {
         const zone = zoneNumberFromLonLat(lonV, latV);
         const { easting, northing } = lonLatToUtm(lonV, latV, zone);
-        const [backLon, backLat] = utmToLonLat(zone, easting, northing, latV < 0);
+        const [backLon, backLat] = utmToLonLat(
+          zone,
+          easting,
+          northing,
+          latV < 0,
+        );
         expect(Math.abs(backLat - latV)).toBeLessThan(1e-6);
         expect(Math.abs(backLon - lonV)).toBeLessThan(1e-5);
       }),

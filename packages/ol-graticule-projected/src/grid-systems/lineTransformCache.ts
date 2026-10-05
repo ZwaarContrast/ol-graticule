@@ -50,7 +50,12 @@ export class LineTransformCache {
    * The cached polyline for this line IF it is sampled for `band` and its window
    * still covers `[vMin, vMax]`; otherwise undefined (caller recomputes + sets).
    */
-  get(key: string, band: number, vMin: number, vMax: number): LinePolyline | undefined {
+  get(
+    key: string,
+    band: number,
+    vMin: number,
+    vMax: number,
+  ): LinePolyline | undefined {
     const entry = this.cache_.get(key);
     if (
       entry !== undefined &&

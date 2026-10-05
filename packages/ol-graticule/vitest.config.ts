@@ -3,6 +3,6 @@ import { baseConfig } from '../../vitest.config.base';
 
 export default mergeConfig(baseConfig, {
   test: {
-    environment: 'node'
-  }
+    environment: 'node',
+  },
 });

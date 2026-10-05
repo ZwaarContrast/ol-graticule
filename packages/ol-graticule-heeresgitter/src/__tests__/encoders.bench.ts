@@ -40,11 +40,13 @@ describe('Heeresgitter encoders — ×100', () => {
 
 describe('Heeresgitter decoders — ×100', () => {
   bench('parseHmn', () => {
-    for (const r of hmnRefs) parseHmn(r.canonical, { grossquadrat: r.grossquadrat });
+    for (const r of hmnRefs)
+      parseHmn(r.canonical, { grossquadrat: r.grossquadrat });
   });
 
   bench('parseHmnGeo', () => {
-    for (const r of hmnGeoRefs) parseHmnGeo(r.canonical, { grosstrapez: r.grosstrapez });
+    for (const r of hmnGeoRefs)
+      parseHmnGeo(r.canonical, { grosstrapez: r.grosstrapez });
   });
 
   bench('parseDhg', () => {

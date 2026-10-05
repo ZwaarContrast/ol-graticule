@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { findOffScreenFeatures, viewportExtentAt } from '@zwaarcontrast/test-utils';
-import { createNordDeGuerreGridSystem } from '../NordDeGuerre.js';
-import { createBritishCassiniGridSystem } from '../BritishCassini.js';
+import {
+  findOffScreenFeatures,
+  viewportExtentAt,
+} from '@zwaarcontrast/test-utils';
+import { createNordDeGuerreGridSystem } from '../NordDeGuerre.grid.js';
+import { createBritishCassiniGridSystem } from '../BritishCassini.grid.js';
 
 const ndgCases: Array<[string, [number, number], number]> = [
   ['Western Front, z9', [3, 50], 9],
@@ -14,21 +17,41 @@ const bcCases: Array<[string, [number, number], number]> = [
 ];
 
 describe('Nord de Guerre viewport culling invariant', () => {
-  it.each(ndgCases)('emits no line whose bbox is entirely off-screen — %s', (_label, lonLat, zoom) => {
-    const grid = createNordDeGuerreGridSystem();
-    const { extent, resolution } = viewportExtentAt(lonLat, zoom);
-    const failures = findOffScreenFeatures(grid, extent, resolution, 'EPSG:3857');
-    expect(failures, `off-screen lines: ${JSON.stringify(failures, null, 2)}`)
-      .toHaveLength(0);
-  });
+  it.each(ndgCases)(
+    'emits no line whose bbox is entirely off-screen — %s',
+    (_label, lonLat, zoom) => {
+      const grid = createNordDeGuerreGridSystem();
+      const { extent, resolution } = viewportExtentAt(lonLat, zoom);
+      const failures = findOffScreenFeatures(
+        grid,
+        extent,
+        resolution,
+        'EPSG:3857',
+      );
+      expect(
+        failures,
+        `off-screen lines: ${JSON.stringify(failures, null, 2)}`,
+      ).toHaveLength(0);
+    },
+  );
 });
 
 describe('British Cassini viewport culling invariant', () => {
-  it.each(bcCases)('emits no line whose bbox is entirely off-screen — %s', (_label, lonLat, zoom) => {
-    const grid = createBritishCassiniGridSystem();
-    const { extent, resolution } = viewportExtentAt(lonLat, zoom);
-    const failures = findOffScreenFeatures(grid, extent, resolution, 'EPSG:3857');
-    expect(failures, `off-screen lines: ${JSON.stringify(failures, null, 2)}`)
-      .toHaveLength(0);
-  });
+  it.each(bcCases)(
+    'emits no line whose bbox is entirely off-screen — %s',
+    (_label, lonLat, zoom) => {
+      const grid = createBritishCassiniGridSystem();
+      const { extent, resolution } = viewportExtentAt(lonLat, zoom);
+      const failures = findOffScreenFeatures(
+        grid,
+        extent,
+        resolution,
+        'EPSG:3857',
+      );
+      expect(
+        failures,
+        `off-screen lines: ${JSON.stringify(failures, null, 2)}`,
+      ).toHaveLength(0);
+    },
+  );
 });

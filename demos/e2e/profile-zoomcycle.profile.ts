@@ -3,7 +3,11 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { blockExternalTiles, tallyHotFunctions, type CpuProfile } from './helpers.js';
+import {
+  blockExternalTiles,
+  tallyHotFunctions,
+  type CpuProfile,
+} from './helpers.js';
 
 /**
  * Rapid scroll-zoom cycle profile: wheel in and out in tight bursts (faster than
@@ -41,7 +45,11 @@ async function getMetrics(client: CDPSession): Promise<Record<string, number>> {
  * sequence is identical across runs (fair before/after). Stays in a zoom band so
  * it doesn't wander to whole-world or max detail.
  */
-async function driveZoomCycles(page: Page, cx: number, cy: number): Promise<void> {
+async function driveZoomCycles(
+  page: Page,
+  cx: number,
+  cy: number,
+): Promise<void> {
   let seed = 0x9e3779b1;
   const rng = (): number => {
     seed = (Math.imul(seed, 1103515245) + 12345) & 0x7fffffff;
@@ -99,23 +107,36 @@ for (const demo of DEMOS) {
     const profile = stopped.profile as unknown as CpuProfile;
     const hot = tallyHotFunctions(profile, 30);
 
-    writeFileSync(join(OUT_DIR, `${demo.name}.cpuprofile`), JSON.stringify(profile));
+    writeFileSync(
+      join(OUT_DIR, `${demo.name}.cpuprofile`),
+      JSON.stringify(profile),
+    );
 
-    const scriptDelta = (after.ScriptDuration ?? 0) - (before.ScriptDuration ?? 0);
-    const layoutDelta = (after.LayoutDuration ?? 0) - (before.LayoutDuration ?? 0);
+    const scriptDelta =
+      (after.ScriptDuration ?? 0) - (before.ScriptDuration ?? 0);
+    const layoutDelta =
+      (after.LayoutDuration ?? 0) - (before.LayoutDuration ?? 0);
     const taskDelta = (after.TaskDuration ?? 0) - (before.TaskDuration ?? 0);
     const idleMs = hot.find((f) => f.name === '(idle)')?.selfMs ?? 0;
 
     const lines: string[] = [];
     lines.push(`Demo: ${demo.name} (${demo.path})`);
     lines.push(`${WHEELS} fast random in/out wheel steps (12 to 36 ms apart)`);
-    lines.push(`Wall-clock: ${wallMs} ms, approx busy: ${(wallMs - idleMs).toFixed(0)} ms`);
-    lines.push(`Script: ${scriptDelta.toFixed(3)} s, Layout: ${layoutDelta.toFixed(3)} s, Tasks: ${taskDelta.toFixed(3)} s`);
+    lines.push(
+      `Wall-clock: ${wallMs} ms, approx busy: ${(wallMs - idleMs).toFixed(0)} ms`,
+    );
+    lines.push(
+      `Script: ${scriptDelta.toFixed(3)} s, Layout: ${layoutDelta.toFixed(3)} s, Tasks: ${taskDelta.toFixed(3)} s`,
+    );
     lines.push('');
     lines.push('Top 30 by self time:');
-    lines.push(`  ${'self ms'.padStart(9)}  ${'total ms'.padStart(9)}  function  [source]`);
+    lines.push(
+      `  ${'self ms'.padStart(9)}  ${'total ms'.padStart(9)}  function  [source]`,
+    );
     for (const fn of hot) {
-      lines.push(`  ${fn.selfMs.toFixed(1).padStart(9)}  ${fn.totalMs.toFixed(1).padStart(9)}  ${fn.name}  [${fn.source}]`);
+      lines.push(
+        `  ${fn.selfMs.toFixed(1).padStart(9)}  ${fn.totalMs.toFixed(1).padStart(9)}  ${fn.name}  [${fn.source}]`,
+      );
     }
     const summary = lines.join('\n') + '\n';
     writeFileSync(join(OUT_DIR, `${demo.name}.summary.txt`), summary);

@@ -87,7 +87,10 @@ export function parseDhg(text: string): ParsedDhg | undefined {
  *   parseShortDigits('83', 383)  →  383   (already aligned)
  *   parseShortDigits('00', 399)  →  400   (rolled over the next 100 km)
  */
-export function parseShortDigits(short: string, contextKm: number): number | undefined {
+export function parseShortDigits(
+  short: string,
+  contextKm: number,
+): number | undefined {
   if (!/^\d{2}$/.test(short)) return undefined;
   const tens = Number(short);
   const base = Math.floor(contextKm / 100) * 100;

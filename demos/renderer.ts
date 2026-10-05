@@ -23,8 +23,16 @@ function storedRenderer(): string | null {
 
 type Choice = 'auto' | 'webgl' | 'canvas';
 
-const NEXT: Record<Choice, Choice> = { auto: 'webgl', webgl: 'canvas', canvas: 'auto' };
-const LABEL: Record<Choice, string> = { auto: 'Auto', webgl: 'WebGL', canvas: 'Canvas' };
+const NEXT: Record<Choice, Choice> = {
+  auto: 'webgl',
+  webgl: 'canvas',
+  canvas: 'auto',
+};
+const LABEL: Record<Choice, string> = {
+  auto: 'Auto',
+  webgl: 'WebGL',
+  canvas: 'Canvas',
+};
 
 function choice(): Choice {
   const c = storedRenderer();
@@ -37,7 +45,9 @@ export function rendererSetting(): GraticuleRenderer {
   return c === 'canvas' ? 'canvas' : c === 'webgl' ? 'gl' : 'auto';
 }
 
-export function createGraticule(options: UniversalGraticuleOptions): UniversalGraticule {
+export function createGraticule(
+  options: UniversalGraticuleOptions,
+): UniversalGraticule {
   return new UniversalGraticule({ ...options, renderer: rendererSetting() });
 }
 
@@ -50,10 +60,17 @@ export function addRendererToggle(): void {
   btn.textContent = `Renderer: ${LABEL[current]}`;
   btn.title = `Switch the graticule renderer to ${LABEL[NEXT[current]]} (reloads the page)`;
   Object.assign(btn.style, {
-    position: 'fixed', bottom: '12px', right: '12px', zIndex: '1000',
-    font: '700 11px system-ui, -apple-system, sans-serif', color: palette.paper,
-    background: palette.ink, border: `1px solid ${palette.accent}`,
-    borderRadius: '6px', padding: '6px 10px', cursor: 'pointer',
+    position: 'fixed',
+    bottom: '12px',
+    right: '12px',
+    zIndex: '1000',
+    font: '700 11px system-ui, -apple-system, sans-serif',
+    color: palette.paper,
+    background: palette.ink,
+    border: `1px solid ${palette.accent}`,
+    borderRadius: '6px',
+    padding: '6px 10px',
+    cursor: 'pointer',
     letterSpacing: '0.03em',
   });
   btn.addEventListener('click', () => {

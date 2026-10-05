@@ -5,7 +5,6 @@
  * the cell is in: either an explicit `Grossquadrat`, or a `near` location.
  */
 
-import { boundingExtent } from 'ol/extent';
 import { forward, inverseBatch } from '../dhg/projection.js';
 import { FALSE_EASTING } from '../dhg/zones.js';
 import type { DatumShift, LatLon } from '../dhg/types.js';
@@ -17,10 +16,7 @@ import {
   MELDETRAPEZ_M,
   TENTH_M,
 } from './levels.js';
-import type {
-  DecodedHmnRef,
-  Grossquadrat,
-} from './types.js';
+import type { DecodedHmnRef, Grossquadrat } from './types.js';
 
 export interface ParseHmnOptions {
   /**
@@ -40,12 +36,17 @@ export interface ParseHmnOptions {
 }
 
 /** Parse an HMN reference. Returns `undefined` if the text or options are invalid. */
-export function parseHmn(text: string, options: ParseHmnOptions): DecodedHmnRef | undefined {
+export function parseHmn(
+  text: string,
+  options: ParseHmnOptions,
+): DecodedHmnRef | undefined {
   const tokens = parseHmnTokens(text);
   if (!tokens) return undefined;
-  const { col, row, kx, ky, meldetrapez, arbeitstrapez, tenths, depth } = tokens;
+  const { col, row, kx, ky, meldetrapez, arbeitstrapez, tenths, depth } =
+    tokens;
 
-  const grossquadrat = options.grossquadrat ?? grossquadratFor(options.near, options.datumShift);
+  const grossquadrat =
+    options.grossquadrat ?? grossquadratFor(options.near, options.datumShift);
   if (!grossquadrat) return undefined;
 
   // Reconstruct the resolved cell's NW corner in DHG metres.
@@ -93,14 +94,19 @@ export function parseHmn(text: string, options: ParseHmnOptions): DecodedHmnRef 
     shift,
   );
   const klein = col + row;
-  const canonical = canonicalizeHmnLabel(klein, meldetrapez, arbeitstrapez, tenths);
+  const canonical = canonicalizeHmnLabel(
+    klein,
+    meldetrapez,
+    arbeitstrapez,
+    tenths,
+  );
 
   const ref: DecodedHmnRef = {
     canonical,
     kleinquadrat: klein,
     grossquadrat,
     depth,
-    bbox: boundingExtent([[nw[1], nw[0]], [ne[1], ne[0]], [sw[1], sw[0]], [se[1], se[0]]]),
+    bbox: cornersBbox(nw, ne, sw, se),
     center,
   };
   if (meldetrapez !== undefined) ref.meldetrapez = meldetrapez;
@@ -119,4 +125,18 @@ function grossquadratFor(
   const gx = Math.floor((dhg.easting - FALSE_EASTING) / GROSSQUADRAT_M);
   const gy = Math.floor(dhg.northing / GROSSQUADRAT_M);
   return { kennziffer: dhg.kennziffer, gx, gy };
+}
+
+/** `[minLon, minLat, maxLon, maxLat]` over four `[lat, lon]` cell corners. */
+function cornersBbox(
+  ...corners: ReadonlyArray<readonly [number, number]>
+): [number, number, number, number] {
+  const lats = corners.map((c) => c[0]);
+  const lons = corners.map((c) => c[1]);
+  return [
+    Math.min(...lons),
+    Math.min(...lats),
+    Math.max(...lons),
+    Math.max(...lats),
+  ];
 }

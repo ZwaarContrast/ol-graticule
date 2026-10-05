@@ -27,9 +27,10 @@ export class MetricFormatter implements LabelFormatter {
     let result: string;
 
     if (this.unit_ === 'm') {
-      result = abs >= 1000
-        ? `${sign}${formatDecimal(abs / 1000, 1)} km`
-        : `${sign}${formatDecimal(abs, 1)} m`;
+      result =
+        abs >= 1000
+          ? `${sign}${formatDecimal(abs / 1000, 1)} km`
+          : `${sign}${formatDecimal(abs, 1)} m`;
     } else {
       result = `${sign}${formatDecimal(abs, 1)} ${this.unit_}`;
     }
@@ -59,7 +60,10 @@ export class MetricFormatter implements LabelFormatter {
       halves = [`${halves[0]} ${tag}`, halves[1]];
     }
 
-    return [parseLinear(halves[0], this.unit_), parseLinear(halves[1], this.unit_)];
+    return [
+      parseLinear(halves[0], this.unit_),
+      parseLinear(halves[1], this.unit_),
+    ];
   }
 }
 
@@ -72,14 +76,24 @@ function splitWhitespacePair_(trimmed: string): [string, string] {
   if (tokens.length === 3 && BARE_UNIT_RE.test(tokens[2]!)) {
     return [tokens[0]!, `${tokens[1]} ${tokens[2]}`];
   }
-  if (tokens.length === 4 && BARE_UNIT_RE.test(tokens[1]!) && BARE_UNIT_RE.test(tokens[3]!)) {
+  if (
+    tokens.length === 4 &&
+    BARE_UNIT_RE.test(tokens[1]!) &&
+    BARE_UNIT_RE.test(tokens[3]!)
+  ) {
     return [`${tokens[0]} ${tokens[1]}`, `${tokens[2]} ${tokens[3]}`];
   }
-  throw new ParseError(trimmed, 'expected "x y" pair (with optional unit suffix)');
+  throw new ParseError(
+    trimmed,
+    'expected "x y" pair (with optional unit suffix)',
+  );
 }
 
 /** Parses a metric/foot value with optional unit suffix. Returns the value in `nativeUnit`. */
-export function parseLinear(text: string, nativeUnit: 'm' | 'ft' | 'us-ft'): number {
+export function parseLinear(
+  text: string,
+  nativeUnit: 'm' | 'ft' | 'us-ft',
+): number {
   if (text.trim().length === 0) throw new ParseError(text, 'empty input');
   const trimmed = text.trim();
 
@@ -105,12 +119,18 @@ export function parseLinear(text: string, nativeUnit: 'm' | 'ft' | 'us-ft'): num
 
   if (unit === 'km') {
     if (nativeUnit !== 'm') {
-      throw new ParseError(text, `unit "km" not compatible with formatter unit "${nativeUnit}"`);
+      throw new ParseError(
+        text,
+        `unit "km" not compatible with formatter unit "${nativeUnit}"`,
+      );
     }
     return value * 1000;
   }
   if (unit !== nativeUnit) {
-    throw new ParseError(text, `unit "${unit}" not compatible with formatter unit "${nativeUnit}"`);
+    throw new ParseError(
+      text,
+      `unit "${unit}" not compatible with formatter unit "${nativeUnit}"`,
+    );
   }
   return value;
 }

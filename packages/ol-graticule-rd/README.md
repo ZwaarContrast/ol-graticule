@@ -31,7 +31,9 @@ import { UniversalGraticule } from '@zwaarcontrast/ol-graticule';
 import { createRDNewGridSystem } from '@zwaarcontrast/ol-graticule-rd';
 
 const gridSystem = createRDNewGridSystem();
-map.addLayer(new UniversalGraticule({ gridSystem, style: { edgeLabel: true } }));
+map.addLayer(
+  new UniversalGraticule({ gridSystem, style: { edgeLabel: true } }),
+);
 ```
 
 Or RD Old:
@@ -59,7 +61,10 @@ The factories return a polygon-clipped `ProjectedGridSystem`, which inherits
 import { ParseError } from '@zwaarcontrast/ol-graticule';
 
 try {
-  const center = gridSystem.parseCoordinate('155000 463000', map.getView().getProjection());
+  const center = gridSystem.parseCoordinate(
+    '155000 463000',
+    map.getView().getProjection(),
+  );
   map.getView().animate({ center });
 } catch (err) {
   if (err instanceof ParseError) console.warn(err.reason);
@@ -98,10 +103,10 @@ RD (Amersfoort, EPSG:28992) is a Bessel-1841 projection. To move between RD
 metres and WGS84 / ETRS89 / EPSG:3857, proj4 has to shift between datums.
 There are two ways to do that:
 
-| Method | Residual error (across NL) | Applied where |
-|---|---|---|
-| **7-parameter Helmert** (the `+towgs84=...` string, EPSG:4833) | ~1 m | proj4's default when no grid is available |
-| **RDNAPTRANS 2018 NTv2 grid** (`rdtrans2018.gsb`) | < 1 cm | when `+nadgrids=@rdtrans2018` can resolve the grid |
+| Method                                                         | Residual error (across NL) | Applied where                                      |
+| -------------------------------------------------------------- | -------------------------- | -------------------------------------------------- |
+| **7-parameter Helmert** (the `+towgs84=...` string, EPSG:4833) | ~1 m                       | proj4's default when no grid is available          |
+| **RDNAPTRANS 2018 NTv2 grid** (`rdtrans2018.gsb`)              | < 1 cm                     | when `+nadgrids=@rdtrans2018` can resolve the grid |
 
 A 1 m residual is usually plenty for drawing a graticule on a slippy map, but
 not for georeferencing maps, overlaying cadastral boundaries, or anything
@@ -131,7 +136,8 @@ system and the bundled copy will simply be unused:
 ```ts
 import { loadNadgrid } from '@zwaarcontrast/ol-graticule-projected';
 import {
-  createRDNewGridSystem, RDNAPTRANS2018_GRID_NAME,
+  createRDNewGridSystem,
+  RDNAPTRANS2018_GRID_NAME,
 } from '@zwaarcontrast/ol-graticule-rd';
 
 await loadNadgrid(RDNAPTRANS2018_GRID_NAME, '/my-assets/rdtrans2018-2024.gsb');

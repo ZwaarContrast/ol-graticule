@@ -35,11 +35,15 @@ export interface CombinedFormatted {
 /** Result of `formatCoordinate`. Narrow with the type guards below. */
 export type FormattedCoordinate = AxisFormatted | CombinedFormatted;
 
-export function isCombinedFormatted(value: FormattedCoordinate): value is CombinedFormatted {
+export function isCombinedFormatted(
+  value: FormattedCoordinate,
+): value is CombinedFormatted {
   return 'combined' in value;
 }
 
-export function isAxisFormatted(value: FormattedCoordinate): value is AxisFormatted {
+export function isAxisFormatted(
+  value: FormattedCoordinate,
+): value is AxisFormatted {
   return 'x' in value && 'y' in value;
 }
 
@@ -49,14 +53,14 @@ export interface GridSystem {
   getFeatures(
     extent: Extent,
     resolution: number,
-    viewProjection: ProjectionLike
+    viewProjection: ProjectionLike,
   ): Feature<Geometry>[];
 
   /** Edge labels for grid lines intersecting the viewport edges. */
   getLabels(
     extent: Extent,
     resolution: number,
-    viewProjection: ProjectionLike
+    viewProjection: ProjectionLike,
   ): GridLabel[];
 
   /** Whether a coordinate falls inside the CRS validity extent / clip polygon. */
@@ -68,7 +72,7 @@ export interface GridSystem {
   /** Format a coordinate as either per-axis or a compound string. */
   formatCoordinate(
     coordinate: [number, number],
-    viewProjection: ProjectionLike
+    viewProjection: ProjectionLike,
   ): FormattedCoordinate;
 
   /**
@@ -80,14 +84,14 @@ export interface GridSystem {
    */
   parseCoordinate?(
     text: string,
-    viewProjection: ProjectionLike
+    viewProjection: ProjectionLike,
   ): [number, number];
 
   /** Labels centered inside grid cells. */
   getCellLabels?(
     extent: Extent,
     resolution: number,
-    viewProjection: ProjectionLike
+    viewProjection: ProjectionLike,
   ): GridCellLabel[];
 }
 

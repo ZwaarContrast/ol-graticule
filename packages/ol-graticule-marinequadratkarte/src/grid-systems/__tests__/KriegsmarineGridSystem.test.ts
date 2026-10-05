@@ -51,7 +51,7 @@ describe('KriegsmarineGridSystem', () => {
       // feature records every cell that contributed.
       const contributingIds = new Set<string>();
       for (const f of features) {
-        for (const id of (f.get('gridSquares') as string[])) {
+        for (const id of f.get('gridSquares') as string[]) {
           contributingIds.add(id);
         }
       }
@@ -72,7 +72,8 @@ describe('KriegsmarineGridSystem', () => {
       // Each feature is a single LineString segment, not a closed ring.
       const geom = ahFeatures[0]!.getGeometry();
       expect(geom).toBeInstanceOf(LineString);
-      if (!(geom instanceof LineString)) throw new Error('unreachable: asserted above');
+      if (!(geom instanceof LineString))
+        throw new Error('unreachable: asserted above');
       const ahCoords = geom.getCoordinates();
       // Per-segment density is 2..20+1 (inclusive both endpoints).
       expect(ahCoords.length).toBeGreaterThanOrEqual(3);
@@ -162,9 +163,15 @@ describe('KriegsmarineGridSystem', () => {
       // flip the Kleinquadrat we land in.
       const real: [number, number] = [(-65.5 / 180) * HALF_SIZE, 5942074];
       // Same geographic point one world east (wrapped copy).
-      const wrappedEast: [number, number] = [real[0]! + 2 * HALF_SIZE, real[1]!];
+      const wrappedEast: [number, number] = [
+        real[0]! + 2 * HALF_SIZE,
+        real[1]!,
+      ];
       // Same geographic point one world west.
-      const wrappedWest: [number, number] = [real[0]! - 2 * HALF_SIZE, real[1]!];
+      const wrappedWest: [number, number] = [
+        real[0]! - 2 * HALF_SIZE,
+        real[1]!,
+      ];
 
       const baseline = gs.formatCoordinate(real, 'EPSG:3857');
       expect('combined' in baseline && baseline.combined !== '-').toBe(true);

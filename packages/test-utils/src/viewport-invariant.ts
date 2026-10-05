@@ -1,5 +1,9 @@
 import LineString from 'ol/geom/LineString';
-import { createOrUpdateFromFlatCoordinates, intersects, buffer } from 'ol/extent';
+import {
+  createOrUpdateFromFlatCoordinates,
+  intersects,
+  buffer,
+} from 'ol/extent';
 import type { Extent } from 'ol/extent';
 import type { ProjectionLike } from 'ol/proj';
 import type Feature from 'ol/Feature';
@@ -42,7 +46,12 @@ export function findOffScreenFeatures(
     const flat = geom.getFlatCoordinates();
     const stride = geom.getStride();
     if (flat.length < stride) continue;
-    const bbox = createOrUpdateFromFlatCoordinates(flat, 0, flat.length, stride);
+    const bbox = createOrUpdateFromFlatCoordinates(
+      flat,
+      0,
+      flat.length,
+      stride,
+    );
     if (!intersects(bbox, visible)) {
       out.push({
         bbox,

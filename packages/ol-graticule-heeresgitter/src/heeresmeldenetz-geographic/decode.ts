@@ -19,12 +19,11 @@ import {
   TENTH_LAT_SEC,
   TENTH_LON_SEC,
 } from './levels.js';
-import { canonicalizeHmnLabel, parseHmnTokens } from '../heeresmeldenetz/canonical.js';
-import type {
-  DecodedHmnGeoRef,
-  Grosstrapez,
-  LatLon,
-} from './types.js';
+import {
+  canonicalizeHmnLabel,
+  parseHmnTokens,
+} from '../heeresmeldenetz/canonical.js';
+import type { DecodedHmnGeoRef, Grosstrapez, LatLon } from './types.js';
 
 export interface ParseHmnGeoOptions {
   /** Explicit Großtrapez for disambiguation. Mutually exclusive with `near`. */
@@ -45,13 +44,15 @@ export function parseHmnGeo(
 ): DecodedHmnGeoRef | undefined {
   const tokens = parseHmnTokens(text);
   if (!tokens) return undefined;
-  const { col, row, kx, ky, meldetrapez, arbeitstrapez, tenths, depth } = tokens;
+  const { col, row, kx, ky, meldetrapez, arbeitstrapez, tenths, depth } =
+    tokens;
 
   const grosstrapez = options.grosstrapez ?? grosstrapezFor(options.near);
   if (!grosstrapez) return undefined;
 
   const grossNwLonSec = ANCHOR_LON_SEC + grosstrapez.gx * GROSSTRAPEZ_LON_SEC;
-  const grossNwLatSec = ANCHOR_LAT_SEC + (grosstrapez.gy + 1) * GROSSTRAPEZ_LAT_SEC;
+  const grossNwLatSec =
+    ANCHOR_LAT_SEC + (grosstrapez.gy + 1) * GROSSTRAPEZ_LAT_SEC;
   const kleinNwLonSec = grossNwLonSec + kx * KLEINTRAPEZ_LON_SEC;
   const kleinNwLatSec = grossNwLatSec - ky * KLEINTRAPEZ_LAT_SEC;
 
@@ -93,7 +94,12 @@ export function parseHmnGeo(
   const centerLat = (cellNwLatSec - cellSizeLatSec / 2) / ARCSEC_PER_DEG;
 
   const klein = col + row;
-  const canonical = canonicalizeHmnLabel(klein, meldetrapez, arbeitstrapez, tenths);
+  const canonical = canonicalizeHmnLabel(
+    klein,
+    meldetrapez,
+    arbeitstrapez,
+    tenths,
+  );
 
   const ref: DecodedHmnGeoRef = {
     canonical,

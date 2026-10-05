@@ -14,11 +14,16 @@ describe('PixelGridSystem viewport culling invariant', () => {
     (_label, centre, halfW, halfH, resolution) => {
       const grid = new PixelGridSystem();
       const extent: [number, number, number, number] = [
-        centre[0] - halfW, centre[1] - halfH, centre[0] + halfW, centre[1] + halfH,
+        centre[0] - halfW,
+        centre[1] - halfH,
+        centre[0] + halfW,
+        centre[1] + halfH,
       ];
       const failures = findOffScreenFeatures(grid, extent, resolution, 'PIXEL');
-      expect(failures, `off-screen lines: ${JSON.stringify(failures, null, 2)}`)
-        .toHaveLength(0);
+      expect(
+        failures,
+        `off-screen lines: ${JSON.stringify(failures, null, 2)}`,
+      ).toHaveLength(0);
     },
   );
 });

@@ -18,8 +18,12 @@ export interface LensHole {
  * world so the lens can reach base-world source lines under wrap.
  */
 export function eachSegmentPx(
-  geom: LineString, toPixel: Transform, pixelRatio: number, worldOffset: number,
-  scratch: [number, number], cb: (x0: number, y0: number, x1: number, y1: number) => void,
+  geom: LineString,
+  toPixel: Transform,
+  pixelRatio: number,
+  worldOffset: number,
+  scratch: [number, number],
+  cb: (x0: number, y0: number, x1: number, y1: number) => void,
 ): void {
   const flat = geom.getFlatCoordinates();
   const stride = geom.getStride();
@@ -39,8 +43,14 @@ export function eachSegmentPx(
 
 /** Whether any part of a grid line's pixel-space bbox lies within `radius` of the cursor. */
 export function lineNearCursor(
-  geom: LineString, toPixel: Transform, pixelRatio: number, worldOffset: number,
-  cx: number, cy: number, radius: number, scratch: [number, number],
+  geom: LineString,
+  toPixel: Transform,
+  pixelRatio: number,
+  worldOffset: number,
+  cx: number,
+  cy: number,
+  radius: number,
+  scratch: [number, number],
 ): boolean {
   const [minX, minY, maxX, maxY] = geom.getExtent();
   let loX = Infinity;
@@ -58,7 +68,12 @@ export function lineNearCursor(
     if (x > hiX) hiX = x;
     if (y > hiY) hiY = y;
   }
-  return cx >= loX - radius && cx <= hiX + radius && cy >= loY - radius && cy <= hiY + radius;
+  return (
+    cx >= loX - radius &&
+    cx <= hiX + radius &&
+    cy >= loY - radius &&
+    cy <= hiY + radius
+  );
 }
 
 /**
@@ -69,9 +84,16 @@ export function lineNearCursor(
  * sit on true meridian×parallel intersections, so they track under rotation.
  */
 export function collectLensHoles(
-  features: Feature[], toPixel: Transform, pixelRatio: number, worldOffset: number,
-  cx: number, cy: number, searchRadius: number,
-  approachFraction: number, fallbackApproach: number, maxHoles: number,
+  features: Feature[],
+  toPixel: Transform,
+  pixelRatio: number,
+  worldOffset: number,
+  cx: number,
+  cy: number,
+  searchRadius: number,
+  approachFraction: number,
+  fallbackApproach: number,
+  maxHoles: number,
 ): { holes: LensHole[]; cell: number } {
   const vxs: number[] = [];
   const hys: number[] = [];
@@ -85,22 +107,57 @@ export function collectLensHoles(
     if (!(geom instanceof LineString)) continue;
     const axis = feature.get('gridAxis');
     if (axis !== 'x' && axis !== 'y') continue;
-    if (!lineNearCursor(geom, toPixel, pixelRatio, worldOffset, cx, cy, searchRadius, scratch)) continue;
+    if (
+      !lineNearCursor(
+        geom,
+        toPixel,
+        pixelRatio,
+        worldOffset,
+        cx,
+        cy,
+        searchRadius,
+        scratch,
+      )
+    )
+      continue;
 
     let best = NaN;
     let bestD = Infinity;
-    let segX0 = 0, segY0 = 0, segX1 = 0, segY1 = 0, segD = Infinity;
-    eachSegmentPx(geom, toPixel, pixelRatio, worldOffset, scratch, (x0, y0, x1, y1) => {
-      const sd = distToSegmentSq(cx, cy, x0, y0, x1, y1);
-      if (sd < segD) { segD = sd; segX0 = x0; segY0 = y0; segX1 = x1; segY1 = y1; }
-      if (axis === 'x' && straddles(y0, y1, cy)) {
-        const crossX = x0 + (x1 - x0) * ((cy - y0) / (y1 - y0));
-        if (Math.abs(crossX - cx) < bestD) { bestD = Math.abs(crossX - cx); best = crossX; }
-      } else if (axis === 'y' && straddles(x0, x1, cx)) {
-        const crossY = y0 + (y1 - y0) * ((cx - x0) / (x1 - x0));
-        if (Math.abs(crossY - cy) < bestD) { bestD = Math.abs(crossY - cy); best = crossY; }
-      }
-    });
+    let segX0 = 0,
+      segY0 = 0,
+      segX1 = 0,
+      segY1 = 0,
+      segD = Infinity;
+    eachSegmentPx(
+      geom,
+      toPixel,
+      pixelRatio,
+      worldOffset,
+      scratch,
+      (x0, y0, x1, y1) => {
+        const sd = distToSegmentSq(cx, cy, x0, y0, x1, y1);
+        if (sd < segD) {
+          segD = sd;
+          segX0 = x0;
+          segY0 = y0;
+          segX1 = x1;
+          segY1 = y1;
+        }
+        if (axis === 'x' && straddles(y0, y1, cy)) {
+          const crossX = x0 + (x1 - x0) * ((cy - y0) / (y1 - y0));
+          if (Math.abs(crossX - cx) < bestD) {
+            bestD = Math.abs(crossX - cx);
+            best = crossX;
+          }
+        } else if (axis === 'y' && straddles(x0, x1, cx)) {
+          const crossY = y0 + (y1 - y0) * ((cx - x0) / (x1 - x0));
+          if (Math.abs(crossY - cy) < bestD) {
+            bestD = Math.abs(crossY - cy);
+            best = crossY;
+          }
+        }
+      },
+    );
     if (segD >= radiusSq) continue;
     if (axis === 'x') {
       vertSegs.push(segX0, segY0, segX1, segY1);
@@ -114,7 +171,8 @@ export function collectLensHoles(
   const cellW = minSpacing(vxs);
   const cellH = minSpacing(hys);
   let cell = NaN;
-  if (!Number.isNaN(cellW) && !Number.isNaN(cellH)) cell = Math.min(cellW, cellH);
+  if (!Number.isNaN(cellW) && !Number.isNaN(cellH))
+    cell = Math.min(cellW, cellH);
   else if (!Number.isNaN(cellW)) cell = cellW;
   else if (!Number.isNaN(cellH)) cell = cellH;
 
@@ -128,15 +186,23 @@ export function collectLensHoles(
     for (let vi = 0; vi + 3 < vertSegs.length; vi += 4) {
       for (let hi = 0; hi + 3 < horizSegs.length; hi += 4) {
         const cross = lineIntersection(
-          vertSegs[vi] ?? 0, vertSegs[vi + 1] ?? 0, vertSegs[vi + 2] ?? 0, vertSegs[vi + 3] ?? 0,
-          horizSegs[hi] ?? 0, horizSegs[hi + 1] ?? 0, horizSegs[hi + 2] ?? 0, horizSegs[hi + 3] ?? 0, out,
+          vertSegs[vi] ?? 0,
+          vertSegs[vi + 1] ?? 0,
+          vertSegs[vi + 2] ?? 0,
+          vertSegs[vi + 3] ?? 0,
+          horizSegs[hi] ?? 0,
+          horizSegs[hi + 1] ?? 0,
+          horizSegs[hi + 2] ?? 0,
+          horizSegs[hi + 3] ?? 0,
+          out,
         );
         if (!cross) continue;
         const dist = Math.hypot(cx - cross[0], cy - cross[1]);
         if (dist >= approach) continue;
         const s = 1 - dist / approach;
         holes.push({ x: cross[0], y: cross[1], strength: s * s * (3 - 2 * s) });
-        if (holes.length >= maxHoles) return { holes, cell: Number.isNaN(cell) ? 0 : cell };
+        if (holes.length >= maxHoles)
+          return { holes, cell: Number.isNaN(cell) ? 0 : cell };
       }
     }
   }
@@ -169,8 +235,14 @@ export function minSpacing(values: number[]): number {
  * parallel. Segment-axis-aligned inputs (rotation 0) reduce to `(a.x, b.y)`.
  */
 export function lineIntersection(
-  a0: number, a1: number, a2: number, a3: number,
-  b0: number, b1: number, b2: number, b3: number,
+  a0: number,
+  a1: number,
+  a2: number,
+  a3: number,
+  b0: number,
+  b1: number,
+  b2: number,
+  b3: number,
   out: [number, number],
 ): [number, number] | null {
   const dax = a2 - a0;

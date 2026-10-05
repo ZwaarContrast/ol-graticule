@@ -242,7 +242,12 @@ describe('Kriegsmarine lookup', () => {
       expect(cell1).toBeDefined();
       expect(cell5).toBeDefined();
       expect(cell6).toBeDefined();
-      if (isRectSquare(parent!) && isRectSquare(cell1!) && isRectSquare(cell5!) && isRectSquare(cell6!)) {
+      if (
+        isRectSquare(parent!) &&
+        isRectSquare(cell1!) &&
+        isRectSquare(cell5!) &&
+        isRectSquare(cell6!)
+      ) {
         // Positions 1 and 5 are in the top row (same lat)
         expect(cell1!.nw[0]).toBeCloseTo(cell5!.nw[0], 1);
         // Position 6 is in the bottom row (lower lat)
@@ -265,7 +270,12 @@ describe('Kriegsmarine lookup', () => {
       expect(cell1).toBeDefined();
       expect(cell2).toBeDefined();
       expect(cell3).toBeDefined();
-      if (isRectSquare(parent!) && isRectSquare(cell1!) && isRectSquare(cell2!) && isRectSquare(cell3!)) {
+      if (
+        isRectSquare(parent!) &&
+        isRectSquare(cell1!) &&
+        isRectSquare(cell2!) &&
+        isRectSquare(cell3!)
+      ) {
         // Positions 1 and 2 are in the top row (same lat)
         expect(cell1!.nw[0]).toBeCloseTo(cell2!.nw[0], 1);
         // Position 3 is in the second row (lower lat)

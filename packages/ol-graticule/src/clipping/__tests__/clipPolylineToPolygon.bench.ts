@@ -32,10 +32,24 @@ const polyline500 = buildPolylineFlat(500);
 
 describe('clipPolylineToPolygon — typical hot path', () => {
   bench('50-segment polyline against 32-vertex polygon', () => {
-    clipPolylineToPolygon(polyline50, 0, polyline50.length, 2, edgeIndex, scratch);
+    clipPolylineToPolygon(
+      polyline50,
+      0,
+      polyline50.length,
+      2,
+      edgeIndex,
+      scratch,
+    );
   });
 
   bench('500-segment polyline against 32-vertex polygon', () => {
-    clipPolylineToPolygon(polyline500, 0, polyline500.length, 2, edgeIndex, scratch);
+    clipPolylineToPolygon(
+      polyline500,
+      0,
+      polyline500.length,
+      2,
+      edgeIndex,
+      scratch,
+    );
   });
 });

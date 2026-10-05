@@ -36,7 +36,9 @@ import { createNordDeGuerreGridSystem } from '@zwaarcontrast/ol-graticule-modifi
 
 const gridSystem = createNordDeGuerreGridSystem();
 
-map.addLayer(new UniversalGraticule({ gridSystem, style: { edgeLabel: true } }));
+map.addLayer(
+  new UniversalGraticule({ gridSystem, style: { edgeLabel: true } }),
+);
 ```
 
 Swap in any other factory the same way:
@@ -56,19 +58,19 @@ What you'll see:
 
 ## Theatres
 
-| Theatre | Factory | CRS | Projection |
-|---|---|---|---|
-| Nord de Guerre | `createNordDeGuerreGridSystem` | `EPSG:27500` | LCC near-conformal, Paris meridian |
-| French Lambert Zone I | `createFrenchLambert1GridSystem` | `EPSG:27561` | LCC, lat_0=49.5° |
-| French Lambert Zone II | `createFrenchLambert2GridSystem` | `EPSG:27562` | LCC, lat_0=46.8° |
-| French Lambert Zone III | `createFrenchLambert3GridSystem` | `EPSG:27563` | LCC, lat_0=44.1° |
-| British Cassini (OS Delamere) | `createBritishCassiniGridSystem` | `MBS:BRITISH_CASSINI` | Cassini-Soldner, Delamere origin |
-| Irish Cassini (OSI 1825) | `createIrishCassiniGridSystem` | `MBS:IRISH_CASSINI` | Cassini-Soldner, Lough Foyle origin |
-| War Office Cassini (Dunnose, WWII) | `createWarOfficeCassiniGridSystem` | `MBS:WAR_OFFICE_CASSINI` | Cassini-Soldner, Dunnose origin |
-| Scandinavian Zone 3 | `createScandinavianZone3GridSystem` | `MBS:SCANDINAVIAN_ZONE_3` | LCC on Bessel 1841, lat_0=57.5°, lon_0=20° |
-| Italian Northern | `createItalianNorthernGridSystem` | `MBS:ITALIAN_NORTHERN` | LCC on Bessel 1841, lat_0=45°55', lon_0=14° |
-| Italian Southern | `createItalianSouthernGridSystem` | `MBS:ITALIAN_SOUTHERN` | LCC on Bessel 1841, lat_0=39.5°, lon_0=14° |
-| Iberian Peninsula | `createIberianPeninsulaGridSystem` | `MBS:IBERIAN_PENINSULA` | LCC on Bessel 1841, lat_0=41°, lon_0=-4° |
+| Theatre                            | Factory                             | CRS                       | Projection                                  |
+| ---------------------------------- | ----------------------------------- | ------------------------- | ------------------------------------------- |
+| Nord de Guerre                     | `createNordDeGuerreGridSystem`      | `EPSG:27500`              | LCC near-conformal, Paris meridian          |
+| French Lambert Zone I              | `createFrenchLambert1GridSystem`    | `EPSG:27561`              | LCC, lat_0=49.5°                            |
+| French Lambert Zone II             | `createFrenchLambert2GridSystem`    | `EPSG:27562`              | LCC, lat_0=46.8°                            |
+| French Lambert Zone III            | `createFrenchLambert3GridSystem`    | `EPSG:27563`              | LCC, lat_0=44.1°                            |
+| British Cassini (OS Delamere)      | `createBritishCassiniGridSystem`    | `MBS:BRITISH_CASSINI`     | Cassini-Soldner, Delamere origin            |
+| Irish Cassini (OSI 1825)           | `createIrishCassiniGridSystem`      | `MBS:IRISH_CASSINI`       | Cassini-Soldner, Lough Foyle origin         |
+| War Office Cassini (Dunnose, WWII) | `createWarOfficeCassiniGridSystem`  | `MBS:WAR_OFFICE_CASSINI`  | Cassini-Soldner, Dunnose origin             |
+| Scandinavian Zone 3                | `createScandinavianZone3GridSystem` | `MBS:SCANDINAVIAN_ZONE_3` | LCC on Bessel 1841, lat_0=57.5°, lon_0=20°  |
+| Italian Northern                   | `createItalianNorthernGridSystem`   | `MBS:ITALIAN_NORTHERN`    | LCC on Bessel 1841, lat_0=45°55', lon_0=14° |
+| Italian Southern                   | `createItalianSouthernGridSystem`   | `MBS:ITALIAN_SOUTHERN`    | LCC on Bessel 1841, lat_0=39.5°, lon_0=14°  |
+| Iberian Peninsula                  | `createIberianPeninsulaGridSystem`  | `MBS:IBERIAN_PENINSULA`   | LCC on Bessel 1841, lat_0=41°, lon_0=-4°    |
 
 Each factory ships with a hand-traced coverage polygon, the correct MBS
 letter scheme, and `cellSnapInterval` wired up so cell labels snap to the
@@ -76,7 +78,7 @@ letter scheme, and `cellSnapInterval` wired up so cell labels snap to the
 Delamere (`createBritishCassiniGridSystem`) matches what Thierry's
 translator publishes; the Dunnose (`createWarOfficeCassiniGridSystem`) is
 period-correct for actual WWII British Army GSGS sheets, sourced from
-Hellyer, *Sheetlines* 55 (Charles Close Society, 2001).
+Hellyer, _Sheetlines_ 55 (Charles Close Society, 2001).
 
 ### MBS letter families
 
@@ -88,12 +90,12 @@ second-letter grid varies, every observed theatre uses one of four
 cyclic rotations of the same 5-row alphabet stack, distinguished by which
 row sits on the NORTH of any 500 km square:
 
-| Family constant | N row | Theatres |
-|---|---|---|
-| `NORD_DE_GUERRE_FAMILY_LETTERS` | FGHJK | Nord de Guerre, French Lambert I/II/III |
-| `BRITISH_CASSINI_FAMILY_LETTERS` | ABCDE | British/Irish/War Office Cassini, Italian Southern, Iberian Peninsula |
-| `ITALIAN_NORTHERN_FAMILY_LETTERS` | LMNOP | Italian Northern |
-| `SCANDINAVIAN_ZONE_3_FAMILY_LETTERS` | QRSTU | Scandinavian Zone 3 |
+| Family constant                      | N row | Theatres                                                              |
+| ------------------------------------ | ----- | --------------------------------------------------------------------- |
+| `NORD_DE_GUERRE_FAMILY_LETTERS`      | FGHJK | Nord de Guerre, French Lambert I/II/III                               |
+| `BRITISH_CASSINI_FAMILY_LETTERS`     | ABCDE | British/Irish/War Office Cassini, Italian Southern, Iberian Peninsula |
+| `ITALIAN_NORTHERN_FAMILY_LETTERS`    | LMNOP | Italian Northern                                                      |
+| `SCANDINAVIAN_ZONE_3_FAMILY_LETTERS` | QRSTU | Scandinavian Zone 3                                                   |
 
 (A fifth rotation with VWXYZ on the north row would complete the cyclic
 group but isn't observed in any theatre Thierry catalogues.)
@@ -105,8 +107,8 @@ Every `ProjectedGridSystem` option except the MBS-specific ones (`crs`,
 
 ```ts
 const gridSystem = createNordDeGuerreGridSystem({
-  targetScreenPx: 120,        // rarer grid lines
-  densificationPoints: 60,    // coarser curves, slightly cheaper
+  targetScreenPx: 120, // rarer grid lines
+  densificationPoints: 60, // coarser curves, slightly cheaper
 });
 ```
 
@@ -129,7 +131,10 @@ import { ParseError } from '@zwaarcontrast/ol-graticule';
 const grid = createNordDeGuerreGridSystem();
 
 try {
-  const center = grid.parseCoordinate('vK 617 517', map.getView().getProjection());
+  const center = grid.parseCoordinate(
+    'vK 617 517',
+    map.getView().getProjection(),
+  );
   map.getView().animate({ center, duration: 400 });
 } catch (err) {
   if (err instanceof ParseError) console.warn(err.reason);
@@ -189,6 +194,7 @@ const palestine = new ProjectedGridSystem({
 ### CRS / proj4 / bbox / clip-polygon constants
 
 For each theatre `<T>`:
+
 - `<T>_CRS`, the CRS code under which the projection is registered.
 - `<T>_PROJ4`, the proj4 definition string.
 - `<T>_BBOX_WGS84`, `[lonMin, latMin, lonMax, latMax]` for `view.fit()`.
@@ -225,13 +231,14 @@ or a primary documentary anchor:
   Helmert (`+towgs84=1383.8,38.7,392,0,0,0,0`) baked into the default
   proj4 string; EPSG/IGN publish no transformation for ATF Paris ↔
   WGS84, so this is the best published estimate. Source: Bill Sayers,
-  [*Transforming French WW1 Lambert Coordinates to WGS84*][nde-towgs84]
+  [_Transforming French WW1 Lambert Coordinates to WGS84_][nde-towgs84]
   (16 January 2024), fitted across 13 WWI Initial Point survey plats,
   10/13 within 20 m, three outliers up to ~100 m. Override per call via
   `createNordDeGuerreGridSystem({ towgs84: ... })`, or pass `null` to
   fall back to the canonical no-shift definition.
 
 [nde-towgs84]: https://wanderingcartographer.wordpress.com/2024/01/16/transforming-french-ww1-lambert-coordinates-to-wgs84/
+
 - **French Lambert I/II/III**, origins back-solved from Thierry's
   translator at metre-level precision.
 - **British Cassini (OS Delamere)**, matches Thierry's translator. NOT
@@ -239,13 +246,13 @@ or a primary documentary anchor:
 - **Irish Cassini**, proj4 reproduces Thierry's translator to within
   ~2 m across 9 sample points.
 - **War Office Cassini (Dunnose, WWII)**, proj4 + origin from Hellyer
-  *Sheetlines* 55 (Charles Close Society, 2001) primary source. Asserted
+  _Sheetlines_ 55 (Charles Close Society, 2001) primary source. Asserted
   in tests against Hellyer's `wQ`-at-(500 km, 100 km) reference point.
 - **Scandinavian Zone 3**, back-solved from Thierry's translator,
   ~13 m mean error across 61 probes.
 - **Italian Northern**, back-solved, 6.3 m mean error across 62 probes.
 - **Italian Southern**, back-solved, 4.4 m mean error across 77 probes.
-- **Iberian Peninsula**, *moderate confidence*. Thierry's translator
+- **Iberian Peninsula**, _moderate confidence_. Thierry's translator
   doesn't support this theatre, so parameters were inferred from the
   GSGS 4148 Spain-Portugal 1:250 000 series (held by ICGC Barcelona at
   <https://cartotecadigital.icgc.cat/digital/collection/gsgs4148>).
@@ -271,10 +278,10 @@ his pages.
 ### Roger Hellyer & the Charles Close Society
 
 The **War Office Cassini (Dunnose)** grid is sourced from Roger
-Hellyer's article in *Sheetlines* issue 55 (Charles Close Society,
+Hellyer's article in _Sheetlines_ issue 55 (Charles Close Society,
 2001), which gave us the period-correct WWII British Army origin and
 the `wQ`-at-(500 km, 100 km) reference point used as a regression test.
-The broader *Sheetlines* archive was invaluable for cross-referencing
+The broader _Sheetlines_ archive was invaluable for cross-referencing
 the WWII GSGS series.
 
 ## License

@@ -28,12 +28,17 @@ Peers: `ol ^10`, `proj4 ^2.9`, `@zwaarcontrast/ol-graticule`,
 ## Usage
 
 ```ts
-import { UniversalGraticule, CursorPositionControl } from '@zwaarcontrast/ol-graticule';
+import {
+  UniversalGraticule,
+  CursorPositionControl,
+} from '@zwaarcontrast/ol-graticule';
 import { MgrsGridSystem } from '@zwaarcontrast/ol-graticule-mgrs';
 
 const gridSystem = new MgrsGridSystem();
 
-map.addLayer(new UniversalGraticule({ gridSystem, style: { edgeLabel: true } }));
+map.addLayer(
+  new UniversalGraticule({ gridSystem, style: { edgeLabel: true } }),
+);
 map.addControl(new CursorPositionControl({ gridSystem }));
 ```
 
@@ -54,10 +59,10 @@ The `CursorPositionControl` reads out a full MGRS reference like
 
 ## Options
 
-| Option | Type | Default | What it does |
-|---|---|---|---|
-| `targetScreenPx` | `number` | `100` | Desired minimum spacing (px) between major lines. Drives interval selection. |
-| `densificationPoints` | `number` | `100` | Points per grid line for curved rendering. |
+| Option                | Type     | Default | What it does                                                                 |
+| --------------------- | -------- | ------- | ---------------------------------------------------------------------------- |
+| `targetScreenPx`      | `number` | `100`   | Desired minimum spacing (px) between major lines. Drives interval selection. |
+| `densificationPoints` | `number` | `100`   | Points per grid line for curved rendering.                                   |
 
 ## Coordinate conversion helpers
 
@@ -67,8 +72,8 @@ package re-exports its low-level conversion utilities:
 ```ts
 import { lonLatToMgrs, formatMgrs } from '@zwaarcontrast/ol-graticule-mgrs';
 
-const ref = lonLatToMgrs([7.0, 48.5], 5);  // -> "32U LB 12345 67890"
-formatMgrs(ref);                           // -> "32U LB 12345 67890"
+const ref = lonLatToMgrs([7.0, 48.5], 5); // -> "32U LB 12345 67890"
+formatMgrs(ref); // -> "32U LB 12345 67890"
 ```
 
 Precision is the number of digits per axis: `0` (GZD only) through `5`

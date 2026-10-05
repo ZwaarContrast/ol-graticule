@@ -8,8 +8,21 @@
  * full credit.
  */
 
-import type { RectSquare, PolySquare, Square, SquareGroup, PolygonalDef } from './types.js';
-import { largeRegularSquares, largePartialSquares, irregularSquares, polygonalSquares, twoByFiveSquares, partialSquares } from './data.js';
+import type {
+  RectSquare,
+  PolySquare,
+  Square,
+  SquareGroup,
+  PolygonalDef,
+} from './types.js';
+import {
+  largeRegularSquares,
+  largePartialSquares,
+  irregularSquares,
+  polygonalSquares,
+  twoByFiveSquares,
+  partialSquares,
+} from './data.js';
 import { shift, fromSquareDef } from './subdivision.js';
 import { squareExtent } from './geo.js';
 
@@ -36,7 +49,10 @@ function getGroupIndex(): Map<string, GroupEntry[]> {
   if (groupIndex) return groupIndex;
   groupIndex = new Map();
 
-  const addGroups = (groups: SquareGroup[], collection: GroupEntry['collection']) => {
+  const addGroups = (
+    groups: SquareGroup[],
+    collection: GroupEntry['collection'],
+  ) => {
     for (const group of groups) {
       for (const id of group.ids) {
         const entry: GroupEntry = { group, collection };
@@ -67,7 +83,10 @@ function getPolyIndex(): Map<string, PolygonalDef> {
   return polyIndex;
 }
 
-function extractFromGroup(ref: string, group: SquareGroup): (RectSquare & { so?: 'h' | 'v' | undefined }) | undefined {
+function extractFromGroup(
+  ref: string,
+  group: SquareGroup,
+): (RectSquare & { so?: 'h' | 'v' | undefined }) | undefined {
   const { ids, nw, se, o = 'h', sub, so } = group;
   const i = ids.indexOf(ref);
   if (i === -1) return undefined;
@@ -80,7 +99,9 @@ function extractFromGroup(ref: string, group: SquareGroup): (RectSquare & { so?:
 function findInCollection<T>(
   key: string,
   collection: GroupEntry['collection'],
-  resolve: (extracted: RectSquare & { so?: 'h' | 'v' | undefined }) => T | undefined,
+  resolve: (
+    extracted: RectSquare & { so?: 'h' | 'v' | undefined },
+  ) => T | undefined,
 ): T | undefined {
   const entries = getGroupIndex().get(key);
   if (!entries) return undefined;
@@ -95,7 +116,9 @@ function findInCollection<T>(
 }
 
 function findLarge(ref: string): Square | undefined {
-  return findInCollection(ref.slice(0, 2), 'large', (e) => fromSquareDef(ref, e));
+  return findInCollection(ref.slice(0, 2), 'large', (e) =>
+    fromSquareDef(ref, e),
+  );
 }
 
 function findIrregular(ref: string): Square | undefined {
@@ -138,11 +161,13 @@ function findPartial(ref: string): Square | undefined {
 
 /** Find a square by its full reference ID (e.g. "BC", "BC6", "BC6175"). */
 export function findById(ref: string): Square | undefined {
-  return findLarge(ref)
-    ?? findIrregular(ref)
-    ?? findPolygonal(ref)
-    ?? findTwoByFive(ref)
-    ?? findPartial(ref);
+  return (
+    findLarge(ref) ??
+    findIrregular(ref) ??
+    findPolygonal(ref) ??
+    findTwoByFive(ref) ??
+    findPartial(ref)
+  );
 }
 
 /** Force both indexes (group + polygonal) to build now; idempotent. */
@@ -157,7 +182,11 @@ export function getAllLargeSquares(): Square[] {
 
   const result: Square[] = [];
 
-  const allGroups = [...largeRegularSquares, ...largePartialSquares, ...irregularSquares];
+  const allGroups = [
+    ...largeRegularSquares,
+    ...largePartialSquares,
+    ...irregularSquares,
+  ];
   for (const group of allGroups) {
     for (const id of group.ids) {
       if (id.length !== 2) continue;
@@ -201,8 +230,12 @@ export function getLargeSquaresNearLat(lat: number): Square[] {
 }
 
 /** Large squares whose bbox touches any 5° latitude band between `minLat` and `maxLat`. */
-export function getLargeSquaresInLatRange(minLat: number, maxLat: number): Square[] {
-  if (!Number.isFinite(minLat) || !Number.isFinite(maxLat)) return getAllLargeSquares();
+export function getLargeSquaresInLatRange(
+  minLat: number,
+  maxLat: number,
+): Square[] {
+  if (!Number.isFinite(minLat) || !Number.isFinite(maxLat))
+    return getAllLargeSquares();
 
   const lo = latBandIndex(minLat);
   const hi = latBandIndex(maxLat);

@@ -100,8 +100,12 @@ const PROBE_LAT_STEP = 0.01;
 const PROBE_LON_STEP = 0.01;
 const MIN_CELL_AREA_FRACTION = 0.01;
 
-function cursorKey(coordinate: [number, number], projection: ProjectionLike): string {
-  const code = typeof projection === 'string' ? projection : projection?.getCode() ?? '';
+function cursorKey(
+  coordinate: [number, number],
+  projection: ProjectionLike,
+): string {
+  const code =
+    typeof projection === 'string' ? projection : (projection?.getCode() ?? '');
   return `${code}|${Math.round(coordinate[0])}|${Math.round(coordinate[1])}`;
 }
 
@@ -116,7 +120,9 @@ export class MgrsGridSystem implements GridSystem {
   private readonly utmTransforms_ = new Map<number, ProjectedTransforms>();
   private readonly upsTransforms_ = new Map<boolean, ProjectedTransforms>();
   private readonly gzdStaticCache_ = new LruCache<string, GzdStatic>(1500);
-  private readonly cursorCache_ = new BoundedCache<string, FormattedCoordinate>(512);
+  private readonly cursorCache_ = new BoundedCache<string, FormattedCoordinate>(
+    512,
+  );
   private readonly transformCache_ = new TransformCache();
 
   private readonly projScratch_ = new ProjectionScratch();
@@ -200,7 +206,9 @@ export class MgrsGridSystem implements GridSystem {
       result = { combined: '-' };
     } else {
       const parts = lonLatToMgrsParts(lon, lat);
-      result = parts ? { combined: formatMgrs(parts, this.cursorPrecision_) } : { combined: '-' };
+      result = parts
+        ? { combined: formatMgrs(parts, this.cursorPrecision_) }
+        : { combined: '-' };
     }
     this.cursorCache_.set(key, result);
     return result;
@@ -217,19 +225,34 @@ export class MgrsGridSystem implements GridSystem {
     return lat >= -90 && lat <= 90;
   }
 
-  parseCoordinate(text: string, viewProjection: ProjectionLike): [number, number] {
+  parseCoordinate(
+    text: string,
+    viewProjection: ProjectionLike,
+  ): [number, number] {
     const { parts, precision } = parseMgrsRef(text);
     const lonLat = mgrsPartsToLonLat(parts, precision);
-    if (!lonLat) throw new ParseError(text, 'MGRS reference does not resolve to a coordinate');
+    if (!lonLat)
+      throw new ParseError(
+        text,
+        'MGRS reference does not resolve to a coordinate',
+      );
     const toView = requireTransform('EPSG:4326', viewProjection);
     const [px, py] = toView([lonLat[0], lonLat[1]], undefined, 2);
-    if (px === undefined || py === undefined || !Number.isFinite(px) || !Number.isFinite(py)) {
+    if (
+      px === undefined ||
+      py === undefined ||
+      !Number.isFinite(px) ||
+      !Number.isFinite(py)
+    ) {
       throw new ParseError(text, 'transform produced non-finite coordinate');
     }
     return [px, py];
   }
 
-  private emitGzdOutlines_(features: Feature<Geometry>[], ctx: RenderContext): void {
+  private emitGzdOutlines_(
+    features: Feature<Geometry>[],
+    ctx: RenderContext,
+  ): void {
     const { gzds, geoExtent, toView } = ctx;
     if (gzds.length === 0) return;
 
@@ -250,7 +273,12 @@ export class MgrsGridSystem implements GridSystem {
     const density = this.densification_;
     const scratch = this.projScratch_;
     scratch.reset();
-    const lines: { axis: 'x' | 'y'; constLatLon: number; offset: number; npts: number }[] = [];
+    const lines: {
+      axis: 'x' | 'y';
+      constLatLon: number;
+      offset: number;
+      npts: number;
+    }[] = [];
 
     for (const [lon, segs] of meridians) {
       if (lon < minLon || lon > maxLon) continue;
@@ -288,13 +316,15 @@ export class MgrsGridSystem implements GridSystem {
 
     for (const pl of lines) {
       const flat = scratch.slice(pl.offset, pl.npts);
-      features.push(new Feature<Geometry>({
-        geometry: new LineString(flat, 'XY'),
-        gridLineType: 'major',
-        gridAxis: pl.axis,
-        gridValue: pl.constLatLon,
-        mgrsKind: 'gzd',
-      }));
+      features.push(
+        new Feature<Geometry>({
+          geometry: new LineString(flat, 'XY'),
+          gridLineType: 'major',
+          gridAxis: pl.axis,
+          gridValue: pl.constLatLon,
+          mgrsKind: 'gzd',
+        }),
+      );
     }
   }
 
@@ -339,7 +369,13 @@ export class MgrsGridSystem implements GridSystem {
           const key = `${zoneKey}|e|${pl.constUtm}`;
           const existing = groups.get(key);
           if (existing) existing.members.push(pl);
-          else groups.set(key, { zoneKey, axis: 'e', constUtm: pl.constUtm, members: [pl] });
+          else
+            groups.set(key, {
+              zoneKey,
+              axis: 'e',
+              constUtm: pl.constUtm,
+              members: [pl],
+            });
         }
       }
       const nStart = Math.ceil(nLo / interval) * interval;
@@ -351,7 +387,13 @@ export class MgrsGridSystem implements GridSystem {
           const key = `${zoneKey}|n|${pl.constUtm}`;
           const existing = groups.get(key);
           if (existing) existing.members.push(pl);
-          else groups.set(key, { zoneKey, axis: 'n', constUtm: pl.constUtm, members: [pl] });
+          else
+            groups.set(key, {
+              zoneKey,
+              axis: 'n',
+              constUtm: pl.constUtm,
+              members: [pl],
+            });
         }
       }
     }
@@ -361,22 +403,30 @@ export class MgrsGridSystem implements GridSystem {
     scratch.reset();
     const raw = scratch.raw;
     interface Segment {
-      offset: number; npts: number;
-      zoneKey: string; axis: 'e' | 'n'; constUtm: number;
+      offset: number;
+      npts: number;
+      zoneKey: string;
+      axis: 'e' | 'n';
+      constUtm: number;
     }
     const segments: Segment[] = [];
 
     for (const group of groups.values()) {
       const sortIdx = group.axis === 'e' ? 1 : 0;
-      group.members.sort((a, b) => a.coords[0]![sortIdx] - b.coords[0]![sortIdx]);
+      group.members.sort(
+        (a, b) => a.coords[0]![sortIdx] - b.coords[0]![sortIdx],
+      );
 
       let curOff = scratch.length;
       const finishCurrent = (): void => {
         const n = (scratch.length - curOff) / 2;
         if (n >= 2) {
           segments.push({
-            offset: curOff, npts: n,
-            zoneKey: group.zoneKey, axis: group.axis, constUtm: group.constUtm,
+            offset: curOff,
+            npts: n,
+            zoneKey: group.zoneKey,
+            axis: group.axis,
+            constUtm: group.constUtm,
           });
         } else {
           scratch.truncate(curOff);
@@ -392,7 +442,10 @@ export class MgrsGridSystem implements GridSystem {
           const lastY = raw[scratch.length - 1]!;
           const firstX = coords[0]![0];
           const firstY = coords[0]![1];
-          if (Math.abs(lastX - firstX) < 1e-9 && Math.abs(lastY - firstY) < 1e-9) {
+          if (
+            Math.abs(lastX - firstX) < 1e-9 &&
+            Math.abs(lastY - firstY) < 1e-9
+          ) {
             startIdx = 1;
           } else {
             finishCurrent();
@@ -413,14 +466,16 @@ export class MgrsGridSystem implements GridSystem {
 
     for (const seg of segments) {
       const flat = scratch.slice(seg.offset, seg.npts);
-      features.push(new Feature<Geometry>({
-        geometry: new LineString(flat, 'XY'),
-        gridLineType: 'major',
-        mgrsKind: 'grid',
-        gridAxis: seg.axis,
-        gridConstUtm: seg.constUtm,
-        gridZoneKey: seg.zoneKey,
-      }));
+      features.push(
+        new Feature<Geometry>({
+          geometry: new LineString(flat, 'XY'),
+          gridLineType: 'major',
+          mgrsKind: 'grid',
+          gridAxis: seg.axis,
+          gridConstUtm: seg.constUtm,
+          gridZoneKey: seg.zoneKey,
+        }),
+      );
     }
   }
 
@@ -473,7 +528,10 @@ export class MgrsGridSystem implements GridSystem {
 
       const gzds: Gzd[] = [];
       for (const gzd of iterateVisibleGzds(
-        geoExtent[0]!, geoExtent[1]!, geoExtent[2]!, geoExtent[3]!,
+        geoExtent[0]!,
+        geoExtent[1]!,
+        geoExtent[2]!,
+        geoExtent[3]!,
       )) {
         gzds.push(gzd);
       }
@@ -494,7 +552,13 @@ export class MgrsGridSystem implements GridSystem {
         probeFlat[i * 6 + 5] = cLat;
       }
       if (probeFlat.length > 0) {
-        transformBatchCached(probeFlat, probeFlat, 2, toView, this.transformCache_);
+        transformBatchCached(
+          probeFlat,
+          probeFlat,
+          2,
+          toView,
+          this.transformCache_,
+        );
       }
 
       for (let i = 0; i < gzds.length; i++) {
@@ -505,21 +569,35 @@ export class MgrsGridSystem implements GridSystem {
         const py_y = probeFlat[i * 6 + 3];
         const px_x = probeFlat[i * 6 + 4];
         const px_y = probeFlat[i * 6 + 5];
-        if (cx === undefined || cy === undefined ||
-            py_x === undefined || py_y === undefined ||
-            px_x === undefined || px_y === undefined) continue;
-        if (!Number.isFinite(cx) || !Number.isFinite(cy) ||
-            !Number.isFinite(py_x) || !Number.isFinite(py_y) ||
-            !Number.isFinite(px_x) || !Number.isFinite(px_y)) continue;
+        if (
+          cx === undefined ||
+          cy === undefined ||
+          py_x === undefined ||
+          py_y === undefined ||
+          px_x === undefined ||
+          px_y === undefined
+        )
+          continue;
+        if (
+          !Number.isFinite(cx) ||
+          !Number.isFinite(cy) ||
+          !Number.isFinite(py_x) ||
+          !Number.isFinite(py_y) ||
+          !Number.isFinite(px_x) ||
+          !Number.isFinite(px_y)
+        )
+          continue;
         const probeLatPx = Math.hypot(py_x - cx, py_y - cy) / resolution;
         const probeLonPx = Math.hypot(px_x - cx, px_y - cy) / resolution;
         const metresPerDegLon =
-          METRES_PER_DEG_LAT * Math.cos(((g.lat[0] + g.lat[1]) / 2) * Math.PI / 180);
+          METRES_PER_DEG_LAT *
+          Math.cos((((g.lat[0] + g.lat[1]) / 2) * Math.PI) / 180);
         const cellLatPx =
           probeLatPx * (100_000 / (METRES_PER_DEG_LAT * PROBE_LAT_STEP));
-        const cellLonPx = metresPerDegLon > 0
-          ? probeLonPx * (100_000 / (metresPerDegLon * PROBE_LON_STEP))
-          : cellLatPx;
+        const cellLonPx =
+          metresPerDegLon > 0
+            ? probeLonPx * (100_000 / (metresPerDegLon * PROBE_LON_STEP))
+            : cellLatPx;
         const cell = Math.min(cellLatPx, cellLonPx);
         const gzdHeightPx =
           probeLatPx * ((g.lat[1] - g.lat[0]) / PROBE_LAT_STEP);
@@ -532,7 +610,15 @@ export class MgrsGridSystem implements GridSystem {
         gzdCenter.set(key, [cx, cy]);
       }
 
-      return { geoExtent, interval, gzds, toView, cellPxSize, gzdPxSize, gzdCenter };
+      return {
+        geoExtent,
+        interval,
+        gzds,
+        toView,
+        cellPxSize,
+        gzdPxSize,
+        gzdCenter,
+      };
     });
   }
 
@@ -543,14 +629,11 @@ export class MgrsGridSystem implements GridSystem {
     const tx = this.transformsFor_(gzd);
     const utmExtent = sampleUtmExtent_(gzd, tx.toProj);
     const cellLabels =
-      utmExtent === null
-        ? []
-        : computeCellLabels_(gzd, tx.fromProj, utmExtent);
+      utmExtent === null ? [] : computeCellLabels_(gzd, tx.fromProj, utmExtent);
     const built: GzdStatic = { utmExtent, cellLabels };
     this.gzdStaticCache_.set(key, built);
     return built;
   }
-
 
   /** Transforms for a GZD's projected CRS, UTM by zone, UPS by hemisphere. */
   private transformsFor_(gzd: Gzd): ProjectedTransforms {
@@ -629,22 +712,36 @@ function mergeSegments_(segs: [number, number][]): [number, number][] {
  * nudged inward by 1 µ° to avoid proj4 singularities.
  */
 function sampleLatLonRectInUtm_(
-  lonW: number, lonE: number, latS: number, latN: number,
+  lonW: number,
+  lonE: number,
+  latS: number,
+  latN: number,
   toUtm: TransformFunction,
   samples: number,
 ): Extent | null {
   const EPS = 1e-6;
   const lonWE = lonW <= -180 ? -180 + EPS : lonW;
-  const lonEE = lonE >=  180 ?  180 - EPS : lonE;
-  const latSE = latS <= -90  ?  -90 + EPS : latS;
-  const latNE = latN >=  90  ?   90 - EPS : latN;
-  const out = transformExtentSampled([lonWE, latSE, lonEE, latNE], toUtm, samples);
+  const lonEE = lonE >= 180 ? 180 - EPS : lonE;
+  const latSE = latS <= -90 ? -90 + EPS : latS;
+  const latNE = latN >= 90 ? 90 - EPS : latN;
+  const out = transformExtentSampled(
+    [lonWE, latSE, lonEE, latNE],
+    toUtm,
+    samples,
+  );
   return Number.isFinite(out[0]) ? out : null;
 }
 
 /** Sample the UTM extent of a GZD's lat/lon footprint along its four edges. */
 function sampleUtmExtent_(gzd: Gzd, toUtm: TransformFunction): Extent | null {
-  return sampleLatLonRectInUtm_(gzd.lon[0], gzd.lon[1], gzd.lat[0], gzd.lat[1], toUtm, 8);
+  return sampleLatLonRectInUtm_(
+    gzd.lon[0],
+    gzd.lon[1],
+    gzd.lat[0],
+    gzd.lat[1],
+    toUtm,
+    8,
+  );
 }
 
 /** Pre-compute every cell label for a GZD. */
@@ -656,14 +753,21 @@ function computeCellLabels_(
   const [minE, minN, maxE, maxN] = utmExtent;
   const startE = Math.floor(minE / 100_000) * 100_000;
   const startN = Math.floor(minN / 100_000) * 100_000;
-  const out: { lonLat: readonly [number, number]; text: string; sizeFactor: number }[] = [];
+  const out: {
+    lonLat: readonly [number, number];
+    text: string;
+    sizeFactor: number;
+  }[] = [];
 
   const lonLo = gzd.lon[0];
   const lonHi = gzd.lon[1];
   const latLo = gzd.lat[0];
   const latHi = gzd.lat[1];
   const bandRing: [number, number][] = [
-    [lonLo, latLo], [lonHi, latLo], [lonHi, latHi], [lonLo, latHi],
+    [lonLo, latLo],
+    [lonHi, latLo],
+    [lonHi, latHi],
+    [lonLo, latHi],
   ];
 
   const isUps = gzd.zone === 0;
@@ -676,7 +780,12 @@ function computeCellLabels_(
     : (n: number) => rowLetter(gzd.zone, n);
 
   if (isUps) {
-    interface UpsCandidate { cellE: number; cellN: number; col: string; row: string }
+    interface UpsCandidate {
+      cellE: number;
+      cellN: number;
+      col: string;
+      row: string;
+    }
     const candidates: UpsCandidate[] = [];
     for (let e = startE; e <= maxE; e += 100_000) {
       const cellE = e + 50_000;
@@ -729,7 +838,12 @@ function computeCellLabels_(
       if (!Number.isFinite(cLon) || !Number.isFinite(cLat)) continue;
       if (cLat < latLo || cLat >= latHi) continue;
       const polygon = densifyAndProject(
-        [[e, n], [e + 100_000, n], [e + 100_000, n + 100_000], [e, n + 100_000]],
+        [
+          [e, n],
+          [e + 100_000, n],
+          [e + 100_000, n + 100_000],
+          [e, n + 100_000],
+        ],
         2,
         fromUtm,
       );
@@ -740,7 +854,13 @@ function computeCellLabels_(
       const clippedArea = polygonArea(clipped);
       if (clippedArea / origArea < MIN_CELL_AREA_FRACTION) continue;
       const [ix, iy] = new Polygon([clipped]).getFlatInteriorPoint();
-      if (ix === undefined || iy === undefined || !Number.isFinite(ix) || !Number.isFinite(iy)) continue;
+      if (
+        ix === undefined ||
+        iy === undefined ||
+        !Number.isFinite(ix) ||
+        !Number.isFinite(iy)
+      )
+        continue;
       const labelLon = ix;
       const labelLat = iy;
       const sizeFactor = Math.min(1, Math.sqrt(clippedArea / origArea));
@@ -779,8 +899,10 @@ function pushClippedLine_(
   gzd: Gzd,
   fromUtm: TransformFunction,
 ): void {
-  const startUtm: [number, number] = axis === 'e' ? [constUtm, sweepStart] : [sweepStart, constUtm];
-  const endUtm: [number, number] = axis === 'e' ? [constUtm, sweepEnd] : [sweepEnd, constUtm];
+  const startUtm: [number, number] =
+    axis === 'e' ? [constUtm, sweepStart] : [sweepStart, constUtm];
+  const endUtm: [number, number] =
+    axis === 'e' ? [constUtm, sweepEnd] : [sweepEnd, constUtm];
   const raw = densifyAndProject([startUtm, endUtm], density, fromUtm, false);
   const lonLat: [number, number][] = [];
   for (let i = 0; i < raw.length; i++) {
@@ -802,10 +924,13 @@ function pushClippedLine_(
     for (const p of lonLat) p[0] += shift;
   }
   const pieces = clipPolylineToRect(
-    lonLat, gzd.lon[0], gzd.lat[0], gzd.lon[1], gzd.lat[1],
+    lonLat,
+    gzd.lon[0],
+    gzd.lat[0],
+    gzd.lon[1],
+    gzd.lat[1],
   );
   for (const piece of pieces) {
     if (piece.length >= 2) out.push({ coords: piece, axis, constUtm });
   }
 }
-

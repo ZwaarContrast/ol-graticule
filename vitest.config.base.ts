@@ -5,9 +5,10 @@ export const baseConfig = defineConfig({
     globals: true,
     passWithNoTests: true,
     include: ['src/**/*.{test,spec}.ts'],
-    reporters: process.env.GITHUB_ACTIONS === 'true'
-      ? ['default', 'github-actions']
-      : ['default'],
+    reporters:
+      process.env.GITHUB_ACTIONS === 'true'
+        ? ['default', 'github-actions']
+        : ['default'],
     benchmark: {
       include: ['src/**/*.bench.ts'],
     },

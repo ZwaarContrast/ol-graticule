@@ -15,7 +15,10 @@ export function rowOffsetForZone(zone: number): number {
 }
 
 /** Column letter for a UTM easting inside `zone`. */
-export function columnLetter(zone: number, easting: number): string | undefined {
+export function columnLetter(
+  zone: number,
+  easting: number,
+): string | undefined {
   const idx = Math.floor(easting / 100_000) - 1;
   if (idx < 0 || idx >= 8) return undefined;
   return columnSetForZone(zone)[idx];
@@ -25,7 +28,7 @@ export function columnLetter(zone: number, easting: number): string | undefined 
 export function rowLetter(zone: number, northing: number): string {
   const stepFromOrigin = Math.floor(northing / 100_000);
   const offset = rowOffsetForZone(zone);
-  const idx = ((stepFromOrigin + offset) % ROW_CYCLE + ROW_CYCLE) % ROW_CYCLE;
+  const idx = (((stepFromOrigin + offset) % ROW_CYCLE) + ROW_CYCLE) % ROW_CYCLE;
   return ROW_LETTERS[idx]!;
 }
 
@@ -41,16 +44,22 @@ export function squareLetters(
 }
 
 /** Inverse of {@link columnLetter}: easting of the SW corner of the column's 100 km strip. */
-export function columnLetterToEasting(zone: number, letter: string): number | undefined {
+export function columnLetterToEasting(
+  zone: number,
+  letter: string,
+): number | undefined {
   const idx = columnSetForZone(zone).indexOf(letter);
   if (idx < 0) return undefined;
   return (idx + 1) * 100_000;
 }
 
 /** Inverse of {@link rowLetter}: row index within the 2,000 km cycle (0..{@link ROW_CYCLE}-1). */
-export function rowLetterToCycleIndex(zone: number, letter: string): number | undefined {
+export function rowLetterToCycleIndex(
+  zone: number,
+  letter: string,
+): number | undefined {
   const rowIdx = ROW_LETTERS.indexOf(letter);
   if (rowIdx < 0) return undefined;
   const offset = rowOffsetForZone(zone);
-  return ((rowIdx - offset) % ROW_CYCLE + ROW_CYCLE) % ROW_CYCLE;
+  return (((rowIdx - offset) % ROW_CYCLE) + ROW_CYCLE) % ROW_CYCLE;
 }

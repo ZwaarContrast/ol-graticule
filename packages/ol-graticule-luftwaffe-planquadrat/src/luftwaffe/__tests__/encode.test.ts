@@ -1,9 +1,20 @@
 import { describe, it, expect } from 'vitest';
-import { encodeGnmv, encodeJmn, zzgFor, gtDigitsFor, mtDigitFor, ktDigitFor, meltDigitFor, atLabelFor, jmnMtLettersFor, jagdtrapezHalfFor } from '../encode.js';
+import {
+  encodeGnmv,
+  encodeJmn,
+  zzgFor,
+  gtDigitsFor,
+  mtDigitFor,
+  ktDigitFor,
+  meltDigitFor,
+  atLabelFor,
+  jmnMtLettersFor,
+  jagdtrapezHalfFor,
+} from '../encode.js';
 
 describe('zzgFor', () => {
   it('places Berlin in ZZG 15 Ost', () => {
-    const zzg = zzgFor(52.518720, 13.3762568)!;
+    const zzg = zzgFor(52.51872, 13.3762568)!;
     expect(zzg.digits).toBe('15');
     expect(zzg.suffix).toBe('Ost');
     expect(zzg.nwLat).toBe(59);
@@ -58,7 +69,7 @@ describe('zzgFor', () => {
 });
 
 describe('GNMV worked example: Berlin Reichstag', () => {
-  const lat = 52.518720;
+  const lat = 52.51872;
   const lon = 13.3762568;
 
   it('Großtrapez digits = 33', () => {

@@ -35,6 +35,8 @@ import {
 } from '@zwaarcontrast/ol-graticule';
 
 import { formatEasting, formatNorthing } from '../dhg/encode.js';
+import { syncOlProjections } from '@zwaarcontrast/ol-graticule-projected';
+
 import { DEFAULT_DATUM_SHIFT, registerZone } from '../dhg/projection.js';
 import {
   stripClipPolygon,
@@ -45,7 +47,12 @@ import {
   VALIDITY_WEST_LON,
 } from '../dhg/stripPolygon.js';
 import type { DatumShift } from '../dhg/types.js';
-import { FALSE_EASTING, STRIP_OVERLAP_DEG, zoneByKennziffer, zoneForLon } from '../dhg/zones.js';
+import {
+  FALSE_EASTING,
+  STRIP_OVERLAP_DEG,
+  zoneByKennziffer,
+  zoneForLon,
+} from '../dhg/zones.js';
 import {
   DHG_WORLD_BOX,
   activeZonesFor,
@@ -103,10 +110,17 @@ export class DhgGridSystem implements GridSystem {
 
   private readonly delegates_ = new Map<number, GridSystem>();
   private readonly renderers_ = new Map<number, DhgZoneRenderer>();
-  private readonly stripOutlines_ = new Map<number, [number, number][] | null>();
+  private readonly stripOutlines_ = new Map<
+    number,
+    [number, number][] | null
+  >();
   private stripOutlineProjKey_ = '';
-  private readonly overviewLabels_ = new BoundedCache<string, [number, number]>(512);
-  private readonly cursorCache_ = new BoundedCache<string, FormattedCoordinate>(512);
+  private readonly overviewLabels_ = new BoundedCache<string, [number, number]>(
+    512,
+  );
+  private readonly cursorCache_ = new BoundedCache<string, FormattedCoordinate>(
+    512,
+  );
   private readonly activeZonesCache_ = new RenderCache<number[]>();
 
   constructor(options: DhgGridSystemOptions = {}) {
@@ -115,8 +129,12 @@ export class DhgGridSystem implements GridSystem {
     this.targetScreenPx_ = options.targetScreenPx ?? 80;
     this.labelForm_ = options.labelForm ?? 'long';
     this.maxRenderResolution_ = options.maxRenderResolution ?? 2000;
-    this.overviewLabelMaxResolution_ = options.overviewLabelMaxResolution ?? 6000;
-    this.intervals_ = new SteppingIntervalStrategy(DHG_INTERVALS, this.targetScreenPx_);
+    this.overviewLabelMaxResolution_ =
+      options.overviewLabelMaxResolution ?? 6000;
+    this.intervals_ = new SteppingIntervalStrategy(
+      DHG_INTERVALS,
+      this.targetScreenPx_,
+    );
     this.datumShift_ = options.datumShift ?? DEFAULT_DATUM_SHIFT;
   }
 
@@ -129,7 +147,11 @@ export class DhgGridSystem implements GridSystem {
     const features: Feature<Geometry>[] = [];
     for (const kennziffer of this.activeZones_(extent, viewProjection)) {
       if (detailed) {
-        for (const f of this.delegateFor_(kennziffer).getFeatures(extent, resolution, viewProjection)) {
+        for (const f of this.delegateFor_(kennziffer).getFeatures(
+          extent,
+          resolution,
+          viewProjection,
+        )) {
           features.push(f);
         }
       } else {
@@ -154,7 +176,11 @@ export class DhgGridSystem implements GridSystem {
       );
       const ySeenTexts = new Set<string>();
       for (const kennziffer of zonesWestToEast) {
-        for (const l of this.delegateFor_(kennziffer).getLabels(extent, resolution, viewProjection)) {
+        for (const l of this.delegateFor_(kennziffer).getLabels(
+          extent,
+          resolution,
+          viewProjection,
+        )) {
           if (l.axis === 'y') {
             if (ySeenTexts.has(l.text)) continue;
             ySeenTexts.add(l.text);
@@ -164,7 +190,11 @@ export class DhgGridSystem implements GridSystem {
       }
     } else if (resolution <= this.overviewLabelMaxResolution_) {
       for (const kennziffer of active) {
-        const label = this.buildOverviewLabel_(kennziffer, extent, viewProjection);
+        const label = this.buildOverviewLabel_(
+          kennziffer,
+          extent,
+          viewProjection,
+        );
         if (label) labels.push(label);
       }
     }
@@ -213,13 +243,19 @@ export class DhgGridSystem implements GridSystem {
     return this.zoneBoundary_;
   }
 
-  private activeZones_(extent: Extent, viewProjection: ProjectionLike): number[] {
+  private activeZones_(
+    extent: Extent,
+    viewProjection: ProjectionLike,
+  ): number[] {
     return this.activeZonesCache_.get(extent, 0, viewProjection, () =>
       this.computeActiveZones_(extent, viewProjection),
     );
   }
 
-  private computeActiveZones_(extent: Extent, viewProjection: ProjectionLike): number[] {
+  private computeActiveZones_(
+    extent: Extent,
+    viewProjection: ProjectionLike,
+  ): number[] {
     return activeZonesFor(extent, viewProjection, this.zoneBoundary_);
   }
 
@@ -262,7 +298,11 @@ export class DhgGridSystem implements GridSystem {
     viewProjection: ProjectionLike,
   ): GridLabel | null {
     const zone = zoneByKennziffer(kennziffer);
-    const centreLatLon = transform(getCenter(extent), viewProjection, 'EPSG:4326');
+    const centreLatLon = transform(
+      getCenter(extent),
+      viewProjection,
+      'EPSG:4326',
+    );
     let lat = centreLatLon[1] ?? 50;
     if (!Number.isFinite(lat)) lat = 50;
     const pad = 5;
@@ -272,7 +312,11 @@ export class DhgGridSystem implements GridSystem {
     const key = `${projectionKey(viewProjection)}|${kennziffer}|${quantLat}`;
     let point = this.overviewLabels_.get(key);
     if (!point) {
-      const [vx, vy] = transform([zone.cm, quantLat], 'EPSG:4326', viewProjection);
+      const [vx, vy] = transform(
+        [zone.cm, quantLat],
+        'EPSG:4326',
+        viewProjection,
+      );
       if (vx === undefined || vy === undefined) return null;
       if (!Number.isFinite(vx) || !Number.isFinite(vy)) return null;
       point = [vx, vy];
@@ -306,6 +350,7 @@ export class DhgGridSystem implements GridSystem {
     if (cached) return cached;
     const zone = zoneByKennziffer(kennziffer);
     const crs = registerZone(zone, this.datumShift_);
+    syncOlProjections();
     const renderer = new DhgZoneRenderer({
       crs,
       kennziffer,
@@ -379,8 +424,10 @@ class DhgZoneRenderer implements GridSystem {
     const [tMinE, tMinN, tMaxE, tMaxN] = target;
     const labels: GridLabel[] = [];
 
-    const startE = FALSE_EASTING + Math.ceil((tMinE - FALSE_EASTING) / interval) * interval;
-    const endE = FALSE_EASTING + Math.floor((tMaxE - FALSE_EASTING) / interval) * interval;
+    const startE =
+      FALSE_EASTING + Math.ceil((tMinE - FALSE_EASTING) / interval) * interval;
+    const endE =
+      FALSE_EASTING + Math.floor((tMaxE - FALSE_EASTING) / interval) * interval;
     const startN = Math.ceil(tMinN / interval) * interval;
     const endN = Math.floor(tMaxN / interval) * interval;
 
@@ -425,11 +472,19 @@ class DhgZoneRenderer implements GridSystem {
     return labels;
   }
 
-  formatCoordinate(coordinate: [number, number], viewProjection: ProjectionLike): FormattedCoordinate {
+  formatCoordinate(
+    coordinate: [number, number],
+    viewProjection: ProjectionLike,
+  ): FormattedCoordinate {
     const projected = transform(coordinate, viewProjection, this.crs_);
     const cx = projected[0];
     const cy = projected[1];
-    if (cx === undefined || cy === undefined || !Number.isFinite(cx) || !Number.isFinite(cy)) {
+    if (
+      cx === undefined ||
+      cy === undefined ||
+      !Number.isFinite(cx) ||
+      !Number.isFinite(cy)
+    ) {
       return { x: '-', y: '-' };
     }
     const coord = { kennziffer: this.kennziffer_, easting: cx, northing: cy };
@@ -460,16 +515,22 @@ class DhgZoneRenderer implements GridSystem {
     return result;
   }
 
-  private context_(extent: Extent, resolution: number, viewProjection: ProjectionLike): RenderContext | null {
+  private context_(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): RenderContext | null {
     return this.ctxCache_.get(extent, resolution, viewProjection, () => {
       const toCrs = requireTransform(viewProjection, this.crs_);
       const toView = requireTransform(this.crs_, viewProjection);
       let target = transformExtentSampled(extent, toCrs);
-      if (![target[0], target[1], target[2], target[3]].every(Number.isFinite)) return null;
+      if (![target[0], target[1], target[2], target[3]].every(Number.isFinite))
+        return null;
       target = getIntersection(target, DHG_WORLD_BOX);
       if (isEmpty(target)) return null;
 
-      const targetResolution = measureTargetResolution(target, toView, resolution) ?? resolution;
+      const targetResolution =
+        measureTargetResolution(target, toView, resolution) ?? resolution;
       const interval = this.intervals_.getInterval(targetResolution);
       const cap = this.densificationPoints_;
       const xTs = adaptiveAxisTs('x', target, toView, resolution, cap);
@@ -481,14 +542,36 @@ class DhgZoneRenderer implements GridSystem {
   private emitLines_(out: Feature<Geometry>[], ctx: RenderContext): void {
     const [tMinE, tMinN, tMaxE, tMaxN] = ctx.target;
     const interval = ctx.interval;
-    const startE = FALSE_EASTING + Math.ceil((tMinE - FALSE_EASTING) / interval) * interval;
-    const endE = FALSE_EASTING + Math.floor((tMaxE - FALSE_EASTING) / interval) * interval;
+    const startE =
+      FALSE_EASTING + Math.ceil((tMinE - FALSE_EASTING) / interval) * interval;
+    const endE =
+      FALSE_EASTING + Math.floor((tMaxE - FALSE_EASTING) / interval) * interval;
     const startN = Math.ceil(tMinN / interval) * interval;
     const endN = Math.floor(tMaxN / interval) * interval;
 
     const specs: FlatLineSpec[] = [];
-    pushAxisGridLineSpecs(specs, 'x', startE, endE, interval, tMinN, tMaxN, ctx.xTs, 'major');
-    pushAxisGridLineSpecs(specs, 'y', startN, endN, interval, tMinE, tMaxE, ctx.yTs, 'major');
+    pushAxisGridLineSpecs(
+      specs,
+      'x',
+      startE,
+      endE,
+      interval,
+      tMinN,
+      tMaxN,
+      ctx.xTs,
+      'major',
+    );
+    pushAxisGridLineSpecs(
+      specs,
+      'y',
+      startN,
+      endN,
+      interval,
+      tMinE,
+      tMaxE,
+      ctx.yTs,
+      'major',
+    );
     emitFlatLineFeatures(out, this.projScratch_, specs, ctx.toView);
   }
 }

@@ -1,7 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import { TransformCache, transformBatchCached } from '../transformCache.js';
 
-function makeIdentityTransform(): (input: number[], output?: number[], stride?: number) => number[] {
+function makeIdentityTransform(): (
+  input: number[],
+  output?: number[],
+  stride?: number,
+) => number[] {
   return (input, output, stride) => {
     const out = output ?? new Array<number>(input.length);
     const s = stride ?? 2;

@@ -3,11 +3,20 @@ import { PolygonEdgeIndex, createEdgeBuffer } from '../PolygonEdgeIndex.js';
 
 describe('PolygonEdgeIndex', () => {
   const square: [number, number][] = [
-    [0, 0], [10, 0], [10, 10], [0, 10],
+    [0, 0],
+    [10, 0],
+    [10, 10],
+    [0, 10],
   ];
 
   it('throws for rings with < 3 vertices', () => {
-    expect(() => new PolygonEdgeIndex([[0, 0], [1, 1]])).toThrow();
+    expect(
+      () =>
+        new PolygonEdgeIndex([
+          [0, 0],
+          [1, 1],
+        ]),
+    ).toThrow();
   });
 
   it('reports the ring AABB', () => {
@@ -38,7 +47,10 @@ describe('PolygonEdgeIndex', () => {
   it('deduplicates across buckets', () => {
     // Long thin horizontal ring so its bottom edge spans many cells
     const thin: [number, number][] = [
-      [0, 0], [100, 0], [100, 1], [0, 1],
+      [0, 0],
+      [100, 0],
+      [100, 1],
+      [0, 1],
     ];
     const index = new PolygonEdgeIndex(thin);
     const out: number[] = [];

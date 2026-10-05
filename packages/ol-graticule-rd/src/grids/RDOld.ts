@@ -1,5 +1,4 @@
-import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
-import { buildRDProj4, createRDGridSystem, type RDGridSystemOptions } from './shared.js';
+import { buildRDProj4 } from './proj4.js';
 import { RD_NEW_CLIP_POLYGON } from './RDNew.js';
 
 /**
@@ -24,25 +23,3 @@ export const RD_OLD_EXTENT: [number, number, number, number] = [
 export const RD_OLD_CLIP_POLYGON: [number, number][] = RD_NEW_CLIP_POLYGON.map(
   ([x, y]) => [x - 155000, y - 463000],
 );
-
-export type RDOldGridSystemOptions = RDGridSystemOptions;
-
-/**
- * Build an RD Old (EPSG:28991) ProjectedGridSystem with the NL area-of-use
- * polygon pre-configured.
- *
- * Registers the bundled RDNAPTRANS 2018 NTv2 grid synchronously before
- * returning, see {@link createRDNewGridSystem} for the rationale.
- * Registers the RD Old CRS with proj4/OL on first call.
- */
-export function createRDOldGridSystem(
-  options?: RDOldGridSystemOptions,
-): PolygonClippedGridSystem {
-  return createRDGridSystem(
-    RD_OLD_CRS,
-    RD_OLD_PROJ4,
-    RD_OLD_EXTENT,
-    RD_OLD_CLIP_POLYGON,
-    options,
-  );
-}

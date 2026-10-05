@@ -6,7 +6,13 @@ import OSM from 'ol/source/OSM';
 import { fromLonLat } from 'ol/proj';
 import { CursorPositionControl } from '@zwaarcontrast/ol-graticule';
 import { MgrsGridSystem } from '@zwaarcontrast/ol-graticule-mgrs';
-import { gridLine, edgeLabelText, cellLabelHandler, cursorStyle, hoverLens } from '../shared';
+import {
+  gridLine,
+  edgeLabelText,
+  cellLabelHandler,
+  cursorStyle,
+  hoverLens,
+} from '../shared';
 import { createGraticule, addRendererToggle } from '../renderer';
 import { createCoordinateInput } from '../coordinateInput';
 

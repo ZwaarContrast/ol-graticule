@@ -1,7 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
 import LineString from 'ol/geom/LineString';
 import { GeographicGridSystem } from '../GeographicGridSystem.js';
-import type { IntervalStrategy, LabelFormatter, FormattedCoordinate } from '../../types.js';
+import type {
+  IntervalStrategy,
+  LabelFormatter,
+  FormattedCoordinate,
+} from '../../types.js';
 import type { Extent } from 'ol/extent';
 
 // Web Mercator extent covering roughly Western Europe (~0°E to ~10°E, ~45°N to ~55°N).
@@ -57,7 +61,8 @@ describe('GeographicGridSystem', () => {
       expect(major.length).toBeGreaterThan(0);
       for (const f of major) {
         const geometry = f.getGeometry();
-        if (!(geometry instanceof LineString)) throw new Error('expected LineString');
+        if (!(geometry instanceof LineString))
+          throw new Error('expected LineString');
         expect(geometry.getCoordinates().length).toBe(2);
       }
     });
@@ -154,9 +159,18 @@ describe('GeographicGridSystem', () => {
       // same 66°W label as lon=-66, not "294°E" or "66°E".
       const system = new GeographicGridSystem();
       const HALF_SIZE = 20037508.342789244;
-      const real = system.formatCoordinate([(-66 / 180) * HALF_SIZE, 0], 'EPSG:3857');
-      const wrappedE = system.formatCoordinate([(294 / 180) * HALF_SIZE, 0], 'EPSG:3857');
-      const wrappedW = system.formatCoordinate([(-426 / 180) * HALF_SIZE, 0], 'EPSG:3857');
+      const real = system.formatCoordinate(
+        [(-66 / 180) * HALF_SIZE, 0],
+        'EPSG:3857',
+      );
+      const wrappedE = system.formatCoordinate(
+        [(294 / 180) * HALF_SIZE, 0],
+        'EPSG:3857',
+      );
+      const wrappedW = system.formatCoordinate(
+        [(-426 / 180) * HALF_SIZE, 0],
+        'EPSG:3857',
+      );
       expect(wrappedE).toEqual(real);
       expect(wrappedW).toEqual(real);
       if ('x' in real) expect(real.x).toContain('W');
@@ -188,7 +202,9 @@ describe('GeographicGridSystem', () => {
       const system = new GeographicGridSystem({ intervals });
       const features = system.getFeatures([-10, 40, 10, 60], 0.1, 'EPSG:4326');
       // Minor pass is opted out, so everything is major.
-      expect(features.every((f) => f.get('gridLineType') === 'major')).toBe(true);
+      expect(features.every((f) => f.get('gridLineType') === 'major')).toBe(
+        true,
+      );
       // x sweep spans 20°, y sweep spans 20°, interval=10° → 3 lines each
       // after snap (startX=-10, endX=10 inclusive in a `<=` loop).
       const xMajors = features.filter((f) => f.get('gridAxis') === 'x');
@@ -223,7 +239,9 @@ describe('GeographicGridSystem', () => {
   describe('render context caching', () => {
     it('computes the interval once per (extent, resolution, projection) tuple', () => {
       const intervals: IntervalStrategy = {
-        getInterval: vi.fn<IntervalStrategy['getInterval']>().mockReturnValue(5),
+        getInterval: vi
+          .fn<IntervalStrategy['getInterval']>()
+          .mockReturnValue(5),
       };
       const system = new GeographicGridSystem({ intervals });
 
@@ -252,7 +270,10 @@ describe('GeographicGridSystem', () => {
       const original: [number, number] = [484240, 6594800];
       const formatted = system.formatCoordinate(original, 'EPSG:3857');
       if (!('x' in formatted)) throw new Error('expected axis-formatted');
-      const [px, py] = system.parseCoordinate(`${formatted.x} ${formatted.y}`, 'EPSG:3857');
+      const [px, py] = system.parseCoordinate(
+        `${formatted.x} ${formatted.y}`,
+        'EPSG:3857',
+      );
       expect(px).toBeCloseTo(original[0], -2);
       expect(py).toBeCloseTo(original[1], -2);
     });

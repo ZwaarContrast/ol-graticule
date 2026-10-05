@@ -5,7 +5,9 @@ import View from 'ol/View';
 import { CursorPositionControl } from '../CursorPositionControl.js';
 import type { GridSystem, FormattedCoordinate } from '../types.js';
 
-function makeAxisGridSystem(formatted: FormattedCoordinate = { x: 'X', y: 'Y' }): GridSystem {
+function makeAxisGridSystem(
+  formatted: FormattedCoordinate = { x: 'X', y: 'Y' },
+): GridSystem {
   return {
     getFeatures: vi.fn().mockReturnValue([]),
     getLabels: vi.fn().mockReturnValue([]),
@@ -58,7 +60,9 @@ describe('CursorPositionControl', () => {
 
   describe('construction', () => {
     it('creates a container div and child indicators in the DOM', () => {
-      const control = new CursorPositionControl({ gridSystem: makeAxisGridSystem() });
+      const control = new CursorPositionControl({
+        gridSystem: makeAxisGridSystem(),
+      });
       const el = peek(control).element;
       expect(el.tagName).toBe('DIV');
       expect(el.getAttribute('aria-hidden')).toBe('true');
@@ -68,7 +72,9 @@ describe('CursorPositionControl', () => {
     });
 
     it('hides all indicators by default', () => {
-      const control = new CursorPositionControl({ gridSystem: makeAxisGridSystem() });
+      const control = new CursorPositionControl({
+        gridSystem: makeAxisGridSystem(),
+      });
       expect(peek(control).xIndicator_.style.display).toBe('none');
       expect(peek(control).yIndicator_.style.visibility).toBe('hidden');
       expect(peek(control).combinedIndicator_.style.display).toBe('none');
@@ -151,7 +157,9 @@ describe('CursorPositionControl', () => {
     });
 
     it('hides the root element, detaches listeners, and clears cached cursor when set to null', () => {
-      const control = new CursorPositionControl({ gridSystem: makeAxisGridSystem() });
+      const control = new CursorPositionControl({
+        gridSystem: makeAxisGridSystem(),
+      });
       const map = stubMap();
       control.setMap(map);
       peek(control).lastPointerCoord_ = [10, 20];
@@ -253,7 +261,8 @@ describe('CursorPositionControl', () => {
 
       peek(control).update_([42, -7], [0, 0], map);
       expect(gs.formatCoordinate).toHaveBeenCalledTimes(1);
-      const args = (gs.formatCoordinate as ReturnType<typeof vi.fn>).mock.calls[0]!;
+      const args = (gs.formatCoordinate as ReturnType<typeof vi.fn>).mock
+        .calls[0]!;
       expect(args[0]).toEqual([42, -7]);
       expect(args[1]).toBe(map.getView().getProjection());
     });
@@ -261,14 +270,18 @@ describe('CursorPositionControl', () => {
 
   describe('setMap / attach / detach', () => {
     it('subscribes to pointermove when attached to a map', () => {
-      const control = new CursorPositionControl({ gridSystem: makeAxisGridSystem() });
+      const control = new CursorPositionControl({
+        gridSystem: makeAxisGridSystem(),
+      });
       const map = stubMap();
       control.setMap(map);
       expect(peek(control).pointerMoveKey_).not.toBeNull();
     });
 
     it('unsubscribes from pointermove when detached (setMap(null))', () => {
-      const control = new CursorPositionControl({ gridSystem: makeAxisGridSystem() });
+      const control = new CursorPositionControl({
+        gridSystem: makeAxisGridSystem(),
+      });
       const map = stubMap();
       control.setMap(map);
       control.setMap(null);
@@ -276,7 +289,9 @@ describe('CursorPositionControl', () => {
     });
 
     it('clears any visible indicator when detached', () => {
-      const control = new CursorPositionControl({ gridSystem: makeAxisGridSystem() });
+      const control = new CursorPositionControl({
+        gridSystem: makeAxisGridSystem(),
+      });
       const map = stubMap();
       control.setMap(map);
       peek(control).combinedIndicator_.style.display = '';

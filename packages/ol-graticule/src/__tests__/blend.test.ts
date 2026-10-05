@@ -39,7 +39,10 @@ describe('blend option', () => {
   });
 
   it('lets a caller-supplied className win', () => {
-    const layer = new CanvasGraticuleLayer({ blend: 'difference', className: 'my-grid' });
+    const layer = new CanvasGraticuleLayer({
+      blend: 'difference',
+      className: 'my-grid',
+    });
     expect(layer.getClassName()).toBe('my-grid');
   });
 
@@ -48,9 +51,11 @@ describe('blend option', () => {
     expect(layer.blend).toBe('difference');
   });
 
-
   it('survives the UniversalGraticule facade', () => {
-    const g = new UniversalGraticule({ renderer: 'canvas', blend: 'difference' });
+    const g = new UniversalGraticule({
+      renderer: 'canvas',
+      blend: 'difference',
+    });
     expect((g.getLayers().item(0) as CanvasGraticuleLayer).getClassName()).toBe(
       BLEND_LAYER_CLASS,
     );

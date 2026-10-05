@@ -41,9 +41,9 @@ describe('DhgGridSystem render smoke', () => {
     // EPSG:3857 metres for roughly (lon -160°..-150°, lat 10°N..20°N), open Pacific.
     const pacificExtent: [number, number, number, number] = [
       -17_811_120, // ≈ lon -160°
-      1_118_890,  // ≈ lat 10°N
+      1_118_890, // ≈ lat 10°N
       -16_697_924, // ≈ lon -150°
-      2_273_031,  // ≈ lat 20°N
+      2_273_031, // ≈ lat 20°N
     ];
     const grid = new DhgGridSystem();
     const features = grid.getFeatures(pacificExtent, ZOOM12_RES, 'EPSG:3857');
@@ -52,7 +52,9 @@ describe('DhgGridSystem render smoke', () => {
     // any zone that is reachable; the validity-envelope clamp collapses those
     // to degenerate triangles far from the viewport, so no grid lines or
     // axis labels reach the user.
-    const gridLines = features.filter((f) => f.get('gridLineType') !== 'boundary');
+    const gridLines = features.filter(
+      (f) => f.get('gridLineType') !== 'boundary',
+    );
     expect(gridLines).toHaveLength(0);
     expect(labels).toHaveLength(0);
   });
@@ -159,9 +161,9 @@ describe('HmnGridSystem render smoke', () => {
 
   it('includes middle zones on wide viewports (0°-18°E covers zones 1, 2, 3)', () => {
     const wide: [number, number, number, number] = [
-      0,           // lon 0°  -> zone 1 (CM 3°E)
+      0, // lon 0°  -> zone 1 (CM 3°E)
       5_998_186,
-      2_003_751,   // lon 18° -> zone 3 (CM 15°E)
+      2_003_751, // lon 18° -> zone 3 (CM 15°E)
       6_446_275,
     ];
     const resolution = 76.44;
@@ -170,7 +172,7 @@ describe('HmnGridSystem render smoke', () => {
     expect(labels.length).toBeGreaterThan(0);
     const lons = labels.map((l) => {
       const [x] = l.point.getCoordinates();
-      return (x ?? 0);
+      return x ?? 0;
     });
     const xMin = Math.min(...lons);
     const xMax = Math.max(...lons);

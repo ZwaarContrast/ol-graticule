@@ -2,11 +2,14 @@
  * "Field Atlas" palette, mirroring the CSS custom properties in shared.css.
  * Demos share these `Stroke` / `Text` instances, so a repalette is one file.
  * Renderer selection lives in `renderer.ts`.
- */import Stroke from 'ol/style/Stroke';
+ */ import Stroke from 'ol/style/Stroke';
 import Fill from 'ol/style/Fill';
 import Text from 'ol/style/Text';
 import { createDefaultCellLabelHandler } from '@zwaarcontrast/ol-graticule';
-import type { CursorStyle, HoverLensOptions } from '@zwaarcontrast/ol-graticule';
+import type {
+  CursorStyle,
+  HoverLensOptions,
+} from '@zwaarcontrast/ol-graticule';
 
 export const palette = {
   ink: 'rgba(15, 23, 42, 0.85)',
@@ -49,6 +52,6 @@ export const cellLabelHandler = createDefaultCellLabelHandler({
 export const cursorStyle: CursorStyle = {
   color: palette.accentSolid,
   labelCss:
-    "font: 700 10px system-ui, -apple-system, sans-serif; " +
-    "color: #f5efe6; font-variant-numeric: tabular-nums; letter-spacing: 0.02em;",
+    'font: 700 10px system-ui, -apple-system, sans-serif; ' +
+    'color: #f5efe6; font-variant-numeric: tabular-nums; letter-spacing: 0.02em;',
 };

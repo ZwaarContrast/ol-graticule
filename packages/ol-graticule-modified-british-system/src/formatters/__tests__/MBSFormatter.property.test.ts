@@ -21,8 +21,18 @@ describe.each(SCHEMES)('%s — round-trip property', (label, scheme) => {
   const baseN = scheme.nOriginKm * 1000;
   // Sample inside the populated 2500 km × 2500 km tile, avoiding the very
   // edge of any 100 km cell to dodge boundary flap.
-  const e = fc.double({ min: baseE + 5_000, max: baseE + 2_495_000, noNaN: true, noDefaultInfinity: true });
-  const n = fc.double({ min: baseN + 5_000, max: baseN + 2_495_000, noNaN: true, noDefaultInfinity: true });
+  const e = fc.double({
+    min: baseE + 5_000,
+    max: baseE + 2_495_000,
+    noNaN: true,
+    noDefaultInfinity: true,
+  });
+  const n = fc.double({
+    min: baseN + 5_000,
+    max: baseN + 2_495_000,
+    noNaN: true,
+    noDefaultInfinity: true,
+  });
 
   it('parseCoordinate(formatMBS(e, n)) recovers (e, n) to within one 100 m sub-cell', () => {
     fc.assert(

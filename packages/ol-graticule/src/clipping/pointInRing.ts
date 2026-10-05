@@ -11,9 +11,11 @@ export function pointInRing(
   for (let i = 0; i < n; i++) {
     const vi = ring[i]!;
     const vj = ring[j]!;
-    const xi = vi[0], yi = vi[1];
-    const xj = vj[0], yj = vj[1];
-    if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+    const xi = vi[0],
+      yi = vi[1];
+    const xj = vj[0],
+      yj = vj[1];
+    if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
       inside = !inside;
     }
     j = i;

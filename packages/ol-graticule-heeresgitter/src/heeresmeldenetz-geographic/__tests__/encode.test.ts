@@ -1,11 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { dms } from '../../__tests__/util/dms.js';
-import {
-  decomposeHmnGeo,
-  encodeHmnGeo,
-  formatHmnGeo,
-} from '../encode.js';
+import { decomposeHmnGeo, encodeHmnGeo, formatHmnGeo } from '../encode.js';
 import { parseHmnGeo } from '../decode.js';
 
 // Two primary-source ground truths pin both axes of the (0°40'N, 0°E) anchor.
@@ -19,7 +15,7 @@ describe('Den Haag — primary-source ground truth', () => {
     expect(encodeHmnGeo(denHaag, { depth: 2 }).kleintrapez).toBe('TD');
   });
 
-  it('lands in Großtrapez (gx=1, gy=30) at NW corner (52°20\'N, 2°30\'E)', () => {
+  it("lands in Großtrapez (gx=1, gy=30) at NW corner (52°20'N, 2°30'E)", () => {
     expect(decomposeHmnGeo(denHaag).grosstrapez).toEqual({ gx: 1, gy: 30 });
   });
 });
@@ -58,8 +54,8 @@ describe('Romfo — primary-source ground truth', () => {
     [dms(62, 38), dms(8, 45), 'NV'],
     [dms(62, 38), dms(8, 51), 'OV'],
     [dms(62, 38), dms(8, 57), 'PV'],
-    [dms(62, 38), dms(9,  3), 'QV'],
-    [dms(62, 38), dms(9,  9), 'RV'],
+    [dms(62, 38), dms(9, 3), 'QV'],
+    [dms(62, 38), dms(9, 9), 'RV'],
     [dms(62, 38), dms(9, 15), 'SV'],
     // Two rows down (different row letter confirms the row axis).
     [dms(62, 30), dms(8, 45), 'NX'],
@@ -87,11 +83,17 @@ describe('hierarchy: Meldetrapez 1..9 numbering inside cell TD', () => {
     [7, 1, 200],
     [8, 3, 200],
     [9, 5, 200],
-  ])('Meldetrapez %i at offset (%i\' E, %i" S) from NW', (mt, offMinE, offSecS) => {
-    const b = decomposeHmnGeo([NW_LAT - offSecS / 3600, NW_LON + offMinE / 60]);
-    expect(b.kleintrapez).toBe('TD');
-    expect(b.meldetrapez).toBe(mt);
-  });
+  ])(
+    'Meldetrapez %i at offset (%i\' E, %i" S) from NW',
+    (mt, offMinE, offSecS) => {
+      const b = decomposeHmnGeo([
+        NW_LAT - offSecS / 3600,
+        NW_LON + offMinE / 60,
+      ]);
+      expect(b.kleintrapez).toBe('TD');
+      expect(b.meldetrapez).toBe(mt);
+    },
+  );
 });
 
 describe('hierarchy: Arbeitstrapez a/b/c/d inside Meldetrapez 5', () => {
@@ -104,11 +106,17 @@ describe('hierarchy: Arbeitstrapez a/b/c/d inside Meldetrapez 5', () => {
     ['b', 1.5, 20],
     ['c', 0.5, 60],
     ['d', 1.5, 60],
-  ] as const)('Arbeitstrapez %s at (%i\' E, %i" S) from MT5 NW', (at, offMinE, offSecS) => {
-    const b = decomposeHmnGeo([NW_LAT - offSecS / 3600, NW_LON + offMinE / 60]);
-    expect(b.meldetrapez).toBe(5);
-    expect(b.arbeitstrapez).toBe(at);
-  });
+  ] as const)(
+    'Arbeitstrapez %s at (%i\' E, %i" S) from MT5 NW',
+    (at, offMinE, offSecS) => {
+      const b = decomposeHmnGeo([
+        NW_LAT - offSecS / 3600,
+        NW_LON + offMinE / 60,
+      ]);
+      expect(b.meldetrapez).toBe(5);
+      expect(b.arbeitstrapez).toBe(at);
+    },
+  );
 });
 
 describe('hierarchy: tenths from Arbeitstrapez SW corner', () => {
@@ -118,10 +126,10 @@ describe('hierarchy: tenths from Arbeitstrapez SW corner', () => {
   it.each([
     // [expected te, expected tn, lat, lon]
     [3, 7, dms(52, 6) + 30 / 3600, dms(4, 20) + 21 / 3600],
-    [0, 0, dms(52, 6) +  2 / 3600, dms(4, 20) +  3 / 3600],
+    [0, 0, dms(52, 6) + 2 / 3600, dms(4, 20) + 3 / 3600],
     [9, 9, dms(52, 6) + 38 / 3600, dms(4, 20) + 57 / 3600],
     // (te=1, tn=8) tests the asymmetric case: east must NOT equal north.
-    [1, 8, dms(52, 6) + 34 / 3600, dms(4, 20) +  9 / 3600],
+    [1, 8, dms(52, 6) + 34 / 3600, dms(4, 20) + 9 / 3600],
   ])('tenths (%i, %i) at lat %s, lon %s', (te, tn, lat, lon) => {
     expect(decomposeHmnGeo([lat, lon]).tenths).toEqual([te, tn]);
   });
@@ -131,24 +139,33 @@ describe('encodeHmnGeo: bbox at every depth', () => {
   const point: [number, number] = [dms(52, 4, 46), dms(4, 18, 30)];
 
   it.each([
-    [2, 'TD',                 6 / 60,    4 / 60],
-    [3, /^TD \d$/,            2 / 60,   80 / 3600],
-    [4, /^TD \d[a-d]$/,       1 / 60,   40 / 3600],
-    [5, /^TD \d[a-d] \d{2}$/, 6 / 3600,  4 / 3600],
-  ] as const)('depth %i: width %s°, height %s°', (depth, expected, widthDeg, heightDeg) => {
-    const ref = encodeHmnGeo(point, { depth });
-    if (typeof expected === 'string') expect(ref.canonical).toBe(expected);
-    else expect(ref.canonical).toMatch(expected);
-    expect(ref.bbox[2] - ref.bbox[0]).toBeCloseTo(widthDeg, 9);
-    expect(ref.bbox[3] - ref.bbox[1]).toBeCloseTo(heightDeg, 9);
-  });
+    [2, 'TD', 6 / 60, 4 / 60],
+    [3, /^TD \d$/, 2 / 60, 80 / 3600],
+    [4, /^TD \d[a-d]$/, 1 / 60, 40 / 3600],
+    [5, /^TD \d[a-d] \d{2}$/, 6 / 3600, 4 / 3600],
+  ] as const)(
+    'depth %i: width %s°, height %s°',
+    (depth, expected, widthDeg, heightDeg) => {
+      const ref = encodeHmnGeo(point, { depth });
+      if (typeof expected === 'string') expect(ref.canonical).toBe(expected);
+      else expect(ref.canonical).toMatch(expected);
+      expect(ref.bbox[2] - ref.bbox[0]).toBeCloseTo(widthDeg, 9);
+      expect(ref.bbox[3] - ref.bbox[1]).toBeCloseTo(heightDeg, 9);
+    },
+  );
 
   it('bbox actually contains the input point at every depth', () => {
     for (const depth of [2, 3, 4, 5] as const) {
       const ref = encodeHmnGeo(point, { depth });
       const [minLon, minLat, maxLon, maxLat] = ref.bbox;
-      expect(point[1] >= minLon && point[1] <= maxLon, `depth ${depth} lon`).toBe(true);
-      expect(point[0] >= minLat && point[0] <= maxLat, `depth ${depth} lat`).toBe(true);
+      expect(
+        point[1] >= minLon && point[1] <= maxLon,
+        `depth ${depth} lon`,
+      ).toBe(true);
+      expect(
+        point[0] >= minLat && point[0] <= maxLat,
+        `depth ${depth} lat`,
+      ).toBe(true);
     }
   });
 });
@@ -174,16 +191,24 @@ describe('formatHmnGeo and separator handling', () => {
   });
 
   it('separator option appears between groups but not within them', () => {
-    expect(encodeHmnGeo(point, { separator: '' }).canonical).toMatch(/^TD\d[a-d]\d{2}$/);
-    expect(encodeHmnGeo(point, { separator: '/' }).canonical).toMatch(/^TD\/\d[a-d]\/\d{2}$/);
+    expect(encodeHmnGeo(point, { separator: '' }).canonical).toMatch(
+      /^TD\d[a-d]\d{2}$/,
+    );
+    expect(encodeHmnGeo(point, { separator: '/' }).canonical).toMatch(
+      /^TD\/\d[a-d]\/\d{2}$/,
+    );
   });
 });
 
 describe('cross-Großtrapez behaviour', () => {
-  it('one arcsecond either side of the SD/TD boundary at 4°18\'E selects the right cell', () => {
+  it("one arcsecond either side of the SD/TD boundary at 4°18'E selects the right cell", () => {
     const lat = 52.07;
-    expect(encodeHmnGeo([lat, dms(4, 17, 59)], { depth: 2 }).kleintrapez).toBe('SD');
-    expect(encodeHmnGeo([lat, dms(4, 18, 1)], { depth: 2 }).kleintrapez).toBe('TD');
+    expect(encodeHmnGeo([lat, dms(4, 17, 59)], { depth: 2 }).kleintrapez).toBe(
+      'SD',
+    );
+    expect(encodeHmnGeo([lat, dms(4, 18, 1)], { depth: 2 }).kleintrapez).toBe(
+      'TD',
+    );
   });
 
   it('crossing into the Großtrapez immediately south increments gy by 1', () => {
@@ -199,7 +224,7 @@ describe('cross-Großtrapez behaviour', () => {
     expect(west.grosstrapez.gx).toBeLessThan(0);
   });
 
-  it('points south of the (0°40\'N) anchor produce gy ≤ -1', () => {
+  it("points south of the (0°40'N) anchor produce gy ≤ -1", () => {
     // Pick a lat well inside a southern Großtrapez (avoid landing on the
     // boundary, which would put `ky` outside the 0..24 letter range).
     const south = decomposeHmnGeo([dms(-3, 0), dms(1, 0)]);
