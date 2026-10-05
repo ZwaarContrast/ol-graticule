@@ -94,6 +94,19 @@ describe('OS yard grid', () => {
     expect(() => f.parse('Helensburgh', 'x')).toThrow(/yards/);
   });
 
+  it('parses in linear time on long whitespace runs', () => {
+    const f = new YardFormatter();
+    for (const evil of [
+      '1' + ' '.repeat(50_000) + 'z',
+      'E' + ' '.repeat(50_000) + 'z',
+      '1' + ' '.repeat(50_000) + 'y',
+    ]) {
+      const start = performance.now();
+      expect(() => f.parse(evil, 'x')).toThrow();
+      expect(performance.now() - start).toBeLessThan(1000);
+    }
+  });
+
   it('registers the grid by its CRS code', () => {
     expect(Object.keys(OS_GRIDS)).toEqual(['OS:YARD_GRID']);
     const grid = OS_GRIDS['OS:YARD_GRID'];

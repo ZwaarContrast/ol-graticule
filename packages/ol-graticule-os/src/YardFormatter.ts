@@ -17,7 +17,8 @@ export class YardFormatter implements LabelFormatter {
     const digits = text
       .trim()
       .replace(prefix, '')
-      .replace(/\s*(yd|yds|yards)\.?$/i, '')
+      .replace(/(yd|yds|yards)\.?$/i, '')
+      .trim()
       .replace(/,/g, '');
     if (!/^-?\d+(\.\d+)?$/.test(digits)) {
       throw new ParseError(text, 'expected a distance in yards');
