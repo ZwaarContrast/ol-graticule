@@ -175,6 +175,7 @@ const DEMOS: {
   { path: '/ol-graticule-rd/', selector: '#map', name: 'rd' },
   { path: '/ol-graticule-nei/', selector: '#map', name: 'nei' },
   { path: '/ol-graticule-ngo/', selector: '#map', name: 'ngo' },
+  { path: '/ol-graticule-os/', selector: '#map', name: 'os' },
   { path: '/ol-graticule-mgrs/', selector: '#map', name: 'mgrs' },
   {
     path: '/ol-graticule-marinequadratkarte/',

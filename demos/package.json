@@ -19,6 +19,7 @@
     "@zwaarcontrast/ol-graticule-modified-british-system": "*",
     "@zwaarcontrast/ol-graticule-nei": "*",
     "@zwaarcontrast/ol-graticule-ngo": "*",
+    "@zwaarcontrast/ol-graticule-os": "*",
     "@zwaarcontrast/ol-graticule-projected": "*",
     "@zwaarcontrast/ol-graticule-rd": "*",
     "ol": "^10.0.0",

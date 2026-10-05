@@ -10,6 +10,7 @@
     { "path": "./packages/ol-graticule-modified-british-system" },
     { "path": "./packages/ol-graticule-rd" },
     { "path": "./packages/ol-graticule-nei" },
-    { "path": "./packages/ol-graticule-ngo" }
+    { "path": "./packages/ol-graticule-ngo" },
+    { "path": "./packages/ol-graticule-os" }
   ]
 }
