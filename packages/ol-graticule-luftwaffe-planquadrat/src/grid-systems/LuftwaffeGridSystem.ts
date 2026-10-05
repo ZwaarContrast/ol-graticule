@@ -124,7 +124,11 @@ export class LuftwaffeGridSystem implements GridSystem {
     this.levels_ = buildLevels(this.system_, this.era_);
   }
 
-  getFeatures(extent: Extent, resolution: number, viewProjection: ProjectionLike): Feature<Geometry>[] {
+  getFeatures(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): Feature<Geometry>[] {
     const ctx = this.renderContext_(extent, resolution, viewProjection);
     if (ctx.geoExtent[3] - ctx.geoExtent[1] <= 0) return [];
 
@@ -140,11 +144,19 @@ export class LuftwaffeGridSystem implements GridSystem {
     return features;
   }
 
-  getLabels(_extent: Extent, _resolution: number, _viewProjection: ProjectionLike): GridLabel[] {
+  getLabels(
+    _extent: Extent,
+    _resolution: number,
+    _viewProjection: ProjectionLike,
+  ): GridLabel[] {
     return [];
   }
 
-  getCellLabels(extent: Extent, resolution: number, viewProjection: ProjectionLike): GridCellLabel[] {
+  getCellLabels(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): GridCellLabel[] {
     const ctx = this.renderContext_(extent, resolution, viewProjection);
     if (ctx.geoExtent[3] - ctx.geoExtent[1] <= 0) return [];
 
@@ -153,11 +165,20 @@ export class LuftwaffeGridSystem implements GridSystem {
     if (cellPx < this.minLabelPx_) return [];
 
     const labels: GridCellLabel[] = [];
-    this.collectCellLabels_(labels, level, ctx.geoExtent, cellPx, viewProjection);
+    this.collectCellLabels_(
+      labels,
+      level,
+      ctx.geoExtent,
+      cellPx,
+      viewProjection,
+    );
     return labels;
   }
 
-  formatCoordinate(coordinate: [number, number], viewProjection: ProjectionLike): FormattedCoordinate {
+  formatCoordinate(
+    coordinate: [number, number],
+    viewProjection: ProjectionLike,
+  ): FormattedCoordinate {
     const [rawLon, lat] = transform(coordinate, viewProjection, 'EPSG:4326');
     if (rawLon === undefined || lat === undefined) return { combined: '-' };
     const lon = normalizeAntimeridian(rawLon);
@@ -181,19 +202,28 @@ export class LuftwaffeGridSystem implements GridSystem {
       if (this.maxDepth_ >= 2) parts.push(String(mtDigitFor(lat, lon)));
     }
     if (this.maxDepth_ >= 3) parts.push(String(ktDigitFor(lat, lon)));
-    if (this.maxDepth_ >= 4) parts.push(String(meltDigitFor(lat, lon, this.era_)));
+    if (this.maxDepth_ >= 4)
+      parts.push(String(meltDigitFor(lat, lon, this.era_)));
     if (this.maxDepth_ >= 5) parts.push(atLabelFor(lat, lon, this.era_));
 
     return { combined: parts.join(' ') };
   }
 
-  parseCoordinate(text: string, viewProjection: ProjectionLike): [number, number] {
+  parseCoordinate(
+    text: string,
+    viewProjection: ProjectionLike,
+  ): [number, number] {
     const { decoded } = parseRef(text, this.era_);
     const [lat, lon] = decoded.center;
     const projected = transform([lon, lat], 'EPSG:4326', viewProjection);
     const px = projected[0];
     const py = projected[1];
-    if (px === undefined || py === undefined || !Number.isFinite(px) || !Number.isFinite(py)) {
+    if (
+      px === undefined ||
+      py === undefined ||
+      !Number.isFinite(px) ||
+      !Number.isFinite(py)
+    ) {
       throw new ParseError(text, 'transform produced non-finite coordinate');
     }
     return [px, py];
@@ -226,7 +256,11 @@ export class LuftwaffeGridSystem implements GridSystem {
         const lon = kLon * level.lonSpan;
         const cellCenterLon = lon + level.lonSpan / 2;
         if (cellCenterLon < minLon || cellCenterLon > maxLon) continue;
-        const text = this.cellLabelText_(level, cellCenterLat, normalizeLon(cellCenterLon));
+        const text = this.cellLabelText_(
+          level,
+          cellCenterLat,
+          normalizeLon(cellCenterLon),
+        );
         if (!text) continue;
         flat.push(cellCenterLon, cellCenterLat);
         texts.push(text);
@@ -244,7 +278,11 @@ export class LuftwaffeGridSystem implements GridSystem {
     }
   }
 
-  private cellLabelText_(level: LevelDef, lat: number, rawLon: number): string | undefined {
+  private cellLabelText_(
+    level: LevelDef,
+    lat: number,
+    rawLon: number,
+  ): string | undefined {
     const lon = normalizeAntimeridian(rawLon);
     const zzg = zzgFor(lat, lon);
     if (!zzg) return undefined;
@@ -272,12 +310,17 @@ export class LuftwaffeGridSystem implements GridSystem {
     return out;
   }
 
-  private renderContext_(extent: Extent, resolution: number, viewProjection: ProjectionLike): RenderContext {
+  private renderContext_(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): RenderContext {
     return this.ctxCache_.get(extent, resolution, viewProjection, () => {
       const geoExtent = transformExtent(extent, viewProjection, 'EPSG:4326');
       const transformFn = requireTransform('EPSG:4326', viewProjection);
       const fallback = geoExtent[2] - geoExtent[0];
-      const targetResolution = measureTargetResolution(geoExtent, transformFn, resolution) ?? fallback;
+      const targetResolution =
+        measureTargetResolution(geoExtent, transformFn, resolution) ?? fallback;
       const degPerPx = targetResolution > 0 ? targetResolution : 1;
 
       let deepestLevel = 0;
@@ -298,15 +341,26 @@ export class LuftwaffeGridSystem implements GridSystem {
 function buildLevels(system: LuftwaffeSystem, era: LuftwaffeEra): LevelDef[] {
   const meltDims = meldetrapezDims(era);
   const atDims = arbeitstrapezDims(era);
-  const level1 = system === 'jmn'
-    ? { depth: 1, latSpan: JAGDTRAPEZ_LAT_DEG, lonSpan: ZZG_LON_DEG, tag: 'jagdtrapez' }
-    : { depth: 1, latSpan: GT_LAT_DEG, lonSpan: GT_LON_DEG, tag: 'gt' };
+  const level1 =
+    system === 'jmn'
+      ? {
+          depth: 1,
+          latSpan: JAGDTRAPEZ_LAT_DEG,
+          lonSpan: ZZG_LON_DEG,
+          tag: 'jagdtrapez',
+        }
+      : { depth: 1, latSpan: GT_LAT_DEG, lonSpan: GT_LON_DEG, tag: 'gt' };
   return [
     { depth: 0, latSpan: ZZG_LAT_DEG, lonSpan: ZZG_LON_DEG, tag: 'zzg' },
     level1,
     { depth: 2, latSpan: MT_LAT_DEG, lonSpan: MT_LON_DEG, tag: 'mt' },
     { depth: 3, latSpan: KT_LAT_DEG, lonSpan: KT_LON_DEG, tag: 'kt' },
-    { depth: 4, latSpan: meltDims.latDeg, lonSpan: meltDims.lonDeg, tag: 'melt' },
+    {
+      depth: 4,
+      latSpan: meltDims.latDeg,
+      lonSpan: meltDims.lonDeg,
+      tag: 'melt',
+    },
     { depth: 5, latSpan: atDims.latDeg, lonSpan: atDims.lonDeg, tag: 'at' },
   ];
 }
@@ -316,9 +370,12 @@ function clampInt(value: number, lo: number, hi: number): number {
   return n < lo ? lo : n > hi ? hi : n;
 }
 
-
 /** Determine which (shallowest) level a coordinate value naturally belongs to. */
-function shallowestLevelForLat(lat: number, levels: LevelDef[], deepest: number): number {
+function shallowestLevelForLat(
+  lat: number,
+  levels: LevelDef[],
+  deepest: number,
+): number {
   const offset = lat - ZZG_BASELINE_LAT;
   for (let d = 0; d <= deepest; d++) {
     const span = levels[d]!.latSpan;
@@ -327,7 +384,11 @@ function shallowestLevelForLat(lat: number, levels: LevelDef[], deepest: number)
   return deepest;
 }
 
-function shallowestLevelForLon(lon: number, levels: LevelDef[], deepest: number): number {
+function shallowestLevelForLon(
+  lon: number,
+  levels: LevelDef[],
+  deepest: number,
+): number {
   for (let d = 0; d <= deepest; d++) {
     const span = levels[d]!.lonSpan;
     if (isOnMajorLine(lon, span, span * 1e-6)) return d;
@@ -352,10 +413,17 @@ function pushAxisSpecs(
       const lat = ZZG_BASELINE_LAT + k * span;
       const depth = shallowestLevelForLat(lat, levels, finest.depth);
       out.push({
-        startX: minLon, startY: lat,
-        endX: maxLon,   endY: lat,
+        startX: minLon,
+        startY: lat,
+        endX: maxLon,
+        endY: lat,
         ts,
-        props: { gridAxis: 'y', gridValue: lat, gridDepth: depth, gridLineType: depth === 0 ? 'major' : 'minor' },
+        props: {
+          gridAxis: 'y',
+          gridValue: lat,
+          gridDepth: depth,
+          gridLineType: depth === 0 ? 'major' : 'minor',
+        },
       });
     }
   } else {
@@ -365,10 +433,17 @@ function pushAxisSpecs(
     for (let lon = start; lon <= end + span * 0.5e-9; lon += span) {
       const depth = shallowestLevelForLon(lon, levels, finest.depth);
       out.push({
-        startX: lon, startY: minLat,
-        endX: lon,   endY: maxLat,
+        startX: lon,
+        startY: minLat,
+        endX: lon,
+        endY: maxLat,
         ts,
-        props: { gridAxis: 'x', gridValue: lon, gridDepth: depth, gridLineType: depth === 0 ? 'major' : 'minor' },
+        props: {
+          gridAxis: 'x',
+          gridValue: lon,
+          gridDepth: depth,
+          gridLineType: depth === 0 ? 'major' : 'minor',
+        },
       });
     }
   }

@@ -1,5 +1,5 @@
 ---
-"@zwaarcontrast/ol-graticule": major
+'@zwaarcontrast/ol-graticule': major
 ---
 
 Split rendering into a Canvas 2D and a WebGL backend, with `UniversalGraticule`

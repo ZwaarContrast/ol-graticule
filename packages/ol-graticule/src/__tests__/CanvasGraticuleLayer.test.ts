@@ -86,9 +86,16 @@ describe('CanvasGraticuleLayer', () => {
         style: { line: { major, minor } },
       });
 
-      const styleFn = graticule.getStyle() as (feature: Feature<Geometry>) => Style;
+      const styleFn = graticule.getStyle() as (
+        feature: Feature<Geometry>,
+      ) => Style;
 
-      const majorFeature = new Feature<Geometry>(new LineString([[0, 0], [0, 100]]));
+      const majorFeature = new Feature<Geometry>(
+        new LineString([
+          [0, 0],
+          [0, 100],
+        ]),
+      );
       majorFeature.set('gridLineType', 'major');
       const majorStyle = styleFn(majorFeature);
       expect(majorStyle.getStroke()?.getColor()).toBe('red');
@@ -103,9 +110,16 @@ describe('CanvasGraticuleLayer', () => {
         style: { line: { major, minor } },
       });
 
-      const styleFn = graticule.getStyle() as (feature: Feature<Geometry>) => Style;
+      const styleFn = graticule.getStyle() as (
+        feature: Feature<Geometry>,
+      ) => Style;
 
-      const minorFeature = new Feature<Geometry>(new LineString([[0, 0], [0, 100]]));
+      const minorFeature = new Feature<Geometry>(
+        new LineString([
+          [0, 0],
+          [0, 100],
+        ]),
+      );
       minorFeature.set('gridLineType', 'minor');
       const minorStyle = styleFn(minorFeature);
       expect(minorStyle.getStroke()?.getColor()).toBe('blue');
@@ -119,8 +133,15 @@ describe('CanvasGraticuleLayer', () => {
         gridSystem,
         style: { line: { major, minor } },
       });
-      const styleFn = graticule.getStyle() as (feature: Feature<Geometry>) => Style;
-      const boundaryFeature = new Feature<Geometry>(new LineString([[0, 0], [0, 100]]));
+      const styleFn = graticule.getStyle() as (
+        feature: Feature<Geometry>,
+      ) => Style;
+      const boundaryFeature = new Feature<Geometry>(
+        new LineString([
+          [0, 0],
+          [0, 100],
+        ]),
+      );
       boundaryFeature.set('gridLineType', 'boundary');
       const style = styleFn(boundaryFeature);
       expect(style.getStroke()?.getColor()).toBe('red');
@@ -133,8 +154,15 @@ describe('CanvasGraticuleLayer', () => {
         gridSystem,
         style: { line: { major, boundary } },
       });
-      const styleFn = graticule.getStyle() as (feature: Feature<Geometry>) => Style;
-      const boundaryFeature = new Feature<Geometry>(new LineString([[0, 0], [0, 100]]));
+      const styleFn = graticule.getStyle() as (
+        feature: Feature<Geometry>,
+      ) => Style;
+      const boundaryFeature = new Feature<Geometry>(
+        new LineString([
+          [0, 0],
+          [0, 100],
+        ]),
+      );
       boundaryFeature.set('gridLineType', 'boundary');
       const style = styleFn(boundaryFeature);
       expect(style.getStroke()?.getColor()).toBe('purple');
@@ -156,7 +184,9 @@ describe('CanvasGraticuleLayer', () => {
     });
 
     it('honors a user-supplied StyleFunction for line features', () => {
-      const custom = new Style({ stroke: new Stroke({ color: 'pink', width: 4 }) });
+      const custom = new Style({
+        stroke: new Stroke({ color: 'pink', width: 4 }),
+      });
       const styleFn = vi.fn().mockReturnValue(custom);
       const graticule = new CanvasGraticuleLayer({
         gridSystem,
@@ -172,14 +202,21 @@ describe('CanvasGraticuleLayer', () => {
       const mockSystem: GridSystem = {
         getFeatures: vi.fn().mockReturnValue([
           (() => {
-            const f = new Feature<Geometry>(new LineString([[0, 0], [0, 100]]));
+            const f = new Feature<Geometry>(
+              new LineString([
+                [0, 0],
+                [0, 100],
+              ]),
+            );
             f.set('gridLineType', 'major');
             return f;
           })(),
         ]),
-        getLabels: vi.fn().mockReturnValue([
-          { point: new Point([50, 100]), text: '50', axis: 'x' as const },
-        ]),
+        getLabels: vi
+          .fn()
+          .mockReturnValue([
+            { point: new Point([50, 100]), text: '50', axis: 'x' as const },
+          ]),
         formatCoordinate: vi.fn().mockReturnValue({ x: '50', y: '75' }),
       };
 

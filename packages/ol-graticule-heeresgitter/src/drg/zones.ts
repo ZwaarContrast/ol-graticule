@@ -108,7 +108,9 @@ export const MAX_KENNZIFFER = 59;
  * sheet's own ink. The Kennziffer being glued into the Rechtswert already makes
  * a DRG sheet vouch for itself, so there is nothing here for a veto to do.
  */
-export const PUBLISHED_KENNZIFFERN: readonly number[] = Object.freeze([1, 2, 3, 4, 5]);
+export const PUBLISHED_KENNZIFFERN: readonly number[] = Object.freeze([
+  1, 2, 3, 4, 5,
+]);
 
 /** Whether `kennziffer` is one of the strips the Planheft tabulates. */
 export function isPublishedKennziffer(kennziffer: number): boolean {
@@ -117,8 +119,14 @@ export function isPublishedKennziffer(kennziffer: number): boolean {
 
 /** Central meridian (degrees east of Greenwich) for a Kennziffer. */
 export function cmForKennziffer(kennziffer: number): number {
-  if (!Number.isInteger(kennziffer) || kennziffer < 0 || kennziffer > MAX_KENNZIFFER) {
-    throw new RangeError(`Gauß-Krüger 3° Kennziffer out of range: ${kennziffer}`);
+  if (
+    !Number.isInteger(kennziffer) ||
+    kennziffer < 0 ||
+    kennziffer > MAX_KENNZIFFER
+  ) {
+    throw new RangeError(
+      `Gauß-Krüger 3° Kennziffer out of range: ${kennziffer}`,
+    );
   }
   return kennziffer * 3;
 }
@@ -158,8 +166,10 @@ export function zonesContainingLon(lon: number): DrgZone[] {
   const result: DrgZone[] = [primary];
   const distFromCm = Math.abs(lon - primary.cm);
   if (distFromCm > STRIP_HALF_WIDTH_DEG - STRIP_OVERLAP_DEG) {
-    const neighbour = lon > primary.cm ? primary.kennziffer + 1 : primary.kennziffer - 1;
-    if (neighbour >= 0 && neighbour <= MAX_KENNZIFFER) result.push(zoneByKennziffer(neighbour));
+    const neighbour =
+      lon > primary.cm ? primary.kennziffer + 1 : primary.kennziffer - 1;
+    if (neighbour >= 0 && neighbour <= MAX_KENNZIFFER)
+      result.push(zoneByKennziffer(neighbour));
   }
   return result;
 }

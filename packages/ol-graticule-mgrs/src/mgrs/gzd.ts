@@ -26,7 +26,10 @@ export function* iterateVisibleGzds(
   if (minLat < -80) yield* yieldUpsZones_(['A', 'B'], lonRanges);
 
   const minBandIdx = bandIndexForLat_(Math.max(minLat, -80));
-  const maxBandIdx = Math.min(19, bandIndexForLat_(Math.min(maxLat, 83.999_999)));
+  const maxBandIdx = Math.min(
+    19,
+    bandIndexForLat_(Math.min(maxLat, 83.999_999)),
+  );
 
   for (let bIdx = minBandIdx; bIdx <= maxBandIdx; bIdx++) {
     const band = BAND_LETTERS[bIdx]!;
@@ -49,10 +52,24 @@ export function* iterateVisibleGzds(
         yield { zone: z, band, lon: lonBounds, lat: latBounds };
       }
       if (band === 'V') {
-        yield* yieldExceptionZones_([31, 32], band, latBounds, rangeMin, rangeMax, seen);
+        yield* yieldExceptionZones_(
+          [31, 32],
+          band,
+          latBounds,
+          rangeMin,
+          rangeMax,
+          seen,
+        );
       }
       if (band === 'X') {
-        yield* yieldExceptionZones_([31, 33, 35, 37], band, latBounds, rangeMin, rangeMax, seen);
+        yield* yieldExceptionZones_(
+          [31, 33, 35, 37],
+          band,
+          latBounds,
+          rangeMin,
+          rangeMax,
+          seen,
+        );
       }
     }
   }
@@ -99,11 +116,14 @@ function bandIndexForLat_(lat: number): number {
 function splitLonRange_(minLon: number, maxLon: number): [number, number][] {
   if (maxLon - minLon >= 360) return [[-180, 180]];
   const wrap = (lon: number): number => {
-    const n = ((lon + 180) % 360 + 360) % 360 - 180;
+    const n = ((((lon + 180) % 360) + 360) % 360) - 180;
     return n;
   };
   const a = wrap(minLon);
   const b = wrap(maxLon);
   if (a <= b) return [[a, b]];
-  return [[-180, b], [a, 180]];
+  return [
+    [-180, b],
+    [a, 180],
+  ];
 }

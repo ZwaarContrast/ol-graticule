@@ -120,7 +120,9 @@ export class GeographicHmnGridSystem implements GridSystem {
 
   private readonly projScratch_ = new ProjectionScratch();
   private readonly ctxCache_ = new RenderCache<RenderContext | null>();
-  private readonly cursorCache_ = new BoundedCache<string, FormattedCoordinate>(512);
+  private readonly cursorCache_ = new BoundedCache<string, FormattedCoordinate>(
+    512,
+  );
 
   constructor(options: GeographicHmnGridSystemOptions = {}) {
     this.maxDepth_ = options.maxDepth ?? 4;
@@ -179,16 +181,36 @@ export class GeographicHmnGridSystem implements GridSystem {
     const maxLatSec = tMaxLat * ARCSEC_PER_DEG;
 
     const firstColCentre =
-      ANCHOR_LON_SEC + Math.ceil((minLonSec - ANCHOR_LON_SEC - halfLon) / cellLonSec) * cellLonSec + halfLon;
+      ANCHOR_LON_SEC +
+      Math.ceil((minLonSec - ANCHOR_LON_SEC - halfLon) / cellLonSec) *
+        cellLonSec +
+      halfLon;
     const lastColCentre =
-      ANCHOR_LON_SEC + Math.floor((maxLonSec - ANCHOR_LON_SEC - halfLon) / cellLonSec) * cellLonSec + halfLon;
+      ANCHOR_LON_SEC +
+      Math.floor((maxLonSec - ANCHOR_LON_SEC - halfLon) / cellLonSec) *
+        cellLonSec +
+      halfLon;
     const firstRowCentre =
-      ANCHOR_LAT_SEC + Math.ceil((minLatSec - ANCHOR_LAT_SEC - halfLat) / cellLatSec) * cellLatSec + halfLat;
+      ANCHOR_LAT_SEC +
+      Math.ceil((minLatSec - ANCHOR_LAT_SEC - halfLat) / cellLatSec) *
+        cellLatSec +
+      halfLat;
     const lastRowCentre =
-      ANCHOR_LAT_SEC + Math.floor((maxLatSec - ANCHOR_LAT_SEC - halfLat) / cellLatSec) * cellLatSec + halfLat;
+      ANCHOR_LAT_SEC +
+      Math.floor((maxLatSec - ANCHOR_LAT_SEC - halfLat) / cellLatSec) *
+        cellLatSec +
+      halfLat;
 
-    for (let lonSec = firstColCentre; lonSec <= lastColCentre; lonSec += cellLonSec) {
-      for (let latSec = firstRowCentre; latSec <= lastRowCentre; latSec += cellLatSec) {
+    for (
+      let lonSec = firstColCentre;
+      lonSec <= lastColCentre;
+      lonSec += cellLonSec
+    ) {
+      for (
+        let latSec = firstRowCentre;
+        latSec <= lastRowCentre;
+        latSec += cellLatSec
+      ) {
         const text = hmnGeoHierarchicalLabel(lonSec, latSec, tier.depth);
         if (!text) continue;
         const lon = lonSec / ARCSEC_PER_DEG;
@@ -196,7 +218,13 @@ export class GeographicHmnGridSystem implements GridSystem {
         const [vx, vy] = toView([lon, lat], undefined, 2);
         if (vx === undefined || vy === undefined) continue;
         if (!Number.isFinite(vx) || !Number.isFinite(vy)) continue;
-        const cellRing = projectCellRing_(toView, lon, lat, halfLon / ARCSEC_PER_DEG, halfLat / ARCSEC_PER_DEG);
+        const cellRing = projectCellRing_(
+          toView,
+          lon,
+          lat,
+          halfLon / ARCSEC_PER_DEG,
+          halfLat / ARCSEC_PER_DEG,
+        );
         if (!cellRing) continue;
         labels.push({
           point: new Point([vx, vy]),
@@ -222,7 +250,9 @@ export class GeographicHmnGridSystem implements GridSystem {
     if (!lonLat) {
       result = { combined: '-' };
     } else {
-      const ref = encodeHmnGeo([lonLat[1], lonLat[0]], { depth: this.maxDepth_ });
+      const ref = encodeHmnGeo([lonLat[1], lonLat[0]], {
+        depth: this.maxDepth_,
+      });
       result = { combined: ref.canonical };
     }
     this.cursorCache_.set(cacheKey, result);
@@ -242,19 +272,29 @@ export class GeographicHmnGridSystem implements GridSystem {
     return this.maxDepth_;
   }
 
-  private context_(extent: Extent, resolution: number, viewProjection: ProjectionLike): RenderContext | null {
+  private context_(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): RenderContext | null {
     return this.ctxCache_.get(extent, resolution, viewProjection, () => {
       const toView = requireTransform('EPSG:4326', viewProjection);
       const target = transformExtent(extent, viewProjection, 'EPSG:4326');
-      if (![target[0], target[1], target[2], target[3]].every(Number.isFinite)) return null;
+      if (![target[0], target[1], target[2], target[3]].every(Number.isFinite))
+        return null;
       // Clamp to a sane global box: the geographic HMN is defined globally
       // but tiles get absurd near the poles where cells are arcminute-wide.
       target[1] = Math.max(target[1], -85);
       target[3] = Math.min(target[3], 85);
       if (target[1] >= target[3] || target[0] >= target[2]) return null;
 
-      const targetResolution = measureTargetResolution(target, toView, resolution) ?? resolution;
-      const tier = pickTier_(targetResolution, this.targetScreenPx_, this.maxDepth_);
+      const targetResolution =
+        measureTargetResolution(target, toView, resolution) ?? resolution;
+      const tier = pickTier_(
+        targetResolution,
+        this.targetScreenPx_,
+        this.maxDepth_,
+      );
 
       // `target` is in degrees, so `targetResolution` is degrees-per-pixel.
       // `cellSizePx` is the cell's on-screen size in pixels, used as a label
@@ -281,10 +321,14 @@ export class GeographicHmnGridSystem implements GridSystem {
     const lonAnchor = ANCHOR_LON_SEC / ARCSEC_PER_DEG;
     const latAnchor = ANCHOR_LAT_SEC / ARCSEC_PER_DEG;
 
-    const startLon = lonAnchor + Math.ceil((tMinLon - lonAnchor) / lonStepDeg) * lonStepDeg;
-    const endLon = lonAnchor + Math.floor((tMaxLon - lonAnchor) / lonStepDeg) * lonStepDeg;
-    const startLat = latAnchor + Math.ceil((tMinLat - latAnchor) / latStepDeg) * latStepDeg;
-    const endLat = latAnchor + Math.floor((tMaxLat - latAnchor) / latStepDeg) * latStepDeg;
+    const startLon =
+      lonAnchor + Math.ceil((tMinLon - lonAnchor) / lonStepDeg) * lonStepDeg;
+    const endLon =
+      lonAnchor + Math.floor((tMaxLon - lonAnchor) / lonStepDeg) * lonStepDeg;
+    const startLat =
+      latAnchor + Math.ceil((tMinLat - latAnchor) / latStepDeg) * latStepDeg;
+    const endLat =
+      latAnchor + Math.floor((tMaxLat - latAnchor) / latStepDeg) * latStepDeg;
 
     // Small relative tolerance absorbs float drift so the last line isn't dropped.
     const lonTol = lonStepDeg * 1e-6;
@@ -293,25 +337,51 @@ export class GeographicHmnGridSystem implements GridSystem {
     // Minor lines on a Klein boundary would render the same cells twice.
     const kleinLonDeg = KLEINTRAPEZ_LON_SEC / ARCSEC_PER_DEG;
     const kleinLatDeg = KLEINTRAPEZ_LAT_SEC / ARCSEC_PER_DEG;
-    const skipX = type === 'minor'
-      ? (lon: number): boolean => onKleinBoundary_(lon - lonAnchor, kleinLonDeg)
-      : undefined;
-    const skipY = type === 'minor'
-      ? (lat: number): boolean => onKleinBoundary_(lat - latAnchor, kleinLatDeg)
-      : undefined;
+    const skipX =
+      type === 'minor'
+        ? (lon: number): boolean =>
+            onKleinBoundary_(lon - lonAnchor, kleinLonDeg)
+        : undefined;
+    const skipY =
+      type === 'minor'
+        ? (lat: number): boolean =>
+            onKleinBoundary_(lat - latAnchor, kleinLatDeg)
+        : undefined;
 
     const specs: FlatLineSpec[] = [];
     pushAxisGridLineSpecs(
-      specs, 'x', startLon, endLon + lonTol, lonStepDeg, tMinLat, tMaxLat, ctx.xTs, type, skipX,
+      specs,
+      'x',
+      startLon,
+      endLon + lonTol,
+      lonStepDeg,
+      tMinLat,
+      tMaxLat,
+      ctx.xTs,
+      type,
+      skipX,
     );
     pushAxisGridLineSpecs(
-      specs, 'y', startLat, endLat + latTol, latStepDeg, tMinLon, tMaxLon, ctx.yTs, type, skipY,
+      specs,
+      'y',
+      startLat,
+      endLat + latTol,
+      latStepDeg,
+      tMinLon,
+      tMaxLon,
+      ctx.yTs,
+      type,
+      skipY,
     );
     emitFlatLineFeatures(out, this.projScratch_, specs, ctx.toView);
   }
 }
 
-function pickTier_(targetResolutionDeg: number, targetScreenPx: number, maxDepth: 2 | 3 | 4): Tier {
+function pickTier_(
+  targetResolutionDeg: number,
+  targetScreenPx: number,
+  maxDepth: 2 | 3 | 4,
+): Tier {
   // `targetResolutionDeg` is degrees-per-pixel (because the target extent is
   // in EPSG:4326). Pick the smallest tier whose lat-cell still spans >=
   // `targetScreenPx` on screen. Mirrors `SteppingIntervalStrategy`.
@@ -320,7 +390,7 @@ function pickTier_(targetResolutionDeg: number, targetScreenPx: number, maxDepth
   if (maxDepth >= 4) candidates.push(TIER_ARBEIT);
   for (let i = candidates.length - 1; i >= 0; i--) {
     const tier = candidates[i]!;
-    const sizePx = (tier.latSec / ARCSEC_PER_DEG) / targetResolutionDeg;
+    const sizePx = tier.latSec / ARCSEC_PER_DEG / targetResolutionDeg;
     if (sizePx >= targetScreenPx) return tier;
   }
   return TIER_KLEIN;
@@ -354,4 +424,3 @@ function onKleinBoundary_(offsetDeg: number, kleinStepDeg: number): boolean {
   const rounded = Math.round(ratio);
   return Math.abs(ratio - rounded) < 1e-9;
 }
-

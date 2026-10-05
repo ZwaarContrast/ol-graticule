@@ -16,8 +16,9 @@ describe('ProjectedGridSystem', () => {
     });
 
     it('throws for an unregistered CRS without proj4Def', () => {
-      expect(() => new ProjectedGridSystem({ crs: 'EPSG:99999' }))
-        .toThrow('CRS EPSG:99999 is not registered');
+      expect(() => new ProjectedGridSystem({ crs: 'EPSG:99999' })).toThrow(
+        'CRS EPSG:99999 is not registered',
+      );
     });
 
     it('registers a CRS from proj4Def', () => {
@@ -40,11 +41,13 @@ describe('ProjectedGridSystem', () => {
       const system = new ProjectedGridSystem({ crs: 'EPSG:4326' });
       const features = system.getFeatures(extent, resolution, 'EPSG:3857');
 
-      const majorFeatures = features.filter(f => f.get('gridLineType') === 'major');
+      const majorFeatures = features.filter(
+        (f) => f.get('gridLineType') === 'major',
+      );
       expect(majorFeatures.length).toBeGreaterThan(0);
 
-      const xLines = majorFeatures.filter(f => f.get('gridAxis') === 'x');
-      const yLines = majorFeatures.filter(f => f.get('gridAxis') === 'y');
+      const xLines = majorFeatures.filter((f) => f.get('gridAxis') === 'x');
+      const yLines = majorFeatures.filter((f) => f.get('gridAxis') === 'y');
       expect(xLines.length).toBeGreaterThan(0);
       expect(yLines.length).toBeGreaterThan(0);
     });
@@ -53,7 +56,9 @@ describe('ProjectedGridSystem', () => {
       const system = new ProjectedGridSystem({ crs: 'EPSG:4326' });
       const features = system.getFeatures(extent, resolution, 'EPSG:3857');
 
-      const minorFeatures = features.filter(f => f.get('gridLineType') === 'minor');
+      const minorFeatures = features.filter(
+        (f) => f.get('gridLineType') === 'minor',
+      );
       expect(minorFeatures.length).toBeGreaterThan(0);
     });
 
@@ -63,11 +68,13 @@ describe('ProjectedGridSystem', () => {
 
       const majorValues = new Set(
         features
-          .filter(f => f.get('gridLineType') === 'major')
-          .map(f => `${f.get('gridAxis')}_${f.get('gridValue') as number}`),
+          .filter((f) => f.get('gridLineType') === 'major')
+          .map((f) => `${f.get('gridAxis')}_${f.get('gridValue') as number}`),
       );
 
-      const minorFeatures = features.filter(f => f.get('gridLineType') === 'minor');
+      const minorFeatures = features.filter(
+        (f) => f.get('gridLineType') === 'minor',
+      );
       for (const f of minorFeatures) {
         const key = `${f.get('gridAxis')}_${f.get('gridValue') as number}`;
         expect(majorValues.has(key)).toBe(false);
@@ -86,14 +93,20 @@ describe('ProjectedGridSystem', () => {
     });
 
     it('collapses straight lines to 2 points (lat/lon graticule is straight in Web Mercator)', () => {
-      const system = new ProjectedGridSystem({ crs: 'EPSG:4326', densificationPoints: 50 });
+      const system = new ProjectedGridSystem({
+        crs: 'EPSG:4326',
+        densificationPoints: 50,
+      });
       const features = system.getFeatures(extent, resolution, 'EPSG:3857');
 
-      const majorLines = features.filter(f => f.get('gridLineType') === 'major');
+      const majorLines = features.filter(
+        (f) => f.get('gridLineType') === 'major',
+      );
       expect(majorLines.length).toBeGreaterThan(0);
       for (const line of majorLines) {
         const geometry = line.getGeometry();
-        if (!(geometry instanceof LineString)) throw new Error('expected LineString');
+        if (!(geometry instanceof LineString))
+          throw new Error('expected LineString');
         expect(geometry.getCoordinates().length).toBe(2);
       }
     });
@@ -145,7 +158,10 @@ describe('ProjectedGridSystem', () => {
   describe('getFeatures with UTM on EPSG:3857 view', () => {
     it('generates metric grid lines for a UTM projection', () => {
       // Ensure EPSG:32633 is registered
-      proj4.defs('EPSG:32633', '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +type=crs');
+      proj4.defs(
+        'EPSG:32633',
+        '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +type=crs',
+      );
       register(proj4);
 
       const system = new ProjectedGridSystem({ crs: 'EPSG:32633' });
@@ -155,14 +171,16 @@ describe('ProjectedGridSystem', () => {
       const extent: Extent = [1446657, 6800125, 1557847, 6982997];
       const features = system.getFeatures(extent, 100, 'EPSG:3857');
 
-      const majorFeatures = features.filter(f => f.get('gridLineType') === 'major');
+      const majorFeatures = features.filter(
+        (f) => f.get('gridLineType') === 'major',
+      );
       expect(majorFeatures.length).toBeGreaterThan(0);
 
       // Grid values should be in meters (large values like 300000+)
       const xValues = majorFeatures
-        .filter(f => f.get('gridAxis') === 'x')
-        .map(f => f.get('gridValue') as number);
-      expect(xValues.every(v => v > 100)).toBe(true);
+        .filter((f) => f.get('gridAxis') === 'x')
+        .map((f) => f.get('gridValue') as number);
+      expect(xValues.every((v) => v > 100)).toBe(true);
     });
   });
 
@@ -174,8 +192,8 @@ describe('ProjectedGridSystem', () => {
       const system = new ProjectedGridSystem({ crs: 'EPSG:4326' });
       const labels = system.getLabels(extent, resolution, 'EPSG:3857');
 
-      const xLabels = labels.filter(l => l.axis === 'x');
-      const yLabels = labels.filter(l => l.axis === 'y');
+      const xLabels = labels.filter((l) => l.axis === 'x');
+      const yLabels = labels.filter((l) => l.axis === 'y');
       expect(xLabels.length).toBeGreaterThan(0);
       expect(yLabels.length).toBeGreaterThan(0);
     });
@@ -191,7 +209,10 @@ describe('ProjectedGridSystem', () => {
     });
 
     it('formats labels using meters/km for metric CRS', () => {
-      proj4.defs('EPSG:32633', '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +type=crs');
+      proj4.defs(
+        'EPSG:32633',
+        '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +type=crs',
+      );
       register(proj4);
 
       const system = new ProjectedGridSystem({ crs: 'EPSG:32633' });
@@ -212,7 +233,8 @@ describe('ProjectedGridSystem', () => {
       const result = system.formatCoordinate([556597, 6446275], 'EPSG:3857');
 
       // ProjectedGridSystem always returns the axis-separable variant.
-      if (!isAxisFormatted(result)) throw new Error('expected axis-formatted result');
+      if (!isAxisFormatted(result))
+        throw new Error('expected axis-formatted result');
       expect(result.x).toContain('\u00B0');
       expect(result.x).toContain('E');
       expect(result.y).toContain('\u00B0');
@@ -220,13 +242,17 @@ describe('ProjectedGridSystem', () => {
     });
 
     it('formats metric coordinates for UTM projection', () => {
-      proj4.defs('EPSG:32633', '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +type=crs');
+      proj4.defs(
+        'EPSG:32633',
+        '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +type=crs',
+      );
       register(proj4);
 
       const system = new ProjectedGridSystem({ crs: 'EPSG:32633' });
       const result = system.formatCoordinate([1500000, 6900000], 'EPSG:3857');
 
-      if (!isAxisFormatted(result)) throw new Error('expected axis-formatted result');
+      if (!isAxisFormatted(result))
+        throw new Error('expected axis-formatted result');
       expect(result.x).toMatch(/m|km/);
       expect(result.y).toMatch(/m|km/);
     });
@@ -237,40 +263,62 @@ describe('ProjectedGridSystem', () => {
       // UTM zone 33N viewed far from its 15°E central meridian over a wide
       // extent: constant-easting/northing lines genuinely curve in Web
       // Mercator, so adaptive densification climbs until the cap binds.
-      proj4.defs('EPSG:32633', '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +type=crs');
+      proj4.defs(
+        'EPSG:32633',
+        '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +type=crs',
+      );
       register(proj4);
       const wide: Extent = [-2_000_000, 4_000_000, 4_000_000, 9_000_000];
 
       const longestMajor = (densificationPoints: number): number => {
-        const system = new ProjectedGridSystem({ crs: 'EPSG:32633', densificationPoints });
-        const major = system.getFeatures(wide, 1000, 'EPSG:3857')
-          .filter(f => f.get('gridLineType') === 'major');
+        const system = new ProjectedGridSystem({
+          crs: 'EPSG:32633',
+          densificationPoints,
+        });
+        const major = system
+          .getFeatures(wide, 1000, 'EPSG:3857')
+          .filter((f) => f.get('gridLineType') === 'major');
         let max = 0;
         for (const f of major) {
           const g = f.getGeometry();
-          if (g instanceof LineString) max = Math.max(max, g.getCoordinates().length);
+          if (g instanceof LineString)
+            max = Math.max(max, g.getCoordinates().length);
         }
         return max;
       };
 
       const capped = longestMajor(4);
       const generous = longestMajor(50);
-      expect(generous).toBeGreaterThan(2);      // curved → densifies beyond a chord
-      expect(capped).toBeLessThanOrEqual(5);    // never exceeds cap + 1
-      expect(capped).toBeLessThan(generous);    // the cap actually binds
+      expect(generous).toBeGreaterThan(2); // curved → densifies beyond a chord
+      expect(capped).toBeLessThanOrEqual(5); // never exceeds cap + 1
+      expect(capped).toBeLessThan(generous); // the cap actually binds
     });
 
     it('respects custom targetScreenPx', () => {
       // Larger targetScreenPx = fewer, more spread-out grid lines
-      const systemWide = new ProjectedGridSystem({ crs: 'EPSG:4326', targetScreenPx: 200 });
-      const systemNarrow = new ProjectedGridSystem({ crs: 'EPSG:4326', targetScreenPx: 50 });
+      const systemWide = new ProjectedGridSystem({
+        crs: 'EPSG:4326',
+        targetScreenPx: 200,
+      });
+      const systemNarrow = new ProjectedGridSystem({
+        crs: 'EPSG:4326',
+        targetScreenPx: 50,
+      });
 
       const extent: Extent = [0, 5621521, 1113195, 7361866];
       const featuresWide = systemWide.getFeatures(extent, 1000, 'EPSG:3857');
-      const featuresNarrow = systemNarrow.getFeatures(extent, 1000, 'EPSG:3857');
+      const featuresNarrow = systemNarrow.getFeatures(
+        extent,
+        1000,
+        'EPSG:3857',
+      );
 
-      const majorWide = featuresWide.filter(f => f.get('gridLineType') === 'major');
-      const majorNarrow = featuresNarrow.filter(f => f.get('gridLineType') === 'major');
+      const majorWide = featuresWide.filter(
+        (f) => f.get('gridLineType') === 'major',
+      );
+      const majorNarrow = featuresNarrow.filter(
+        (f) => f.get('gridLineType') === 'major',
+      );
 
       // Wider spacing should produce fewer or equal major lines
       expect(majorWide.length).toBeLessThanOrEqual(majorNarrow.length);
@@ -279,7 +327,8 @@ describe('ProjectedGridSystem', () => {
 
   describe('extent clipping', () => {
     // EPSG:28992 (Amersfoort / RD New), Dutch national grid
-    const rdNewProj4 = '+proj=sterea +lat_0=52.1561605555556 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,1.9342,-1.6677,9.1019,4.0725 +units=m +no_defs +type=crs';
+    const rdNewProj4 =
+      '+proj=sterea +lat_0=52.1561605555556 +lon_0=5.38763888888889 +k=0.9999079 +x_0=155000 +y_0=463000 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,1.9342,-1.6677,9.1019,4.0725 +units=m +no_defs +type=crs';
     // Valid extent for RD New in projected coordinates
     const rdNewExtent: Extent = [-7000, 289000, 300000, 629000];
 
@@ -294,16 +343,18 @@ describe('ProjectedGridSystem', () => {
       const extent: Extent = [333958, 6621293, 779236, 7170157];
       const features = system.getFeatures(extent, 500, 'EPSG:3857');
 
-      const majorFeatures = features.filter(f => f.get('gridLineType') === 'major');
+      const majorFeatures = features.filter(
+        (f) => f.get('gridLineType') === 'major',
+      );
       expect(majorFeatures.length).toBeGreaterThan(0);
 
       // Grid values should be within reasonable RD coordinate range (not wildly distorted)
       const xValues = majorFeatures
-        .filter(f => f.get('gridAxis') === 'x')
-        .map(f => f.get('gridValue') as number);
+        .filter((f) => f.get('gridAxis') === 'x')
+        .map((f) => f.get('gridValue') as number);
       const yValues = majorFeatures
-        .filter(f => f.get('gridAxis') === 'y')
-        .map(f => f.get('gridValue') as number);
+        .filter((f) => f.get('gridAxis') === 'y')
+        .map((f) => f.get('gridValue') as number);
 
       // RD New coordinates for the Netherlands are roughly:
       // X: 0 to 300,000 m, Y: 300,000 to 625,000 m
@@ -360,7 +411,8 @@ describe('ProjectedGridSystem', () => {
   });
 
   describe('EPSG:28991 (RD Old)', () => {
-    const rdOldProj4 = '+proj=sterea +lat_0=52.1561605555556 +lon_0=5.38763888888889 +k=0.9999079 +x_0=0 +y_0=0 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,1.9342,-1.6677,9.1019,4.0725 +units=m +no_defs +type=crs';
+    const rdOldProj4 =
+      '+proj=sterea +lat_0=52.1561605555556 +lon_0=5.38763888888889 +k=0.9999079 +x_0=0 +y_0=0 +ellps=bessel +towgs84=565.4171,50.3319,465.5524,1.9342,-1.6677,9.1019,4.0725 +units=m +no_defs +type=crs';
     // RD Old has same origin but x_0=0, y_0=0, so coordinates are shifted
     const rdOldExtent: Extent = [-162000, -174000, 145000, 166000];
 
@@ -375,7 +427,9 @@ describe('ProjectedGridSystem', () => {
       const extent: Extent = [333958, 6621293, 779236, 7170157];
       const features = system.getFeatures(extent, 500, 'EPSG:3857');
 
-      const majorFeatures = features.filter(f => f.get('gridLineType') === 'major');
+      const majorFeatures = features.filter(
+        (f) => f.get('gridLineType') === 'major',
+      );
       expect(majorFeatures.length).toBeGreaterThan(0);
     });
 
@@ -417,7 +471,10 @@ describe('ProjectedGridSystem', () => {
         crs: 'EPSG:32633',
         proj4Def: '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +type=crs',
       });
-      const [bareX, bareY] = utm.parseCoordinate('500000 5000000 m', 'EPSG:32633');
+      const [bareX, bareY] = utm.parseCoordinate(
+        '500000 5000000 m',
+        'EPSG:32633',
+      );
       expect(bareX).toBeCloseTo(500000, 6);
       expect(bareY).toBeCloseTo(5000000, 6);
       const [kmX, kmY] = utm.parseCoordinate('500 5000 km', 'EPSG:32633');
@@ -439,8 +496,12 @@ describe('ProjectedGridSystem', () => {
       });
       const original: [number, number] = [500000, 5000000];
       const formatted = utm.formatCoordinate(original, 'EPSG:32633');
-      if (!isAxisFormatted(formatted)) throw new Error('expected axis formatting');
-      const [px, py] = utm.parseCoordinate(`${formatted.x} ${formatted.y}`, 'EPSG:32633');
+      if (!isAxisFormatted(formatted))
+        throw new Error('expected axis formatting');
+      const [px, py] = utm.parseCoordinate(
+        `${formatted.x} ${formatted.y}`,
+        'EPSG:32633',
+      );
       expect(px).toBeCloseTo(original[0], 0);
       expect(py).toBeCloseTo(original[1], 0);
     });

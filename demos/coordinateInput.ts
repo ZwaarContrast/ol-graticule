@@ -14,7 +14,10 @@ import type { GridSystem } from '@zwaarcontrast/ol-graticule';
 
 import { tryNominatimFallback } from './nominatim';
 
-type ParseFn = (text: string, projection: ProjectionLike) => Coordinate | Promise<Coordinate>;
+type ParseFn = (
+  text: string,
+  projection: ProjectionLike,
+) => Coordinate | Promise<Coordinate>;
 
 interface CoordinateInputOptions {
   map: Map;
@@ -105,18 +108,27 @@ export function createCoordinateInput(
       return;
     } catch (err) {
       const parserReason =
-        err instanceof ParseError ? err.reason :
-        err instanceof Error ? err.message :
-        'parse failed';
-      await tryNominatimFallback(text, parserReason, (hit) => {
-        const coord = transform([hit.lon, hit.lat], 'EPSG:4326', projection);
-        overlay.setPosition(coord);
-        map.getView().animate({ center: coord, duration: 400 });
-      }, setStatus);
+        err instanceof ParseError
+          ? err.reason
+          : err instanceof Error
+            ? err.message
+            : 'parse failed';
+      await tryNominatimFallback(
+        text,
+        parserReason,
+        (hit) => {
+          const coord = transform([hit.lon, hit.lat], 'EPSG:4326', projection);
+          overlay.setPosition(coord);
+          map.getView().animate({ center: coord, duration: 400 });
+        },
+        setStatus,
+      );
     }
   }
 
-  button.addEventListener('click', () => { void go(); });
+  button.addEventListener('click', () => {
+    void go();
+  });
   input.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
       event.preventDefault();

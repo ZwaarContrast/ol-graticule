@@ -159,5 +159,4 @@ describe('latlon helpers', () => {
       expect(roundTo(2, 1.23)).toBe(1.23);
     });
   });
-
 });

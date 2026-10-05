@@ -11,36 +11,36 @@ demo per package.
 
 ## Packages
 
-| Package | What it gives you |
-|---|---|
-| [`@zwaarcontrast/ol-graticule`](./packages/ol-graticule) | `UniversalGraticule` layer, `CursorPositionControl`, `PixelGridSystem`, `GeographicGridSystem` (EPSG:4326). No proj4 dependency. |
-| [`@zwaarcontrast/ol-graticule-projected`](./packages/ol-graticule-projected) | `ProjectedGridSystem`, any CRS via proj4. |
+| Package                                                                                                  | What it gives you                                                                                                                                                                                                                  |
+| -------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [`@zwaarcontrast/ol-graticule`](./packages/ol-graticule)                                                 | `UniversalGraticule` layer, `CursorPositionControl`, `PixelGridSystem`, `GeographicGridSystem` (EPSG:4326). No proj4 dependency.                                                                                                   |
+| [`@zwaarcontrast/ol-graticule-projected`](./packages/ol-graticule-projected)                             | `ProjectedGridSystem`, any CRS via proj4.                                                                                                                                                                                          |
 | [`@zwaarcontrast/ol-graticule-modified-british-system`](./packages/ol-graticule-modified-british-system) | Modified British System letter-cell artillery grids for ten WWII theatres (Nord de Guerre, British/Irish Cassini, French Lambert I/II/III, War Office Cassini, Scandinavian Zone 3, Italian Northern/Southern, Iberian Peninsula). |
-| [`@zwaarcontrast/ol-graticule-rd`](./packages/ol-graticule-rd) | Dutch RD Amersfoort grids (EPSG:28991 Old, EPSG:28992 New). Netherlands coverage polygon baked in. |
-| [`@zwaarcontrast/ol-graticule-nei`](./packages/ol-graticule-nei) | WWII Netherlands East Indies grids on the Batavia datum: NEI Southern Zone (Lambert) and NEI Equatorial Zone (EPSG:3001). |
-| [`@zwaarcontrast/ol-graticule-ngo`](./packages/ol-graticule-ngo) | The eight Norwegian Gauss-Krüger strips (norweg. Gitterstreifen) as German WWII sheets of Norway print them. |
-| [`@zwaarcontrast/ol-graticule-mgrs`](./packages/ol-graticule-mgrs) | Military Grid Reference System (MGRS / NATO grid) over UTM, with Norway and Svalbard exceptions. |
-| [`@zwaarcontrast/ol-graticule-luftwaffe-planquadrat`](./packages/ol-graticule-luftwaffe-planquadrat) | WWII Luftwaffe Planquadrat reference grids: Gradnetzmeldeverfahren (GNMV) and Jägermeldenetz (JMN). |
-| [`@zwaarcontrast/ol-graticule-heeresgitter`](./packages/ol-graticule-heeresgitter) | WWII Wehrmacht map reference grids: Deutsches Heeresgitter (DHG, Bessel + 6° Gauß-Krüger) and Heeresmeldenetz (HMN) letter cells. |
-| `@zwaarcontrast/ol-graticule-marinequadratkarte` | WWII Kriegsmarine naval grid. *Not yet published*, see [the package's LICENSE.TODO.md](./packages/ol-graticule-marinequadratkarte/LICENSE.TODO.md). |
+| [`@zwaarcontrast/ol-graticule-rd`](./packages/ol-graticule-rd)                                           | Dutch RD Amersfoort grids (EPSG:28991 Old, EPSG:28992 New). Netherlands coverage polygon baked in.                                                                                                                                 |
+| [`@zwaarcontrast/ol-graticule-nei`](./packages/ol-graticule-nei)                                         | WWII Netherlands East Indies grids on the Batavia datum: NEI Southern Zone (Lambert) and NEI Equatorial Zone (EPSG:3001).                                                                                                          |
+| [`@zwaarcontrast/ol-graticule-ngo`](./packages/ol-graticule-ngo)                                         | The eight Norwegian Gauss-Krüger strips (norweg. Gitterstreifen) as German WWII sheets of Norway print them.                                                                                                                       |
+| [`@zwaarcontrast/ol-graticule-mgrs`](./packages/ol-graticule-mgrs)                                       | Military Grid Reference System (MGRS / NATO grid) over UTM, with Norway and Svalbard exceptions.                                                                                                                                   |
+| [`@zwaarcontrast/ol-graticule-luftwaffe-planquadrat`](./packages/ol-graticule-luftwaffe-planquadrat)     | WWII Luftwaffe Planquadrat reference grids: Gradnetzmeldeverfahren (GNMV) and Jägermeldenetz (JMN).                                                                                                                                |
+| [`@zwaarcontrast/ol-graticule-heeresgitter`](./packages/ol-graticule-heeresgitter)                       | WWII Wehrmacht map reference grids: Deutsches Heeresgitter (DHG, Bessel + 6° Gauß-Krüger) and Heeresmeldenetz (HMN) letter cells.                                                                                                  |
+| `@zwaarcontrast/ol-graticule-marinequadratkarte`                                                         | WWII Kriegsmarine naval grid. _Not yet published_, see [the package's LICENSE.TODO.md](./packages/ol-graticule-marinequadratkarte/LICENSE.TODO.md).                                                                                |
 
 Each add-on package depends on `@zwaarcontrast/ol-graticule`; install only
 what you need.
 
 ## Install matrix
 
-| If you want… | Install |
-|---|---|
-| Lat/lon graticule on a web map | `@zwaarcontrast/ol-graticule` |
-| Pixel ruler on an IIIF viewer | `@zwaarcontrast/ol-graticule` |
-| UTM / state plane / custom proj4 CRS | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-projected` + `proj4` |
+| If you want…                                 | Install                                                                                                                                     |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lat/lon graticule on a web map               | `@zwaarcontrast/ol-graticule`                                                                                                               |
+| Pixel ruler on an IIIF viewer                | `@zwaarcontrast/ol-graticule`                                                                                                               |
+| UTM / state plane / custom proj4 CRS         | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-projected` + `proj4`                                                           |
 | MBS artillery grid (any of 10 WWII theatres) | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-modified-british-system` (+ `@zwaarcontrast/ol-graticule-projected` + `proj4`) |
-| Dutch RD grid | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-rd` (+ `@zwaarcontrast/ol-graticule-projected` + `proj4`) |
-| NEI Southern / Equatorial Zone | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-nei` + `@zwaarcontrast/ol-graticule-projected` + `proj4` |
-| Norwegian strips (norweg. Gitterstreifen) | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-ngo` + `@zwaarcontrast/ol-graticule-projected` + `proj4` |
-| MGRS / NATO grid | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-mgrs` (+ `@zwaarcontrast/ol-graticule-projected` + `proj4`) |
-| Luftwaffe GNMV / JMN | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-luftwaffe-planquadrat` |
-| Wehrmacht DHG / HMN | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-heeresgitter` (+ `@zwaarcontrast/ol-graticule-projected` + `proj4`) |
+| Dutch RD grid                                | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-rd` (+ `@zwaarcontrast/ol-graticule-projected` + `proj4`)                      |
+| NEI Southern / Equatorial Zone               | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-nei` + `@zwaarcontrast/ol-graticule-projected` + `proj4`                       |
+| Norwegian strips (norweg. Gitterstreifen)    | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-ngo` + `@zwaarcontrast/ol-graticule-projected` + `proj4`                       |
+| MGRS / NATO grid                             | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-mgrs` (+ `@zwaarcontrast/ol-graticule-projected` + `proj4`)                    |
+| Luftwaffe GNMV / JMN                         | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-luftwaffe-planquadrat`                                                         |
+| Wehrmacht DHG / HMN                          | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-heeresgitter` (+ `@zwaarcontrast/ol-graticule-projected` + `proj4`)            |
 
 `ol` is a peer dependency of every package (`^10.0.0`).
 
@@ -80,7 +80,10 @@ to a search input to fly the map to a typed location.
 import { ParseError } from '@zwaarcontrast/ol-graticule';
 
 try {
-  const center = gridSystem.parseCoordinate(input.value, map.getView().getProjection());
+  const center = gridSystem.parseCoordinate(
+    input.value,
+    map.getView().getProjection(),
+  );
   map.getView().animate({ center, duration: 400 });
 } catch (err) {
   if (err instanceof ParseError) showError(err.reason);

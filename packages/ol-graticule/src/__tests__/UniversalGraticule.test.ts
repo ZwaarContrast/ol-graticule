@@ -23,7 +23,10 @@ describe('UniversalGraticule (Facade)', () => {
     });
 
     it('forces CanvasGraticuleLayer when renderer is canvas', () => {
-      const graticule = new UniversalGraticule({ gridSystem, renderer: 'canvas' });
+      const graticule = new UniversalGraticule({
+        gridSystem,
+        renderer: 'canvas',
+      });
       const child = graticule.getLayers().item(0);
       expect(child).toBeInstanceOf(CanvasGraticuleLayer);
     });
@@ -90,7 +93,10 @@ describe('UniversalGraticule (Facade)', () => {
     it('delegates correctly when backed by WebGLGraticuleLayer', () => {
       const a = new PixelGridSystem();
       const b = new PixelGridSystem({ yInverted: true });
-      const graticule = new UniversalGraticule({ gridSystem: a, renderer: 'gl' });
+      const graticule = new UniversalGraticule({
+        gridSystem: a,
+        renderer: 'gl',
+      });
       expect(graticule.getGridSystem()).toBe(a);
       graticule.setGridSystem(b);
       expect(graticule.getGridSystem()).toBe(b);

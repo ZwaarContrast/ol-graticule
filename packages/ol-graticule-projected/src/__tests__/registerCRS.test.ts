@@ -10,7 +10,8 @@ const TEST_CODE_B = 'EPSG:990002';
 
 // Two distinct valid proj4 definitions: UTM zone 33N and UTM zone 34N.
 const PROJ4_A = '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs +type=crs';
-const PROJ4_A_ALT = '+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +type=crs';
+const PROJ4_A_ALT =
+  '+proj=utm +zone=34 +datum=WGS84 +units=m +no_defs +type=crs';
 const PROJ4_B = '+proj=utm +zone=10 +datum=WGS84 +units=m +no_defs +type=crs';
 
 describe('registerCRS', () => {

@@ -86,7 +86,9 @@ describe('HMN: Hadres ground truth (Meldung example "PE 1b 52")', () => {
 
   it('parses against an explicit grossquadrat (no near hint)', () => {
     const viaNear = parseHmn('PE 1b 52', { near: nearHadres })!;
-    const viaExplicit = parseHmn('PE 1b 52', { grossquadrat: viaNear.grossquadrat })!;
+    const viaExplicit = parseHmn('PE 1b 52', {
+      grossquadrat: viaNear.grossquadrat,
+    })!;
     expect(viaExplicit.canonical).toBe('PE 1b 52');
     expect(viaExplicit.center[0]).toBeCloseTo(viaNear.center[0], 6);
     expect(viaExplicit.center[1]).toBeCloseTo(viaNear.center[1], 6);
@@ -108,7 +110,10 @@ describe('HMN: Hadres ground truth (Meldung example "PE 1b 52")', () => {
   });
 
   it('round-trips sheetNumber through parse', () => {
-    const ref = parseHmn('PE 1b 52', { near: nearHadres, sheetNumber: '4558 Ost' });
+    const ref = parseHmn('PE 1b 52', {
+      near: nearHadres,
+      sheetNumber: '4558 Ost',
+    });
     expect(ref?.sheetNumber).toBe('4558 Ost');
   });
 });
@@ -216,10 +221,14 @@ describe('HMN: Arbeitstrapez subdivision (a..d row-major NW)', () => {
   const MT_NW_E = 502_000;
   const MT_NW_N = 5_476_000;
 
-  const cases: Array<{ eOff: number; nOff: number; expected: 'a' | 'b' | 'c' | 'd' }> = [
-    { eOff: 500,  nOff: 500,  expected: 'a' },
-    { eOff: 1500, nOff: 500,  expected: 'b' },
-    { eOff: 500,  nOff: 1500, expected: 'c' },
+  const cases: Array<{
+    eOff: number;
+    nOff: number;
+    expected: 'a' | 'b' | 'c' | 'd';
+  }> = [
+    { eOff: 500, nOff: 500, expected: 'a' },
+    { eOff: 1500, nOff: 500, expected: 'b' },
+    { eOff: 500, nOff: 1500, expected: 'c' },
     { eOff: 1500, nOff: 1500, expected: 'd' },
   ];
 

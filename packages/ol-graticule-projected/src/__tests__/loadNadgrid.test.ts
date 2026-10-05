@@ -40,30 +40,74 @@ function makeMinimalNtv2(): ArrayBuffer {
 
   // Overview header.
   let o = 0;
-  writeKey(o, 'NUM_OREC'); writeI32(o + 8, headerRecords); o += 16;
-  writeKey(o, 'NUM_SREC'); writeI32(o + 8, subgridRecords); o += 16;
-  writeKey(o, 'NUM_FILE'); writeI32(o + 8, 1); o += 16;
-  writeKey(o, 'GS_TYPE '); writeStr(o + 8, 'SECONDS '); o += 16;
-  writeKey(o, 'VERSION '); writeStr(o + 8, 'TEST    '); o += 16;
-  writeKey(o, 'SYSTEM_F'); writeStr(o + 8, 'WGS84   '); o += 16;
-  writeKey(o, 'SYSTEM_T'); writeStr(o + 8, 'BESSEL  '); o += 16;
-  writeKey(o, 'MAJOR_F '); writeF64(o + 8, 6378137.0); o += 16;
-  writeKey(o, 'MINOR_F '); writeF64(o + 8, 6356752.3); o += 16;
-  writeKey(o, 'MAJOR_T '); writeF64(o + 8, 6377397.155); o += 16;
-  writeKey(o, 'MINOR_T '); writeF64(o + 8, 6356078.963); o += 16;
+  writeKey(o, 'NUM_OREC');
+  writeI32(o + 8, headerRecords);
+  o += 16;
+  writeKey(o, 'NUM_SREC');
+  writeI32(o + 8, subgridRecords);
+  o += 16;
+  writeKey(o, 'NUM_FILE');
+  writeI32(o + 8, 1);
+  o += 16;
+  writeKey(o, 'GS_TYPE ');
+  writeStr(o + 8, 'SECONDS ');
+  o += 16;
+  writeKey(o, 'VERSION ');
+  writeStr(o + 8, 'TEST    ');
+  o += 16;
+  writeKey(o, 'SYSTEM_F');
+  writeStr(o + 8, 'WGS84   ');
+  o += 16;
+  writeKey(o, 'SYSTEM_T');
+  writeStr(o + 8, 'BESSEL  ');
+  o += 16;
+  writeKey(o, 'MAJOR_F ');
+  writeF64(o + 8, 6378137.0);
+  o += 16;
+  writeKey(o, 'MINOR_F ');
+  writeF64(o + 8, 6356752.3);
+  o += 16;
+  writeKey(o, 'MAJOR_T ');
+  writeF64(o + 8, 6377397.155);
+  o += 16;
+  writeKey(o, 'MINOR_T ');
+  writeF64(o + 8, 6356078.963);
+  o += 16;
 
   // Subgrid header.
-  writeKey(o, 'SUB_NAME'); writeStr(o + 8, 'SUB0    '); o += 16;
-  writeKey(o, 'PARENT  '); writeStr(o + 8, 'NONE    '); o += 16;
-  writeKey(o, 'CREATED '); writeStr(o + 8, '20000101'); o += 16;
-  writeKey(o, 'UPDATED '); writeStr(o + 8, '20000101'); o += 16;
-  writeKey(o, 'S_LAT   '); writeF64(o + 8, 0); o += 16;
-  writeKey(o, 'N_LAT   '); writeF64(o + 8, 3600); o += 16;
-  writeKey(o, 'E_LONG  '); writeF64(o + 8, 0); o += 16;
-  writeKey(o, 'W_LONG  '); writeF64(o + 8, 3600); o += 16;
-  writeKey(o, 'LAT_INC '); writeF64(o + 8, 3600); o += 16;
-  writeKey(o, 'LONG_INC'); writeF64(o + 8, 3600); o += 16;
-  writeKey(o, 'GS_COUNT'); writeI32(o + 8, nodes); o += 16;
+  writeKey(o, 'SUB_NAME');
+  writeStr(o + 8, 'SUB0    ');
+  o += 16;
+  writeKey(o, 'PARENT  ');
+  writeStr(o + 8, 'NONE    ');
+  o += 16;
+  writeKey(o, 'CREATED ');
+  writeStr(o + 8, '20000101');
+  o += 16;
+  writeKey(o, 'UPDATED ');
+  writeStr(o + 8, '20000101');
+  o += 16;
+  writeKey(o, 'S_LAT   ');
+  writeF64(o + 8, 0);
+  o += 16;
+  writeKey(o, 'N_LAT   ');
+  writeF64(o + 8, 3600);
+  o += 16;
+  writeKey(o, 'E_LONG  ');
+  writeF64(o + 8, 0);
+  o += 16;
+  writeKey(o, 'W_LONG  ');
+  writeF64(o + 8, 3600);
+  o += 16;
+  writeKey(o, 'LAT_INC ');
+  writeF64(o + 8, 3600);
+  o += 16;
+  writeKey(o, 'LONG_INC');
+  writeF64(o + 8, 3600);
+  o += 16;
+  writeKey(o, 'GS_COUNT');
+  writeI32(o + 8, nodes);
+  o += 16;
 
   // Nodes: each is (lat shift, lon shift, lat accuracy, lon accuracy) f32.
   for (let i = 0; i < nodes; i++) {
@@ -121,12 +165,12 @@ describe('loadNadgrid', () => {
   });
 
   it('drops failed loads from the cache so callers can retry', async () => {
-    const spy = vi
-      .spyOn(proj4, 'nadgrid')
-      .mockImplementationOnce(() => {
-        throw new Error('bad grid');
-      });
-    await expect(loadNadgrid('test_grid_e', makeMinimalNtv2())).rejects.toThrow('bad grid');
+    const spy = vi.spyOn(proj4, 'nadgrid').mockImplementationOnce(() => {
+      throw new Error('bad grid');
+    });
+    await expect(loadNadgrid('test_grid_e', makeMinimalNtv2())).rejects.toThrow(
+      'bad grid',
+    );
     spy.mockRestore();
 
     // Second call with a fresh buffer should re-invoke nadgrid rather than
@@ -144,8 +188,9 @@ describe('loadNadgrid', () => {
       statusText: 'Not Found',
     } as Response);
 
-    await expect(loadNadgrid('test_grid_f', 'https://example.invalid/none.gsb'))
-      .rejects.toThrow(/404 Not Found/);
+    await expect(
+      loadNadgrid('test_grid_f', 'https://example.invalid/none.gsb'),
+    ).rejects.toThrow(/404 Not Found/);
 
     fetchSpy.mockRestore();
   });

@@ -49,7 +49,9 @@ export function decomposeHmn(
   shift?: DatumShift,
 ): HmnBreakdown {
   const coord =
-    kennziffer === undefined ? forward(point, shift) : forwardInZone(point, kennziffer, shift);
+    kennziffer === undefined
+      ? forward(point, shift)
+      : forwardInZone(point, kennziffer, shift);
 
   const eastOffsetFromCm = coord.easting - FALSE_EASTING;
   const gx = Math.floor(eastOffsetFromCm / GROSSQUADRAT_M);
@@ -81,7 +83,9 @@ export function decomposeHmn(
   const ay = Math.floor((meldeNwN - coord.northing) / ARBEITSTRAPEZ_M);
   const arbeitstrapez = ARBEIT_LABELS[ay * 2 + ax];
   if (arbeitstrapez === undefined) {
-    throw new RangeError(`HMN Arbeitstrapez index out of range: ax=${ax}, ay=${ay}`);
+    throw new RangeError(
+      `HMN Arbeitstrapez index out of range: ax=${ax}, ay=${ay}`,
+    );
   }
   const arbeitNwE = meldeNwE + ax * ARBEITSTRAPEZ_M;
   const arbeitNwN = meldeNwN - ay * ARBEITSTRAPEZ_M;
@@ -178,7 +182,10 @@ export function encodeHmn(
   return ref;
 }
 
-interface SwCorner { swE: number; swN: number }
+interface SwCorner {
+  swE: number;
+  swN: number;
+}
 
 function swCornerForDepth(b: HmnBreakdown, depth: number): SwCorner {
   if (depth === 2) {
@@ -194,4 +201,3 @@ function swCornerForDepth(b: HmnBreakdown, depth: number): SwCorner {
     swN: b.arbeitSwN + tn * TENTH_M,
   };
 }
-

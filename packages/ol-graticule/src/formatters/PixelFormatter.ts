@@ -48,8 +48,15 @@ function splitWhitespacePixelPair_(trimmed: string): [string, string] {
   if (tokens.length === 3 && BARE_PX_RE.test(tokens[2]!)) {
     return [tokens[0]!, `${tokens[1]} ${tokens[2]}`];
   }
-  if (tokens.length === 4 && BARE_PX_RE.test(tokens[1]!) && BARE_PX_RE.test(tokens[3]!)) {
+  if (
+    tokens.length === 4 &&
+    BARE_PX_RE.test(tokens[1]!) &&
+    BARE_PX_RE.test(tokens[3]!)
+  ) {
     return [`${tokens[0]} ${tokens[1]}`, `${tokens[2]} ${tokens[3]}`];
   }
-  throw new ParseError(trimmed, 'expected "x y" pair (with optional px suffix)');
+  throw new ParseError(
+    trimmed,
+    'expected "x y" pair (with optional px suffix)',
+  );
 }

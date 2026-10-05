@@ -35,8 +35,14 @@ describe('HmnGridSystem.formatCoordinate / isValidCoordinate', () => {
 
   it('maxDepth=2 is a strict prefix of maxDepth=4 output at the same point', () => {
     const hadres3857: [number, number] = [1_799_725, 6_223_550];
-    const k2 = new HmnGridSystem({ maxDepth: 2 }).formatCoordinate(hadres3857, 'EPSG:3857');
-    const k4 = new HmnGridSystem({ maxDepth: 4 }).formatCoordinate(hadres3857, 'EPSG:3857');
+    const k2 = new HmnGridSystem({ maxDepth: 2 }).formatCoordinate(
+      hadres3857,
+      'EPSG:3857',
+    );
+    const k4 = new HmnGridSystem({ maxDepth: 4 }).formatCoordinate(
+      hadres3857,
+      'EPSG:3857',
+    );
     if (!('combined' in k2) || !('combined' in k4)) {
       throw new Error('expected combined output from HmnGridSystem');
     }

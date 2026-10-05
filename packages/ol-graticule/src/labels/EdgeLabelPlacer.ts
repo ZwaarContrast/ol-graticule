@@ -166,9 +166,14 @@ export class EdgeLabelPlacer {
   private labelLeaderEnd_: [number, number] | null = null;
   private readonly reusablePoint_: Point = new Point([0, 0]);
   private readonly reusableEdgeLabel_: GridLabel = {
-    point: this.reusablePoint_, text: '', axis: 'x',
+    point: this.reusablePoint_,
+    text: '',
+    axis: 'x',
   };
-  private readonly tickGeom_ = new LineString([[0, 0], [0, 0]]);
+  private readonly tickGeom_ = new LineString([
+    [0, 0],
+    [0, 0],
+  ]);
   private readonly tickStyle_: Style;
 
   constructor(
@@ -201,7 +206,9 @@ export class EdgeLabelPlacer {
     this.edgeLabelPool_.push(first);
     const params = getFontParameters(first.text.getFont() ?? '');
     const parsed = params ? parseFloat(params.size) : NaN;
-    this.labelFontSize_ = Number.isFinite(parsed) ? parsed : DEFAULT_LABEL_FONT_SIZE;
+    this.labelFontSize_ = Number.isFinite(parsed)
+      ? parsed
+      : DEFAULT_LABEL_FONT_SIZE;
   }
 
   /**
@@ -238,13 +245,27 @@ export class EdgeLabelPlacer {
       const e = xBuf[i];
       if (!e) continue;
       ctx.label = this.labelFor_(e);
-      slotIndex = this.placeEdgeLabel_(ctx, slotIndex, resolution, vectorContext, frame, screen);
+      slotIndex = this.placeEdgeLabel_(
+        ctx,
+        slotIndex,
+        resolution,
+        vectorContext,
+        frame,
+        screen,
+      );
     }
     for (let i = 0; i < yCount; i++) {
       const e = yBuf[i];
       if (!e) continue;
       ctx.label = this.labelFor_(e);
-      slotIndex = this.placeEdgeLabel_(ctx, slotIndex, resolution, vectorContext, frame, screen);
+      slotIndex = this.placeEdgeLabel_(
+        ctx,
+        slotIndex,
+        resolution,
+        vectorContext,
+        frame,
+        screen,
+      );
     }
   }
 
@@ -261,9 +282,10 @@ export class EdgeLabelPlacer {
     frame: EdgeLabelFrame,
     screen: ScreenFrame,
   ): number {
-    const edge = this.edgeLabelExtend_ === 'axis'
-      ? this.axisAnchor_(ctx.label, resolution, frame, screen)
-      : this.anchorToBorder_(ctx.label, resolution, frame);
+    const edge =
+      this.edgeLabelExtend_ === 'axis'
+        ? this.axisAnchor_(ctx.label, resolution, frame, screen)
+        : this.anchorToBorder_(ctx.label, resolution, frame);
     if (edge < 0) return slotIndex;
     if (!this.reserveEdgeSlot_(ctx.label, edge, screen)) return slotIndex;
     ctx.preplaced = true;
@@ -271,7 +293,8 @@ export class EdgeLabelPlacer {
     const slot = this.getEdgeLabelSlot_(slotIndex);
     if (!this.handler_.update(slot, ctx)) return slotIndex;
     // Leader first, so it sits beneath the label rather than over its text.
-    if (this.edgeLabelLeader_ !== 'none') this.drawLeader_(vectorContext, ctx.label, resolution, frame);
+    if (this.edgeLabelLeader_ !== 'none')
+      this.drawLeader_(vectorContext, ctx.label, resolution, frame);
     vectorContext.drawFeature(slot.feature, slot.style);
     return slotIndex + 1;
   }
@@ -310,14 +333,21 @@ export class EdgeLabelPlacer {
    * meridian/parallel, not the frame), then shift its endpoints back so the
    * crossing lands in the label's world.
    */
-  private resolveLineEnds_(label: GridLabel, resolution: number, frame: EdgeLabelFrame): boolean {
+  private resolveLineEnds_(
+    label: GridLabel,
+    resolution: number,
+    frame: EdgeLabelFrame,
+  ): boolean {
     const coords = label.point.getCoordinates();
-    const worldShift = frame.worldWidth > 0
-      ? frame.worldWidth * Math.round((coords[0] ?? 0) / frame.worldWidth)
-      : 0;
+    const worldShift =
+      frame.worldWidth > 0
+        ? frame.worldWidth * Math.round((coords[0] ?? 0) / frame.worldWidth)
+        : 0;
     const line = this.nearestLine_(
       label.axis === 'x' ? this.xLines_ : this.yLines_,
-      (coords[0] ?? 0) - worldShift, coords[1] ?? 0, resolution,
+      (coords[0] ?? 0) - worldShift,
+      coords[1] ?? 0,
+      resolution,
     );
     if (!line) return false;
     const flat = line.getFlatCoordinates();
@@ -338,7 +368,11 @@ export class EdgeLabelPlacer {
    * stopping short of the edge is labelled at its end. Returns the edge it
    * landed on (`EDGE_*`), or -1 if none.
    */
-  private anchorToBorder_(label: GridLabel, resolution: number, frame: EdgeLabelFrame): number {
+  private anchorToBorder_(
+    label: GridLabel,
+    resolution: number,
+    frame: EdgeLabelFrame,
+  ): number {
     if (!this.resolveLineEnds_(label, resolution, frame)) return -1;
     const [x0, y0, x1, y1] = this.lineEnds_;
     const order = label.axis === 'x' ? this.xEdgeOrder_ : this.yEdgeOrder_;
@@ -350,18 +384,35 @@ export class EdgeLabelPlacer {
       const targetLo = horizontal ? e[1] : e[0];
       const targetHi = horizontal ? e[3] : e[2];
       const placed = borderAnchor(
-        x0, y0, x1, y1,
-        frame.cx, frame.cy, frame.cos, frame.sin,
-        horizontal, frame.edgeTarget[edge] ?? 0, frame.edgeSpanLo[edge] ?? 0, frame.edgeSpanHi[edge] ?? 0,
-        targetLo, targetHi, this.edgeLabelExtend_ === 'line', this.labelCross_,
+        x0,
+        y0,
+        x1,
+        y1,
+        frame.cx,
+        frame.cy,
+        frame.cos,
+        frame.sin,
+        horizontal,
+        frame.edgeTarget[edge] ?? 0,
+        frame.edgeSpanLo[edge] ?? 0,
+        frame.edgeSpanHi[edge] ?? 0,
+        targetLo,
+        targetHi,
+        this.edgeLabelExtend_ === 'line',
+        this.labelCross_,
       );
       if (placed) {
         label.point.setCoordinates([this.labelCross_[0], this.labelCross_[1]]);
         this.labelDir_[0] = x1 - x0;
         this.labelDir_[1] = y1 - y0;
-        this.labelSeg_[0] = x0; this.labelSeg_[1] = y0;
-        this.labelSeg_[2] = x1; this.labelSeg_[3] = y1;
-        this.labelLeaderEnd_ = this.nearLineEnd_(this.labelCross_[0], this.labelCross_[1]);
+        this.labelSeg_[0] = x0;
+        this.labelSeg_[1] = y0;
+        this.labelSeg_[2] = x1;
+        this.labelSeg_[3] = y1;
+        this.labelLeaderEnd_ = this.nearLineEnd_(
+          this.labelCross_[0],
+          this.labelCross_[1],
+        );
         return edge;
       }
     }
@@ -376,17 +427,26 @@ export class EdgeLabelPlacer {
    * leader endpoint so the connector runs straight to the label.
    */
   private axisAnchor_(
-    label: GridLabel, resolution: number, frame: EdgeLabelFrame, screen: ScreenFrame,
+    label: GridLabel,
+    resolution: number,
+    frame: EdgeLabelFrame,
+    screen: ScreenFrame,
   ): number {
     if (!this.resolveLineEnds_(label, resolution, frame)) return -1;
     const [x0, y0, x1, y1] = this.lineEnds_;
     const toPixel = screen.toPixel;
     const fromPixel = screen.fromPixel;
     const s = this.labelPxScratch_;
-    s[0] = x0; s[1] = y0; applyTransform(toPixel, s);
-    const sx0 = s[0], sy0 = s[1];
-    s[0] = x1; s[1] = y1; applyTransform(toPixel, s);
-    const sx1 = s[0], sy1 = s[1];
+    s[0] = x0;
+    s[1] = y0;
+    applyTransform(toPixel, s);
+    const sx0 = s[0],
+      sy0 = s[1];
+    s[0] = x1;
+    s[1] = y1;
+    applyTransform(toPixel, s);
+    const sx1 = s[0],
+      sy1 = s[1];
 
     let edge: number, anchorSx: number, anchorSy: number;
     let leaderEnd: [number, number] | null;
@@ -396,7 +456,9 @@ export class EdgeLabelPlacer {
       edge = top ? EDGE_TOP : EDGE_BOTTOM;
       const edgeSy = top ? 0 : screen.viewH;
       // Clipped short of the edge when both ends stay on the map side of it.
-      const clipped = top ? sy0 >= edgeSy && sy1 >= edgeSy : sy0 <= edgeSy && sy1 <= edgeSy;
+      const clipped = top
+        ? sy0 >= edgeSy && sy1 >= edgeSy
+        : sy0 <= edgeSy && sy1 <= edgeSy;
       anchorSy = edgeSy;
       if (clipped) {
         // Drop straight down/up from the near end; the leader bridges the gap.
@@ -416,7 +478,9 @@ export class EdgeLabelPlacer {
       const left = this.yLabelPosition_ === 'left';
       edge = left ? EDGE_LEFT : EDGE_RIGHT;
       const edgeSx = left ? 0 : screen.viewW;
-      const clipped = left ? sx0 >= edgeSx && sx1 >= edgeSx : sx0 <= edgeSx && sx1 <= edgeSx;
+      const clipped = left
+        ? sx0 >= edgeSx && sx1 >= edgeSx
+        : sx0 <= edgeSx && sx1 <= edgeSx;
       anchorSx = edgeSx;
       if (clipped) {
         const first = left ? sx0 <= sx1 : sx0 >= sx1;
@@ -430,8 +494,11 @@ export class EdgeLabelPlacer {
       }
       if (anchorSy < 0 || anchorSy > screen.viewH) return -1;
     }
-    s[0] = anchorSx; s[1] = anchorSy; applyTransform(fromPixel, s);
-    const ax = s[0], ay = s[1];
+    s[0] = anchorSx;
+    s[1] = anchorSy;
+    applyTransform(fromPixel, s);
+    const ax = s[0],
+      ay = s[1];
     label.point.setCoordinates([ax, ay]);
     this.labelLeaderEnd_ = leaderEnd;
     this.labelDir_[0] = leaderEnd ? leaderEnd[0] - ax : x1 - x0;
@@ -445,7 +512,11 @@ export class EdgeLabelPlacer {
    * occupied interval. Keeps the rulers from stacking or bleeding off a
    * corner.
    */
-  private reserveEdgeSlot_(label: GridLabel, edge: number, screen: ScreenFrame): boolean {
+  private reserveEdgeSlot_(
+    label: GridLabel,
+    edge: number,
+    screen: ScreenFrame,
+  ): boolean {
     const toPixel = screen.toPixel;
     const c = label.point.getCoordinates();
     this.labelPxScratch_[0] = c[0] ?? 0;
@@ -454,7 +525,8 @@ export class EdgeLabelPlacer {
     const sx = this.labelPxScratch_[0];
     const sy = this.labelPxScratch_[1];
     const m = LABEL_CORNER_MARGIN;
-    if ((sx < m || sx > screen.viewW - m) && (sy < m || sy > screen.viewH - m)) return false;
+    if ((sx < m || sx > screen.viewW - m) && (sy < m || sy > screen.viewH - m))
+      return false;
     const horizontal = EDGE_HORIZONTAL[edge] ?? false;
     const along = horizontal ? sx : sy;
     const half = horizontal
@@ -464,7 +536,11 @@ export class EdgeLabelPlacer {
     const hi = along + half;
     const occ = this.edgeOccupied_[edge] ?? [];
     for (let k = 0; k < occ.length; k += 2) {
-      if (lo < (occ[k + 1] ?? 0) + LABEL_GAP_PAD && hi > (occ[k] ?? 0) - LABEL_GAP_PAD) return false;
+      if (
+        lo < (occ[k + 1] ?? 0) + LABEL_GAP_PAD &&
+        hi > (occ[k] ?? 0) - LABEL_GAP_PAD
+      )
+        return false;
     }
     occ.push(lo, hi);
     return true;
@@ -509,7 +585,10 @@ export class EdgeLabelPlacer {
       ex = ax + dx * reach;
       ey = ay + dy * reach;
     }
-    this.tickGeom_.setCoordinates([[ax, ay], [ex, ey]]);
+    this.tickGeom_.setCoordinates([
+      [ax, ay],
+      [ex, ey],
+    ]);
     vectorContext.setStyle(this.tickStyle_);
     vectorContext.drawGeometry(this.tickGeom_);
   }
@@ -556,9 +635,12 @@ export class EdgeLabelPlacer {
    * grid ever ships enough lines to make this show up in a profile.
    */
   private nearestLine_(
-    lines: LineString[], x: number, y: number, resolution: number,
+    lines: LineString[],
+    x: number,
+    y: number,
+    resolution: number,
   ): LineString | null {
-    const onLineSq = (resolution * 0.5) * (resolution * 0.5);
+    const onLineSq = resolution * 0.5 * (resolution * 0.5);
     let best: LineString | null = null;
     let bestSq = Infinity;
     for (const geom of lines) {
@@ -566,7 +648,12 @@ export class EdgeLabelPlacer {
       const stride = geom.getStride();
       for (let i = 0; i + stride + 1 < flat.length; i += stride) {
         const dSq = distToSegmentSq(
-          x, y, flat[i] ?? 0, flat[i + 1] ?? 0, flat[i + stride] ?? 0, flat[i + stride + 1] ?? 0,
+          x,
+          y,
+          flat[i] ?? 0,
+          flat[i + 1] ?? 0,
+          flat[i + stride] ?? 0,
+          flat[i + stride + 1] ?? 0,
         );
         if (dSq < bestSq) {
           bestSq = dSq;
@@ -602,7 +689,12 @@ function majorLineColor(line: GraticuleLineStyle | undefined): string {
   let stroke: Stroke | null = null;
   if (line instanceof Stroke) {
     stroke = line;
-  } else if (line && typeof line === 'object' && 'major' in line && line.major instanceof Stroke) {
+  } else if (
+    line &&
+    typeof line === 'object' &&
+    'major' in line &&
+    line.major instanceof Stroke
+  ) {
     stroke = line.major;
   }
   const color = stroke?.getColor();

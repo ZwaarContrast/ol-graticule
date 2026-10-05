@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { normalizeLon, extentFromPolygon, transformExtentSampled } from '../geo.js';
+import {
+  normalizeLon,
+  extentFromPolygon,
+  transformExtentSampled,
+} from '../geo.js';
 
 describe('normalizeLon', () => {
   it('is the identity inside [-180, 180]', () => {
@@ -47,7 +51,12 @@ describe('extentFromPolygon', () => {
   });
 
   it('handles negative coordinates', () => {
-    expect(extentFromPolygon([[-5, -10], [3, -1]])).toEqual([-5, -10, 3, -1]);
+    expect(
+      extentFromPolygon([
+        [-5, -10],
+        [3, -1],
+      ]),
+    ).toEqual([-5, -10, 3, -1]);
   });
 });
 

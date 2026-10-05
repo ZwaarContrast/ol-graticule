@@ -14,13 +14,16 @@ export interface LensPointer {
  */
 export class LensPointers {
   private readonly pointers_ = new Map<
-    number, { x: number; y: number; intensity: number; target: number }
+    number,
+    { x: number; y: number; intensity: number; target: number }
   >();
   private viewport_: HTMLElement | null = null;
   private onChange_: (() => void) | null = null;
 
-  private readonly onMove_ = (event: PointerEvent): void => this.fromEvent_(event);
-  private readonly onDown_ = (event: PointerEvent): void => this.fromEvent_(event);
+  private readonly onMove_ = (event: PointerEvent): void =>
+    this.fromEvent_(event);
+  private readonly onDown_ = (event: PointerEvent): void =>
+    this.fromEvent_(event);
   private readonly onUp_ = (event: PointerEvent): void => {
     // A mouse keeps hovering after its button is released (a click, or the end of
     // a drag), so its lens must stay; only touch/pen actually leave the surface
@@ -116,6 +119,10 @@ export class LensPointers {
     const viewport = this.viewport_;
     if (!viewport) return;
     const rect = viewport.getBoundingClientRect();
-    this.set(event.pointerId, event.clientX - rect.left, event.clientY - rect.top);
+    this.set(
+      event.pointerId,
+      event.clientX - rect.left,
+      event.clientY - rect.top,
+    );
   }
 }

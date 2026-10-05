@@ -50,9 +50,18 @@ describe('Letter family grids share the universal first-letter grid', () => {
     ['British Cassini family', BRITISH_CASSINI_FAMILY_LETTERS],
     ['Scandinavian Zone 3 family', SCANDINAVIAN_ZONE_3_FAMILY_LETTERS],
     ['Italian Northern family', ITALIAN_NORTHERN_FAMILY_LETTERS],
-  ])('%s first-letter grid is the universal V→A south→north arrangement', (label, grid) => {
-    expect(grid.firstLetterGrid).toEqual(['VWXYZ', 'QRSTU', 'LMNOP', 'FGHJK', 'ABCDE']);
-  });
+  ])(
+    '%s first-letter grid is the universal V→A south→north arrangement',
+    (label, grid) => {
+      expect(grid.firstLetterGrid).toEqual([
+        'VWXYZ',
+        'QRSTU',
+        'LMNOP',
+        'FGHJK',
+        'ABCDE',
+      ]);
+    },
+  );
 });
 
 describe.each(ALL_FULL_SCHEMES)('%s scheme shape', (label, scheme) => {
@@ -91,7 +100,10 @@ describe('Irish Cassini is a single-cell scheme', () => {
   });
 
   it('still uses a 5×5 second-letter grid', () => {
-    expectLetterGridShape(IRISH_CASSINI_SCHEME.secondLetterGrid, 'Irish Cassini second');
+    expectLetterGridShape(
+      IRISH_CASSINI_SCHEME.secondLetterGrid,
+      'Irish Cassini second',
+    );
   });
 });
 

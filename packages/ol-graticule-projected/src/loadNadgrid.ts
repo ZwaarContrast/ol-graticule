@@ -50,7 +50,8 @@ export function loadNadgrid(
   }
 
   const promise = (async () => {
-    const buffer = source instanceof ArrayBuffer ? source : await fetchAsArrayBuffer(source);
+    const buffer =
+      source instanceof ArrayBuffer ? source : await fetchAsArrayBuffer(source);
     proj4.nadgrid(name, buffer);
   })();
 

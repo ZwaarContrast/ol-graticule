@@ -15,25 +15,45 @@ describe('LabelCollector', () => {
       { point: new Point([0, 800]), text: '800', axis: 'y' },
     ];
     const collector = new LabelCollector();
-    const { xBuf, xCount, yBuf, yCount } = collector.collectEdge([0], EXTENT, () => labels);
+    const { xBuf, xCount, yBuf, yCount } = collector.collectEdge(
+      [0],
+      EXTENT,
+      () => labels,
+    );
 
     expect(xCount).toBe(2);
     expect(yCount).toBe(2);
-    expect(xBuf.slice(0, xCount).map((e) => e.label.text)).toEqual(['100', '300']);
+    expect(xBuf.slice(0, xCount).map((e) => e.label.text)).toEqual([
+      '100',
+      '300',
+    ]);
     // Y sorts by -northing, so the highest parallel comes first.
-    expect(yBuf.slice(0, yCount).map((e) => e.label.text)).toEqual(['800', '200']);
+    expect(yBuf.slice(0, yCount).map((e) => e.label.text)).toEqual([
+      '800',
+      '200',
+    ]);
   });
 
   it('emits one entry per world copy, carrying the shift as xOffset with base coords', () => {
-    const base: GridLabel[] = [{ point: new Point([200, 500]), text: '200', axis: 'x' }];
+    const base: GridLabel[] = [
+      { point: new Point([200, 500]), text: '200', axis: 'x' },
+    ];
     const collector = new LabelCollector();
-    const { xBuf, xCount } = collector.collectEdge([-600, 0, 600], EXTENT, () => base);
+    const { xBuf, xCount } = collector.collectEdge(
+      [-600, 0, 600],
+      EXTENT,
+      () => base,
+    );
 
     expect(xCount).toBe(3);
     const entries = xBuf.slice(0, xCount);
-    expect(entries.map((e) => e.xOffset).sort((a, b) => a - b)).toEqual([-600, 0, 600]);
+    expect(entries.map((e) => e.xOffset).sort((a, b) => a - b)).toEqual([
+      -600, 0, 600,
+    ]);
     // sortKey is the shifted easting; coord0 stays the base-world value.
-    expect(entries.map((e) => e.sortKey).sort((a, b) => a - b)).toEqual([-400, 200, 800]);
+    expect(entries.map((e) => e.sortKey).sort((a, b) => a - b)).toEqual([
+      -400, 200, 800,
+    ]);
     expect(entries.every((e) => e.coord0 === 200)).toBe(true);
   });
 
@@ -45,22 +65,29 @@ describe('LabelCollector', () => {
       return [];
     });
 
-    expect(seen).toEqual([
-      [600, 0, 1600, 1000],
-      EXTENT,
-      [-600, 0, 400, 1000],
-    ]);
+    expect(seen).toEqual([[600, 0, 1600, 1000], EXTENT, [-600, 0, 400, 1000]]);
     // Offset 0 hands back the original extent, not a copy.
     expect(seen[1]).toBe(EXTENT);
   });
 
   it('collects cell labels across world copies', () => {
-    const cells: GridCellLabel[] = [{ point: new Point([500, 500]), text: 'A', cellSizePx: 100 }];
+    const cells: GridCellLabel[] = [
+      { point: new Point([500, 500]), text: 'A', cellSizePx: 100 },
+    ];
     const collector = new LabelCollector();
-    const { buf, count } = collector.collectCells([0, 600], EXTENT, () => cells);
+    const { buf, count } = collector.collectCells(
+      [0, 600],
+      EXTENT,
+      () => cells,
+    );
 
     expect(count).toBe(2);
-    expect(buf.slice(0, count).map((e) => e.xOffset).sort((a, b) => a - b)).toEqual([0, 600]);
+    expect(
+      buf
+        .slice(0, count)
+        .map((e) => e.xOffset)
+        .sort((a, b) => a - b),
+    ).toEqual([0, 600]);
     expect(buf.slice(0, count).every((e) => e.coord0 === 500)).toBe(true);
   });
 });

@@ -80,7 +80,9 @@ describe('MBSFormatter', () => {
     });
 
     it('formats coordinates in the q first-letter area', () => {
-      expect(formatter.formatMBS(350000, 650000)).toMatch(/^q[A-Z] \d{3} \d{3}$/);
+      expect(formatter.formatMBS(350000, 650000)).toMatch(
+        /^q[A-Z] \d{3} \d{3}$/,
+      );
     });
 
     it('returns metric fallback for coordinates outside grid', () => {
@@ -120,7 +122,10 @@ describe('MBSFormatter', () => {
   describe('parse(), single-axis metric', () => {
     it('round-trips format output (km)', () => {
       for (const v of [0, 500000, 350500, 1000]) {
-        expect(formatter.parse(formatter.format(v, 'x'), 'x')).toBeCloseTo(v, 6);
+        expect(formatter.parse(formatter.format(v, 'x'), 'x')).toBeCloseTo(
+          v,
+          6,
+        );
       }
     });
 
@@ -198,7 +203,9 @@ describe('MBSFormatter', () => {
     });
 
     it('throws ParseError on >10 digits', () => {
-      expect(() => formatter.parseCoordinate('vK123456789012')).toThrow(ParseError);
+      expect(() => formatter.parseCoordinate('vK123456789012')).toThrow(
+        ParseError,
+      );
     });
 
     it('throws ParseError on unknown letter', () => {

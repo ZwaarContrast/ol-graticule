@@ -13,18 +13,34 @@ describe('parseMgrsRef — canonical forms', () => {
   it('parses a full-precision UTM ref with spaces', () => {
     const out = parseMgrsRef('31U FT 12345 67890');
     expect(out.precision).toBe(5);
-    expect(out.parts).toEqual({ zone: 31, band: 'U', square: 'FT', easting: 12345, northing: 67890 });
+    expect(out.parts).toEqual({
+      zone: 31,
+      band: 'U',
+      square: 'FT',
+      easting: 12345,
+      northing: 67890,
+    });
   });
 
   it('accepts the same ref without separators', () => {
-    expect(parseMgrsRef('31UFT1234567890')).toEqual(parseMgrsRef('31U FT 12345 67890'));
+    expect(parseMgrsRef('31UFT1234567890')).toEqual(
+      parseMgrsRef('31U FT 12345 67890'),
+    );
   });
 
   it('accepts slash, hyphen, comma, and underscore separators', () => {
-    expect(parseMgrsRef('31U/FT/12345/67890')).toEqual(parseMgrsRef('31U FT 12345 67890'));
-    expect(parseMgrsRef('31U-FT-12345-67890')).toEqual(parseMgrsRef('31U FT 12345 67890'));
-    expect(parseMgrsRef('31U,FT,12345,67890')).toEqual(parseMgrsRef('31U FT 12345 67890'));
-    expect(parseMgrsRef('31U_FT_12345_67890')).toEqual(parseMgrsRef('31U FT 12345 67890'));
+    expect(parseMgrsRef('31U/FT/12345/67890')).toEqual(
+      parseMgrsRef('31U FT 12345 67890'),
+    );
+    expect(parseMgrsRef('31U-FT-12345-67890')).toEqual(
+      parseMgrsRef('31U FT 12345 67890'),
+    );
+    expect(parseMgrsRef('31U,FT,12345,67890')).toEqual(
+      parseMgrsRef('31U FT 12345 67890'),
+    );
+    expect(parseMgrsRef('31U_FT_12345_67890')).toEqual(
+      parseMgrsRef('31U FT 12345 67890'),
+    );
   });
 
   it('parses each supported precision level (1..5)', () => {
@@ -36,8 +52,14 @@ describe('parseMgrsRef — canonical forms', () => {
   });
 
   it('precision N digits represent N×10^(5-N) metre cells (SW corner)', () => {
-    expect(parseMgrsRef('31UFT16').parts).toMatchObject({ easting: 10000, northing: 60000 });
-    expect(parseMgrsRef('31UFT123678').parts).toMatchObject({ easting: 12300, northing: 67800 });
+    expect(parseMgrsRef('31UFT16').parts).toMatchObject({
+      easting: 10000,
+      northing: 60000,
+    });
+    expect(parseMgrsRef('31UFT123678').parts).toMatchObject({
+      easting: 12300,
+      northing: 67800,
+    });
   });
 
   it('parses bare GZD as precision 0 with empty square', () => {
@@ -83,7 +105,10 @@ describe('parseMgrsRef — rejection (negative cases)', () => {
     fc.assert(
       fc.property(
         fc.integer({ min: 0, max: 9 }).chain((odd) =>
-          fc.tuple(fc.constant(odd), fc.integer({ min: 1, max: 4 }).map((n) => 2 * n + 1)),
+          fc.tuple(
+            fc.constant(odd),
+            fc.integer({ min: 1, max: 4 }).map((n) => 2 * n + 1),
+          ),
         ),
         ([_, len]) => {
           const digits = '1'.repeat(len);
@@ -238,8 +263,18 @@ describe('mgrsPartsToLonLat — known reference points', () => {
 });
 
 describe('parse ↔ format round-trip (property)', () => {
-  const safeLon = fc.double({ min: -179, max: 179, noNaN: true, noDefaultInfinity: true });
-  const utmLat = fc.double({ min: -78, max: 82, noNaN: true, noDefaultInfinity: true });
+  const safeLon = fc.double({
+    min: -179,
+    max: 179,
+    noNaN: true,
+    noDefaultInfinity: true,
+  });
+  const utmLat = fc.double({
+    min: -78,
+    max: 82,
+    noNaN: true,
+    noDefaultInfinity: true,
+  });
 
   it('parse(format(p)) returns the [lon, lat] within the cell tolerance', () => {
     // Cells that straddle a UTM zone boundary (e.g. column A in any zone)
@@ -262,7 +297,9 @@ describe('parse ↔ format round-trip (property)', () => {
           // Cell side at precision N is 10^(5-N) metres; allow one cell of slop.
           const cellMetres = 10 ** (5 - precision);
           const degLat = cellMetres / 111_000;
-          const degLon = cellMetres / (111_000 * Math.max(Math.cos((lat * Math.PI) / 180), 0.01));
+          const degLon =
+            cellMetres /
+            (111_000 * Math.max(Math.cos((lat * Math.PI) / 180), 0.01));
           expect(Math.abs(ll[1] - lat)).toBeLessThan(degLat);
           expect(Math.abs(ll[0] - lon)).toBeLessThan(degLon);
         },

@@ -24,13 +24,24 @@ export const ITALIAN_SOUTHERN_PROJ4 =
   '+x_0=700000 +y_0=600000 +ellps=bessel +no_defs +type=crs';
 
 /** WGS84 bbox `[lonMin, latMin, lonMax, latMax]` covering southern Italy, Sicily, Sardinia, Malta plus buffer. */
-export const ITALIAN_SOUTHERN_BBOX_WGS84: [number, number, number, number] = [6, 34, 22, 44];
+export const ITALIAN_SOUTHERN_BBOX_WGS84: [number, number, number, number] = [
+  6, 34, 22, 44,
+];
 
 /** MBS coverage polygon in projected metres ({@link ITALIAN_SOUTHERN_CRS}). Open ring. */
 export const ITALIAN_SOUTHERN_CLIP_POLYGON: [number, number][] = [
-  [96060, 1103449], [425444, 1104265], [690903, 1105493], [975135, 1104931],
-  [1104387, 1104279], [1104751, 195638], [693611, 193970], [493585, 194506],
-  [494002, 398087], [283213, 395123], [118365, 395380], [95872, 395351],
+  [96060, 1103449],
+  [425444, 1104265],
+  [690903, 1105493],
+  [975135, 1104931],
+  [1104387, 1104279],
+  [1104751, 195638],
+  [693611, 193970],
+  [493585, 194506],
+  [494002, 398087],
+  [283213, 395123],
+  [118365, 395380],
+  [95872, 395351],
 ];
 
 export type ItalianSouthernGridSystemOptions = MBSGridSystemOptions;

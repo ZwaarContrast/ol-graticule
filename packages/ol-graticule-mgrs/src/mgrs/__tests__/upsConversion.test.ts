@@ -21,13 +21,38 @@ interface UpsPoint {
 }
 
 const POINTS: UpsPoint[] = [
-  { name: 'North Pole',                 lat:  90,        lon:    0,    expected: 'Z AH 00000 00000' },
-  { name: 'Greenland ice cap',          lat:  85,        lon:  -45,    expected: 'Y UD 07232 07232' },
-  { name: 'Severnaya Zemlya',           lat:  85,        lon:   90,    expected: 'Z HH 55457 00000' },
-  { name: 'Arctic Ocean E of pole',     lat:  86,        lon:   45,    expected: 'Z FD 14145 85854' },
-  { name: 'Ellsworth Land (Antarctica)',lat: -85,        lon:  -90,    expected: 'A SN 44542 00000' },
-  { name: 'Wilkes Land (Antarctica)',   lat: -85,        lon:  135,    expected: 'B FJ 92767 07232' },
-  { name: 'South Pole (89.9999°S)',     lat: -89.9999,   lon:    0,    expected: 'B AN 00000 00011' },
+  { name: 'North Pole', lat: 90, lon: 0, expected: 'Z AH 00000 00000' },
+  {
+    name: 'Greenland ice cap',
+    lat: 85,
+    lon: -45,
+    expected: 'Y UD 07232 07232',
+  },
+  { name: 'Severnaya Zemlya', lat: 85, lon: 90, expected: 'Z HH 55457 00000' },
+  {
+    name: 'Arctic Ocean E of pole',
+    lat: 86,
+    lon: 45,
+    expected: 'Z FD 14145 85854',
+  },
+  {
+    name: 'Ellsworth Land (Antarctica)',
+    lat: -85,
+    lon: -90,
+    expected: 'A SN 44542 00000',
+  },
+  {
+    name: 'Wilkes Land (Antarctica)',
+    lat: -85,
+    lon: 135,
+    expected: 'B FJ 92767 07232',
+  },
+  {
+    name: 'South Pole (89.9999°S)',
+    lat: -89.9999,
+    lon: 0,
+    expected: 'B AN 00000 00011',
+  },
 ];
 
 describe('UPS reference points (cross-check vs GeographicLib)', () => {
@@ -66,9 +91,9 @@ describe('UPS / UTM dispatch boundary', () => {
   });
 
   it('lon=0 chooses east zone (Z / B), lon<0 chooses west zone (Y / A)', () => {
-    expect(lonLatToMgrs( 0.001, 85, 5)!.startsWith('Z ')).toBe(true);
+    expect(lonLatToMgrs(0.001, 85, 5)!.startsWith('Z ')).toBe(true);
     expect(lonLatToMgrs(-0.001, 85, 5)!.startsWith('Y ')).toBe(true);
-    expect(lonLatToMgrs( 0.001, -85, 5)!.startsWith('B ')).toBe(true);
+    expect(lonLatToMgrs(0.001, -85, 5)!.startsWith('B ')).toBe(true);
     expect(lonLatToMgrs(-0.001, -85, 5)!.startsWith('A ')).toBe(true);
   });
 });

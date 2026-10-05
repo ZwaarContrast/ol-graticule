@@ -4,8 +4,8 @@
 export const BAND_LETTERS = 'CDEFGHJKLMNPQRSTUVWX';
 
 const BAND_SOUTH_LATS = [
-  -80, -72, -64, -56, -48, -40, -32, -24, -16, -8,
-  0, 8, 16, 24, 32, 40, 48, 56, 64, 72,
+  -80, -72, -64, -56, -48, -40, -32, -24, -16, -8, 0, 8, 16, 24, 32, 40, 48, 56,
+  64, 72,
 ];
 
 /** Latitude band letter for `lat` (degrees), or `undefined` outside UTM range. */
@@ -21,7 +21,7 @@ export function bandLetterFromLatitude(lat: number): string | undefined {
  * exceptions applied when `lat` is supplied.
  */
 export function zoneNumberFromLonLat(lon: number, lat?: number): number {
-  let wrappedLon = ((lon + 180) % 360 + 360) % 360 - 180;
+  let wrappedLon = ((((lon + 180) % 360) + 360) % 360) - 180;
   if (wrappedLon === 180) wrappedLon = -180;
 
   let zone = Math.floor((wrappedLon + 180) / 6) + 1;
@@ -66,7 +66,9 @@ export function zoneBandLonBounds(
 }
 
 /** [southLat, northLat] of a band letter; `undefined` for unknown letters. */
-export function bandLatBounds(band: string): readonly [number, number] | undefined {
+export function bandLatBounds(
+  band: string,
+): readonly [number, number] | undefined {
   const idx = BAND_LETTERS.indexOf(band);
   if (idx < 0) return undefined;
   const south = BAND_SOUTH_LATS[idx]!;

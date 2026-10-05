@@ -56,11 +56,19 @@ beforeAll(() => {
 function makeGrid(): ProjectedGridSystem {
   // emitBoundary:false isolates the line cache — the boundary rectangle is not
   // cached and would transform a fixed handful of points every frame.
-  return new ProjectedGridSystem({ crs: CRS, extent: CRS_EXTENT, emitBoundary: false });
+  return new ProjectedGridSystem({
+    crs: CRS,
+    extent: CRS_EXTENT,
+    emitBoundary: false,
+  });
 }
 
 /** Transforms performed by one getFeatures call over a viewport at a resolution. */
-function frame(grid: ProjectedGridSystem, extent: Extent, resolution: number): number {
+function frame(
+  grid: ProjectedGridSystem,
+  extent: Extent,
+  resolution: number,
+): number {
   const before = transformCount;
   grid.getFeatures(extent, resolution, VIEW);
   return transformCount - before;

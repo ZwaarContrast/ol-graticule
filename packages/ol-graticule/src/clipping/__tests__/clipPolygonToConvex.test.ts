@@ -88,12 +88,23 @@ describe('clipPolygonToConvex', () => {
   });
 
   it('returns empty when the subject has fewer than 3 vertices', () => {
-    expect(clipPolygonToConvex([[0, 0], [1, 1]], square(0, 0, 10))).toEqual([]);
+    expect(
+      clipPolygonToConvex(
+        [
+          [0, 0],
+          [1, 1],
+        ],
+        square(0, 0, 10),
+      ),
+    ).toEqual([]);
   });
 
   it('returns empty when the clip polygon has zero area (collinear)', () => {
-    const collinear: Pt[] = [[0, 0], [1, 0], [2, 0]];
+    const collinear: Pt[] = [
+      [0, 0],
+      [1, 0],
+      [2, 0],
+    ];
     expect(clipPolygonToConvex(square(0, 0, 2), collinear)).toEqual([]);
   });
 });
-

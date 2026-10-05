@@ -126,11 +126,20 @@ addRendererToggle();
 
 // Cursor reads whichever overlay is active. If both HMN variants are on,
 // planar wins (it's the canonical one for the *Deutsche Heereskarte*).
-const cursorControl = new CursorPositionControl({ gridSystem: hmn, style: cursorStyle });
+const cursorControl = new CursorPositionControl({
+  gridSystem: hmn,
+  style: cursorStyle,
+});
 
 const map = new Map({
   target: 'map',
-  layers: [new TileLayer({ source: new OSM() }), dhgLayer, drgLayer, hmnLayer, hmnGeoLayer],
+  layers: [
+    new TileLayer({ source: new OSM() }),
+    dhgLayer,
+    drgLayer,
+    hmnLayer,
+    hmnGeoLayer,
+  ],
   controls: [cursorControl],
   view: new View({
     center: fromLonLat([16.17, 48.75]), // Hadres
@@ -149,11 +158,14 @@ const map = new Map({
 type GridMode = 'dhg' | 'drg' | 'hmn' | 'hmn-geo';
 
 function isGridMode(value: string): value is GridMode {
-  return value === 'dhg' || value === 'drg' || value === 'hmn' || value === 'hmn-geo';
+  return (
+    value === 'dhg' || value === 'drg' || value === 'hmn' || value === 'hmn-geo'
+  );
 }
 
 const modeSelectEl = document.getElementById('mode');
-const modeSelect = modeSelectEl instanceof HTMLSelectElement ? modeSelectEl : null;
+const modeSelect =
+  modeSelectEl instanceof HTMLSelectElement ? modeSelectEl : null;
 
 function currentMode(): GridMode {
   if (modeSelect && isGridMode(modeSelect.value)) return modeSelect.value;
@@ -232,7 +244,11 @@ function createInputUi(): void {
 
   const markerEl = document.createElement('div');
   markerEl.className = 'coord-input__marker';
-  const overlay = new Overlay({ element: markerEl, positioning: 'center-center', stopEvent: false });
+  const overlay = new Overlay({
+    element: markerEl,
+    positioning: 'center-center',
+    stopEvent: false,
+  });
   map.addOverlay(overlay);
 
   function setStatus(text: string, isError: boolean): void {
@@ -301,8 +317,14 @@ function createInputUi(): void {
     return undefined;
   }
 
-  function resolve(text: string, viewCentre: [number, number]): { lat: number; lon: number; summary: string } {
-    if (/^\s*(?:geo|geog|geographic|plan|planar|heer)[\s:]/i.test(text) || /^\s*[A-Za-z]/.test(text)) {
+  function resolve(
+    text: string,
+    viewCentre: [number, number],
+  ): { lat: number; lon: number; summary: string } {
+    if (
+      /^\s*(?:geo|geog|geographic|plan|planar|heer)[\s:]/i.test(text) ||
+      /^\s*[A-Za-z]/.test(text)
+    ) {
       const ref = resolveHmnText(text, viewCentre);
       if (!ref) throw new ParseError(text, 'not a recognised HMN reference');
       return ref;
@@ -311,7 +333,8 @@ function createInputUi(): void {
     // strip family it belongs to.
     if (currentMode() === 'drg') {
       const drgRef = parseDrg(text);
-      if (!drgRef) throw new ParseError(text, 'not a recognised Gauß-Krüger 3° reference');
+      if (!drgRef)
+        throw new ParseError(text, 'not a recognised Gauß-Krüger 3° reference');
       const [lat, lon] = decodeDrg(drgRef.coord);
       const { kennziffer, easting, northing } = drgRef.coord;
       return {
@@ -324,7 +347,8 @@ function createInputUi(): void {
       };
     }
     const parsed = parseDhg(text);
-    if (!parsed) throw new ParseError(text, 'not a recognised HMN or DHG reference');
+    if (!parsed)
+      throw new ParseError(text, 'not a recognised HMN or DHG reference');
     const [lat, lon] = decodeDhg(parsed.coord);
     const { kennziffer, easting, northing } = parsed.coord;
     return {
@@ -345,31 +369,53 @@ function createInputUi(): void {
       setStatus('view has no centre', true);
       return;
     }
-    const [centreLon, centreLat] = transform(viewCentre, projection, 'EPSG:4326');
+    const [centreLon, centreLat] = transform(
+      viewCentre,
+      projection,
+      'EPSG:4326',
+    );
 
     let parserReason: string | undefined;
     try {
       const result = resolve(text, [centreLat ?? 0, centreLon ?? 0]);
-      const projected = transform([result.lon, result.lat], 'EPSG:4326', projection);
+      const projected = transform(
+        [result.lon, result.lat],
+        'EPSG:4326',
+        projection,
+      );
       overlay.setPosition(projected);
       map.getView().animate({ center: projected, duration: 400 });
       setStatus(result.summary, false);
       return;
     } catch (err) {
-      parserReason = err instanceof ParseError ? err.reason
-        : err instanceof Error ? err.message
-        : 'parse failed';
+      parserReason =
+        err instanceof ParseError
+          ? err.reason
+          : err instanceof Error
+            ? err.message
+            : 'parse failed';
     }
 
     // Fall back to OSM Nominatim for place-name lookups ("Leiden", "Hadres").
-    await tryNominatimFallback(text, parserReason ?? 'parse failed', (hit) => {
-      const projected = transform([hit.lon, hit.lat], 'EPSG:4326', projection);
-      overlay.setPosition(projected);
-      map.getView().animate({ center: projected, duration: 400 });
-    }, setStatus);
+    await tryNominatimFallback(
+      text,
+      parserReason ?? 'parse failed',
+      (hit) => {
+        const projected = transform(
+          [hit.lon, hit.lat],
+          'EPSG:4326',
+          projection,
+        );
+        overlay.setPosition(projected);
+        map.getView().animate({ center: projected, duration: 400 });
+      },
+      setStatus,
+    );
   }
 
-  button.addEventListener('click', () => { void go(); });
+  button.addEventListener('click', () => {
+    void go();
+  });
   field.addEventListener('keydown', (event) => {
     if (event.key === 'Enter') {
       event.preventDefault();

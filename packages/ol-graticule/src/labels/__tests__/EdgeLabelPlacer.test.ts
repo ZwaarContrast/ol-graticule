@@ -20,29 +20,50 @@ import {
 type DrawCall = { feature: Feature<Geometry>; style: Style };
 
 /** A no-op VectorContext that records only `drawFeature`. */
-function makeVectorContext(drawFeature: ReturnType<typeof vi.fn>): VectorContext {
+function makeVectorContext(
+  drawFeature: ReturnType<typeof vi.fn>,
+): VectorContext {
   const noop = (): void => undefined;
   return {
-    drawCustom: noop, drawGeometry: noop, setStyle: noop, drawCircle: noop,
-    drawFeature, drawGeometryCollection: noop, drawLineString: noop,
-    drawMultiLineString: noop, drawMultiPoint: noop, drawMultiPolygon: noop,
-    drawPoint: noop, drawPolygon: noop, drawText: noop, setFillStrokeStyle: noop,
-    setImageStyle: noop, setTextStyle: noop,
+    drawCustom: noop,
+    drawGeometry: noop,
+    setStyle: noop,
+    drawCircle: noop,
+    drawFeature,
+    drawGeometryCollection: noop,
+    drawLineString: noop,
+    drawMultiLineString: noop,
+    drawMultiPoint: noop,
+    drawMultiPolygon: noop,
+    drawPoint: noop,
+    drawPolygon: noop,
+    drawText: noop,
+    setFillStrokeStyle: noop,
+    setImageStyle: noop,
+    setTextStyle: noop,
   };
 }
 
 /** The Point geometry of a drawn label, guarded (no cast). */
 function pointOf(feature: Feature<Geometry>): Point {
   const geom = feature.getGeometry();
-  if (!(geom instanceof Point)) throw new Error('expected a Point label geometry');
+  if (!(geom instanceof Point))
+    throw new Error('expected a Point label geometry');
   return geom;
 }
 
 /** A straight grid line spanning the extent, tagged so `nearestLine_` finds it. */
 function gridLineFeature(axis: 'x' | 'y', at: number): Feature<Geometry> {
-  const geom = axis === 'x'
-    ? new LineString([[at, 0], [at, 1000]])
-    : new LineString([[0, at], [1000, at]]);
+  const geom =
+    axis === 'x'
+      ? new LineString([
+          [at, 0],
+          [at, 1000],
+        ])
+      : new LineString([
+          [0, at],
+          [1000, at],
+        ]);
   const feature = new Feature(geom);
   feature.set('gridAxis', axis);
   return feature;
@@ -54,7 +75,10 @@ function gridLineFeature(axis: 'x' | 'y', at: number): Feature<Geometry> {
  */
 function northUpFrame(worldWidth: number): EdgeLabelFrame {
   return {
-    cx: 500, cy: 500, cos: 1, sin: 0,
+    cx: 500,
+    cy: 500,
+    cos: 1,
+    sin: 0,
     rotExtent: [0, 0, 1000, 1000],
     edgeTarget: [1000, 0, 0, 1000], // TOP maxY, BOTTOM minY, LEFT minX, RIGHT maxX
     edgeSpanLo: [0, 0, 0, 0],
@@ -80,7 +104,10 @@ function makeConfig(options: Partial<EdgeLabelConfig>): EdgeLabelConfig {
   };
 }
 
-function makePlacer(source: VectorSource, config: EdgeLabelConfig): EdgeLabelPlacer {
+function makePlacer(
+  source: VectorSource,
+  config: EdgeLabelConfig,
+): EdgeLabelPlacer {
   const handler = resolveEdgeLabelHandler(true);
   if (!handler) throw new Error('expected a default edge label handler');
   return new EdgeLabelPlacer(config, handler, source, undefined);
@@ -125,8 +152,15 @@ function place(
   const drawFeature = vi.fn();
   const extent: Extent = [0, 0, 1000, 1000];
   placer.place(
-    makeVectorContext(drawFeature), northUpFrame(0), northUpScreen(), extent, 1,
-    xBuf, xBuf.length, yBuf, yBuf.length,
+    makeVectorContext(drawFeature),
+    northUpFrame(0),
+    northUpScreen(),
+    extent,
+    1,
+    xBuf,
+    xBuf.length,
+    yBuf,
+    yBuf.length,
   );
   return { drawFeature };
 }
@@ -189,9 +223,17 @@ describe('EdgeLabelPlacer', () => {
     source.addFeature(gridLineFeature('x', 200));
     const placer = makePlacer(source, makeConfig({}));
 
-    const base = { point: new Point([200, 500]), text: '200', axis: 'x' as const };
+    const base = {
+      point: new Point([200, 500]),
+      text: '200',
+      axis: 'x' as const,
+    };
     const xBuf: DrawEntry[] = [-worldWidth, 0, worldWidth].map((xOffset) => ({
-      label: { point: new Point([200 + xOffset, 500]), text: base.text, axis: base.axis },
+      label: {
+        point: new Point([200 + xOffset, 500]),
+        text: base.text,
+        axis: base.axis,
+      },
       sortKey: 200 + xOffset,
       xOffset,
       coord0: 200,
@@ -201,11 +243,20 @@ describe('EdgeLabelPlacer', () => {
     const drawFeature = vi.fn();
     const extent: Extent = [0, 0, 1000, 1000];
     placer.place(
-      makeVectorContext(drawFeature), northUpFrame(worldWidth), northUpScreen(), extent, 1,
-      xBuf, xBuf.length, [], 0,
+      makeVectorContext(drawFeature),
+      northUpFrame(worldWidth),
+      northUpScreen(),
+      extent,
+      1,
+      xBuf,
+      xBuf.length,
+      [],
+      0,
     );
 
-    const xs = drawCalls(drawFeature).map((c) => pointOf(c.feature).getCoordinates()[0]);
+    const xs = drawCalls(drawFeature).map(
+      (c) => pointOf(c.feature).getCoordinates()[0],
+    );
     expect(xs.length).toBe(2);
     expect(new Set(xs).size).toBe(2);
     expect(xs).toContain(200);
@@ -229,9 +280,7 @@ describe('EdgeLabelPlacer', () => {
   });
 
   it('positions X-axis labels at the top edge with center alignment (default)', () => {
-    const { drawFeature } = place([
-      { x: 200, y: 500, text: 'top', axis: 'x' },
-    ]);
+    const { drawFeature } = place([{ x: 200, y: 500, text: 'top', axis: 'x' }]);
 
     const [call] = drawCalls(drawFeature);
     const geom = call ? pointOf(call.feature) : undefined;
@@ -263,10 +312,9 @@ describe('EdgeLabelPlacer', () => {
   });
 
   it('flips X labels to bottom edge when xLabelPosition="bottom"', () => {
-    const { drawFeature } = place(
-      [{ x: 200, y: 500, text: 'x', axis: 'x' }],
-      { xLabelPosition: 'bottom' },
-    );
+    const { drawFeature } = place([{ x: 200, y: 500, text: 'x', axis: 'x' }], {
+      xLabelPosition: 'bottom',
+    });
 
     const [call] = drawCalls(drawFeature);
     const geom = call ? pointOf(call.feature) : undefined;
@@ -276,10 +324,9 @@ describe('EdgeLabelPlacer', () => {
   });
 
   it('flips Y labels to right edge when yLabelPosition="right"', () => {
-    const { drawFeature } = place(
-      [{ x: 500, y: 400, text: 'y', axis: 'y' }],
-      { yLabelPosition: 'right' },
-    );
+    const { drawFeature } = place([{ x: 500, y: 400, text: 'y', axis: 'y' }], {
+      yLabelPosition: 'right',
+    });
 
     const [call] = drawCalls(drawFeature);
     const geom = call ? pointOf(call.feature) : undefined;
@@ -340,12 +387,22 @@ describe('EdgeLabelPlacer axis mode (edgeLabelExtend: "axis")', () => {
       feature.set('gridAxis', f.axis);
       source.addFeature(feature);
     }
-    const placer = makePlacer(source, makeConfig({ edgeLabelExtend: 'axis', ...options }));
+    const placer = makePlacer(
+      source,
+      makeConfig({ edgeLabelExtend: 'axis', ...options }),
+    );
     const { xBuf, yBuf } = buffersFor(labels);
     const drawFeature = vi.fn();
     placer.place(
-      makeVectorContext(drawFeature), northUpFrame(0), northUpScreen(), [0, 0, 1000, 1000], 1,
-      xBuf, xBuf.length, yBuf, yBuf.length,
+      makeVectorContext(drawFeature),
+      northUpFrame(0),
+      northUpScreen(),
+      [0, 0, 1000, 1000],
+      1,
+      xBuf,
+      xBuf.length,
+      yBuf,
+      yBuf.length,
     );
     return drawCalls(drawFeature);
   }
@@ -365,49 +422,109 @@ describe('EdgeLabelPlacer axis mode (edgeLabelExtend: "axis")', () => {
   }
 
   it('rides the top edge at a meridian for an x-axis label', () => {
-    const [sx, sy] = drawnScreen(only(placeAxis(
-      [{ axis: 'x', coords: [[300, -100], [300, 1100]] }],
-      [{ x: 300, y: 500, text: '300', axis: 'x' }],
-    )));
+    const [sx, sy] = drawnScreen(
+      only(
+        placeAxis(
+          [
+            {
+              axis: 'x',
+              coords: [
+                [300, -100],
+                [300, 1100],
+              ],
+            },
+          ],
+          [{ x: 300, y: 500, text: '300', axis: 'x' }],
+        ),
+      ),
+    );
     expect(sx).toBeCloseTo(300);
     expect(sy).toBeCloseTo(0);
   });
 
   it('interpolates the top-edge crossing for a tilted x-axis line', () => {
     // Diagonal meridian (200,-500)->(400,1500) crosses screen y=0 at x=350.
-    const [sx, sy] = drawnScreen(only(placeAxis(
-      [{ axis: 'x', coords: [[200, -500], [400, 1500]] }],
-      [{ x: 300, y: 500, text: '300', axis: 'x' }],
-    )));
+    const [sx, sy] = drawnScreen(
+      only(
+        placeAxis(
+          [
+            {
+              axis: 'x',
+              coords: [
+                [200, -500],
+                [400, 1500],
+              ],
+            },
+          ],
+          [{ x: 300, y: 500, text: '300', axis: 'x' }],
+        ),
+      ),
+    );
     expect(sx).toBeCloseTo(350);
     expect(sy).toBeCloseTo(0);
   });
 
   it('rides the bottom edge when xLabelPosition is "bottom"', () => {
-    const [sx, sy] = drawnScreen(only(placeAxis(
-      [{ axis: 'x', coords: [[300, -100], [300, 1100]] }],
-      [{ x: 300, y: 500, text: '300', axis: 'x' }],
-      { xLabelPosition: 'bottom' },
-    )));
+    const [sx, sy] = drawnScreen(
+      only(
+        placeAxis(
+          [
+            {
+              axis: 'x',
+              coords: [
+                [300, -100],
+                [300, 1100],
+              ],
+            },
+          ],
+          [{ x: 300, y: 500, text: '300', axis: 'x' }],
+          { xLabelPosition: 'bottom' },
+        ),
+      ),
+    );
     expect(sx).toBeCloseTo(300);
     expect(sy).toBeCloseTo(1000);
   });
 
   it('rides the left edge at a parallel for a y-axis label', () => {
-    const [sx, sy] = drawnScreen(only(placeAxis(
-      [{ axis: 'y', coords: [[-100, 700], [1100, 700]] }],
-      [{ x: 500, y: 700, text: '700', axis: 'y' }],
-    )));
+    const [sx, sy] = drawnScreen(
+      only(
+        placeAxis(
+          [
+            {
+              axis: 'y',
+              coords: [
+                [-100, 700],
+                [1100, 700],
+              ],
+            },
+          ],
+          [{ x: 500, y: 700, text: '700', axis: 'y' }],
+        ),
+      ),
+    );
     expect(sx).toBeCloseTo(0);
     expect(sy).toBeCloseTo(300);
   });
 
   it('rides the right edge when yLabelPosition is "right"', () => {
-    const [sx, sy] = drawnScreen(only(placeAxis(
-      [{ axis: 'y', coords: [[-100, 700], [1100, 700]] }],
-      [{ x: 500, y: 700, text: '700', axis: 'y' }],
-      { yLabelPosition: 'right' },
-    )));
+    const [sx, sy] = drawnScreen(
+      only(
+        placeAxis(
+          [
+            {
+              axis: 'y',
+              coords: [
+                [-100, 700],
+                [1100, 700],
+              ],
+            },
+          ],
+          [{ x: 500, y: 700, text: '700', axis: 'y' }],
+          { yLabelPosition: 'right' },
+        ),
+      ),
+    );
     expect(sx).toBeCloseTo(1000);
     expect(sy).toBeCloseTo(300);
   });
@@ -415,17 +532,37 @@ describe('EdgeLabelPlacer axis mode (edgeLabelExtend: "axis")', () => {
   it('anchors a clipped line at its near end, not an extrapolated crossing', () => {
     // Tilted meridian (200,0)->(400,600) stops short of the top edge (near end at
     // screen y=400); the label drops from that end's screen x (400).
-    const [sx, sy] = drawnScreen(only(placeAxis(
-      [{ axis: 'x', coords: [[200, 0], [400, 600]] }],
-      [{ x: 300, y: 300, text: '300', axis: 'x' }],
-    )));
+    const [sx, sy] = drawnScreen(
+      only(
+        placeAxis(
+          [
+            {
+              axis: 'x',
+              coords: [
+                [200, 0],
+                [400, 600],
+              ],
+            },
+          ],
+          [{ x: 300, y: 300, text: '300', axis: 'x' }],
+        ),
+      ),
+    );
     expect(sx).toBeCloseTo(400);
     expect(sy).toBeCloseTo(0);
   });
 
   it('drops a label whose crossing falls outside the viewport', () => {
     const calls = placeAxis(
-      [{ axis: 'x', coords: [[1200, -100], [1200, 1100]] }],
+      [
+        {
+          axis: 'x',
+          coords: [
+            [1200, -100],
+            [1200, 1100],
+          ],
+        },
+      ],
       [{ x: 1200, y: 500, text: '1200', axis: 'x' }],
     );
     expect(calls).toHaveLength(0);
@@ -433,24 +570,44 @@ describe('EdgeLabelPlacer axis mode (edgeLabelExtend: "axis")', () => {
 
   it('draws a leader from a clipped axis label to its grid line end', () => {
     const source = new VectorSource({ useSpatialIndex: false });
-    const feature = new Feature(new LineString([[200, 0], [400, 600]]));
+    const feature = new Feature(
+      new LineString([
+        [200, 0],
+        [400, 600],
+      ]),
+    );
     feature.set('gridAxis', 'x');
     source.addFeature(feature);
     const placer = makePlacer(
-      source, makeConfig({ edgeLabelExtend: 'axis', edgeLabelLeader: 'line' }),
+      source,
+      makeConfig({ edgeLabelExtend: 'axis', edgeLabelLeader: 'line' }),
     );
     const { xBuf } = buffersFor([{ x: 300, y: 300, text: '300', axis: 'x' }]);
     const drawFeature = vi.fn();
     const drawGeometry = vi.fn();
     const ctx = makeVectorContext(drawFeature);
     ctx.drawGeometry = drawGeometry;
-    placer.place(ctx, northUpFrame(0), northUpScreen(), [0, 0, 1000, 1000], 1, xBuf, xBuf.length, [], 0);
+    placer.place(
+      ctx,
+      northUpFrame(0),
+      northUpScreen(),
+      [0, 0, 1000, 1000],
+      1,
+      xBuf,
+      xBuf.length,
+      [],
+      0,
+    );
 
     expect(drawFeature).toHaveBeenCalledTimes(1);
     expect(drawGeometry).toHaveBeenCalledTimes(1);
     const geom = drawGeometry.mock.calls[0]?.[0];
-    if (!(geom instanceof LineString)) throw new Error('expected a LineString leader');
+    if (!(geom instanceof LineString))
+      throw new Error('expected a LineString leader');
     // Anchor on the top edge (400,1000 map) back to the line's near end (400,600).
-    expect(geom.getCoordinates()).toEqual([[400, 1000], [400, 600]]);
+    expect(geom.getCoordinates()).toEqual([
+      [400, 1000],
+      [400, 600],
+    ]);
   });
 });

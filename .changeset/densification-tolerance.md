@@ -1,5 +1,5 @@
 ---
-"@zwaarcontrast/ol-graticule": patch
+'@zwaarcontrast/ol-graticule': patch
 ---
 
 Relax the adaptive densification tolerance from 0.25 px to 0.5 px. Grid lines

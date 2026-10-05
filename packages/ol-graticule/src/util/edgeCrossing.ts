@@ -7,9 +7,12 @@
 
 /** Squared distance from point `p` to segment `a`–`b`. */
 export function distToSegmentSq(
-  px: number, py: number,
-  ax: number, ay: number,
-  bx: number, by: number,
+  px: number,
+  py: number,
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
 ): number {
   const dx = bx - ax;
   const dy = by - ay;
@@ -30,16 +33,29 @@ export function distToSegmentSq(
  * `extend` projects the line onto the edge; otherwise the anchor clamps to the
  * line's own span. Returns `false` when the crossing falls off the edge or the
  * line runs parallel to it.
- */export function borderAnchor(
-  x0: number, y0: number, x1: number, y1: number,
-  cx: number, cy: number, cos: number, sin: number,
-  vertical: boolean, target: number, spanLo: number, spanHi: number,
-  targetLo: number, targetHi: number, extend: boolean,
+ */ export function borderAnchor(
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  cx: number,
+  cy: number,
+  cos: number,
+  sin: number,
+  vertical: boolean,
+  target: number,
+  spanLo: number,
+  spanHi: number,
+  targetLo: number,
+  targetHi: number,
+  extend: boolean,
   out: [number, number],
 ): boolean {
   // Un-rotate, so the viewport is axis-aligned.
-  const dx0 = x0 - cx, dy0 = y0 - cy;
-  const dx1 = x1 - cx, dy1 = y1 - cy;
+  const dx0 = x0 - cx,
+    dy0 = y0 - cy;
+  const dx1 = x1 - cx,
+    dy1 = y1 - cy;
   const rx0 = cx + dx0 * cos + dy0 * sin;
   const ry0 = cy - dx0 * sin + dy0 * cos;
   const rx1 = cx + dx1 * cos + dy1 * sin;
@@ -65,7 +81,8 @@ export function distToSegmentSq(
   const ty = vertical ? at : cross;
 
   // Back into view coords.
-  const ex = tx - cx, ey = ty - cy;
+  const ex = tx - cx,
+    ey = ty - cy;
   out[0] = cx + ex * cos - ey * sin;
   out[1] = cy + ex * sin + ey * cos;
   return true;

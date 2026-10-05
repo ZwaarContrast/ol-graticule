@@ -14,25 +14,36 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
     // 100 km N of the false origin. Since the false origin is WOFO (0, 0),
     // that point is WOFO (500 000, 100 000) m and should label as wQ 000 000.
     const grid = createWarOfficeCassiniGridSystem();
-    const formatted = grid.formatCoordinate([500_000, 100_000], WAR_OFFICE_CASSINI_CRS);
+    const formatted = grid.formatCoordinate(
+      [500_000, 100_000],
+      WAR_OFFICE_CASSINI_CRS,
+    );
     if (!('combined' in formatted)) throw new Error('expected combined label');
     expect(formatted.combined).toBe('wQ 000 000');
   });
 
   it('London labels under the w first-letter square', () => {
     const grid = createWarOfficeCassiniGridSystem();
-    const [x, y] = transform([-0.1276, 51.5074], 'EPSG:4326', WAR_OFFICE_CASSINI_CRS);
+    const [x, y] = transform(
+      [-0.1276, 51.5074],
+      'EPSG:4326',
+      WAR_OFFICE_CASSINI_CRS,
+    );
     const formatted = grid.formatCoordinate([x!, y!], WAR_OFFICE_CASSINI_CRS);
     if (!('combined' in formatted)) throw new Error('expected combined label');
     expect(formatted.combined).toMatch(/^w[A-Z] \d{3} \d{3}$/);
   });
 
-  it("Dunnose itself (near the q/r/v/w intersection) projects to WOFO (500 km, 100 km)", () => {
+  it('Dunnose itself (near the q/r/v/w intersection) projects to WOFO (500 km, 100 km)', () => {
     // Dunnose (50.6177°N, 1.1973°W) IS the natural projection origin, so
     // with false easting 500 km / false northing 100 km it should land at
     // projected (500 000, 100 000). Sanity check that the proj4 string is
     // wired correctly.
-    const [x, y] = transform([-1.1972600000, 50.6177077778], 'EPSG:4326', WAR_OFFICE_CASSINI_CRS);
+    const [x, y] = transform(
+      [-1.19726, 50.6177077778],
+      'EPSG:4326',
+      WAR_OFFICE_CASSINI_CRS,
+    );
     expect(x).toBeCloseTo(500_000, -1); // within 10 m
     expect(y).toBeCloseTo(100_000, -1);
   });
@@ -45,7 +56,9 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
     const lonLat: [number, number] = [-0.1276, 51.5074];
     const [x, y] = transform(lonLat, 'EPSG:4326', WAR_OFFICE_CASSINI_CRS);
     const wofoLabel = wofo.formatCoordinate([x!, y!], WAR_OFFICE_CASSINI_CRS);
-    expect('combined' in wofoLabel && wofoLabel.combined).not.toBe('vK 611 516');
+    expect('combined' in wofoLabel && wofoLabel.combined).not.toBe(
+      'vK 611 516',
+    );
     // (The Delamere variant puts London at some v*-prefixed cell with
     // different sub-digits. Actual Delamere label is validated in the
     // British Cassini test suite.)
@@ -85,63 +98,107 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
       // GSGS 2748, Sheet XIII.S (Hampshire), IIIF id 19546/195462174
       // https://maps.nls.uk/view/195462174 (Edition trenches/survey ~1929)
       {
-        sheet: 'XIII.S Hampshire', url: 'https://maps.nls.uk/view/195462174', corner: 'NW',
-        lat: dms(51, 4, 1.94, 1),  lon: dms(1, 11, 50.14, -1),
-        expectedE: 500_000, expectedN: 150_000,
+        sheet: 'XIII.S Hampshire',
+        url: 'https://maps.nls.uk/view/195462174',
+        corner: 'NW',
+        lat: dms(51, 4, 1.94, 1),
+        lon: dms(1, 11, 50.14, -1),
+        expectedE: 500_000,
+        expectedN: 150_000,
       },
       {
-        sheet: 'XIII.S Hampshire', url: 'https://maps.nls.uk/view/195462174', corner: 'NE',
-        lat: dms(51, 4, 1.24, 1),  lon: dms(0, 58, 59.69, -1),
-        expectedE: 515_000, expectedN: 150_000,
+        sheet: 'XIII.S Hampshire',
+        url: 'https://maps.nls.uk/view/195462174',
+        corner: 'NE',
+        lat: dms(51, 4, 1.24, 1),
+        lon: dms(0, 58, 59.69, -1),
+        expectedE: 515_000,
+        expectedN: 150_000,
       },
       {
-        sheet: 'XIII.S Hampshire', url: 'https://maps.nls.uk/view/195462174', corner: 'SW',
-        lat: dms(50, 58, 38.31, 1), lon: dms(1, 11, 50.14, -1),
-        expectedE: 500_000, expectedN: 140_000,
+        sheet: 'XIII.S Hampshire',
+        url: 'https://maps.nls.uk/view/195462174',
+        corner: 'SW',
+        lat: dms(50, 58, 38.31, 1),
+        lon: dms(1, 11, 50.14, -1),
+        expectedE: 500_000,
+        expectedN: 140_000,
       },
       {
-        sheet: 'XIII.S Hampshire', url: 'https://maps.nls.uk/view/195462174', corner: 'SE',
-        lat: dms(50, 58, 37.61, 1), lon: dms(0, 59, 1.18, -1),
-        expectedE: 515_000, expectedN: 140_000,
+        sheet: 'XIII.S Hampshire',
+        url: 'https://maps.nls.uk/view/195462174',
+        corner: 'SE',
+        lat: dms(50, 58, 37.61, 1),
+        lon: dms(0, 59, 1.18, -1),
+        expectedE: 515_000,
+        expectedN: 140_000,
       },
       // GSGS 2748, Dundee/Tayside, IIIF id 19546/195462213
       // https://maps.nls.uk/view/195462213 (Survey 1923)
       {
-        sheet: 'Dundee/Tayside', url: 'https://maps.nls.uk/view/195462213', corner: 'NW',
-        lat: dms(56, 32, 11.70, 1), lon: dms(2, 54, 15.18, -1),
-        expectedE: 395_000, expectedN: 760_000,
+        sheet: 'Dundee/Tayside',
+        url: 'https://maps.nls.uk/view/195462213',
+        corner: 'NW',
+        lat: dms(56, 32, 11.7, 1),
+        lon: dms(2, 54, 15.18, -1),
+        expectedE: 395_000,
+        expectedN: 760_000,
       },
       {
-        sheet: 'Dundee/Tayside', url: 'https://maps.nls.uk/view/195462213', corner: 'SW',
-        lat: dms(56, 26, 48.52, 1), lon: dms(2, 54, 0.68, -1),
-        expectedE: 395_000, expectedN: 750_000,
+        sheet: 'Dundee/Tayside',
+        url: 'https://maps.nls.uk/view/195462213',
+        corner: 'SW',
+        lat: dms(56, 26, 48.52, 1),
+        lon: dms(2, 54, 0.68, -1),
+        expectedE: 395_000,
+        expectedN: 750_000,
       },
       {
-        sheet: 'Dundee/Tayside', url: 'https://maps.nls.uk/view/195462213', corner: 'SE',
-        lat: dms(56, 26, 59.67, 1), lon: dms(2, 39, 25.17, -1),
-        expectedE: 410_000, expectedN: 750_000,
+        sheet: 'Dundee/Tayside',
+        url: 'https://maps.nls.uk/view/195462213',
+        corner: 'SE',
+        lat: dms(56, 26, 59.67, 1),
+        lon: dms(2, 39, 25.17, -1),
+        expectedE: 410_000,
+        expectedN: 750_000,
       },
       // GSGS 2748, Stobs (Special Sheet), IIIF id 19546/195462231
       // https://maps.nls.uk/view/195462231 (Published 1923, artillery training)
       {
-        sheet: 'Stobs', url: 'https://maps.nls.uk/view/195462231', corner: 'NW',
-        lat: dms(55, 25, 21.55, 1), lon: dms(2, 54, 11.64, -1),
-        expectedE: 392_000, expectedN: 636_000,
+        sheet: 'Stobs',
+        url: 'https://maps.nls.uk/view/195462231',
+        corner: 'NW',
+        lat: dms(55, 25, 21.55, 1),
+        lon: dms(2, 54, 11.64, -1),
+        expectedE: 392_000,
+        expectedN: 636_000,
       },
       {
-        sheet: 'Stobs', url: 'https://maps.nls.uk/view/195462231', corner: 'NE',
-        lat: dms(55, 25, 32.61, 1), lon: dms(2, 39, 58.93, -1),
-        expectedE: 407_000, expectedN: 636_000,
+        sheet: 'Stobs',
+        url: 'https://maps.nls.uk/view/195462231',
+        corner: 'NE',
+        lat: dms(55, 25, 32.61, 1),
+        lon: dms(2, 39, 58.93, -1),
+        expectedE: 407_000,
+        expectedN: 636_000,
       },
       {
-        sheet: 'Stobs', url: 'https://maps.nls.uk/view/195462231', corner: 'SW',
-        lat: dms(55, 19, 25.98, 1), lon: dms(2, 53, 56.36, -1),
-        expectedE: 392_000, expectedN: 625_000,
+        sheet: 'Stobs',
+        url: 'https://maps.nls.uk/view/195462231',
+        corner: 'SW',
+        lat: dms(55, 19, 25.98, 1),
+        lon: dms(2, 53, 56.36, -1),
+        expectedE: 392_000,
+        expectedN: 625_000,
       },
       {
-        sheet: 'Stobs', url: 'https://maps.nls.uk/view/195462231', corner: 'SE',
-        lat: dms(55, 19, 37.00, 1), lon: dms(2, 39, 45.76, -1),
-        expectedE: 407_000, expectedN: 625_000,
+        sheet: 'Stobs',
+        url: 'https://maps.nls.uk/view/195462231',
+        corner: 'SE',
+        lat: dms(55, 19, 37.0, 1),
+        lon: dms(2, 39, 45.76, -1),
+        expectedE: 407_000,
+        expectedN: 625_000,
       },
       // GSGS 2748, Catterick (Special Sheet), IIIF id 19546/195462180
       // https://maps.nls.uk/view/195462180 (Published 1927, artillery training).
@@ -149,14 +206,22 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
       // "Points are described by their Co-ordinates in kilometres, in the
       //  large lettered squares. The easterly Co-ordinate is always given first."
       {
-        sheet: 'Catterick', url: 'https://maps.nls.uk/view/195462180', corner: 'NW',
-        lat: dms(54, 24, 29.94, 1), lon: dms(1, 54, 20.78, -1),
-        expectedE: 454_000, expectedN: 522_000,
+        sheet: 'Catterick',
+        url: 'https://maps.nls.uk/view/195462180',
+        corner: 'NW',
+        lat: dms(54, 24, 29.94, 1),
+        lon: dms(1, 54, 20.78, -1),
+        expectedE: 454_000,
+        expectedN: 522_000,
       },
       {
-        sheet: 'Catterick', url: 'https://maps.nls.uk/view/195462180', corner: 'SE',
-        lat: dms(54, 19, 10.59, 1), lon: dms(1, 40, 25.33, -1),
-        expectedE: 469_000, expectedN: 512_000,
+        sheet: 'Catterick',
+        url: 'https://maps.nls.uk/view/195462180',
+        corner: 'SE',
+        lat: dms(54, 19, 10.59, 1),
+        lon: dms(1, 40, 25.33, -1),
+        expectedE: 469_000,
+        expectedN: 512_000,
       },
     ];
 
@@ -164,7 +229,10 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
       it(`${a.sheet} ${a.corner} corner, ${a.url}`, () => {
         // Side-effect: register the CRS with proj4/OL.
         createWarOfficeCassiniGridSystem();
-        const [e, n] = proj4(AIRY_LL, WAR_OFFICE_CASSINI_CRS).forward([a.lon, a.lat]);
+        const [e, n] = proj4(AIRY_LL, WAR_OFFICE_CASSINI_CRS).forward([
+          a.lon,
+          a.lat,
+        ]);
         expect(Math.abs(e - a.expectedE)).toBeLessThan(5);
         expect(Math.abs(n - a.expectedN)).toBeLessThan(5);
       });
@@ -237,9 +305,14 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
     // Only safe for points inside the Britain clip polygon.
     const probe = (e: number, n: number) => {
       const grid = createWarOfficeCassiniGridSystem();
-      const formatted = grid.formatCoordinate([e + 1, n + 1], WAR_OFFICE_CASSINI_CRS);
+      const formatted = grid.formatCoordinate(
+        [e + 1, n + 1],
+        WAR_OFFICE_CASSINI_CRS,
+      );
       if (!('combined' in formatted)) {
-        throw new Error(`probe (${e}, ${n}) returned non-combined: ${JSON.stringify(formatted)}`);
+        throw new Error(
+          `probe (${e}, ${n}) returned non-combined: ${JSON.stringify(formatted)}`,
+        );
       }
       return formatted.combined.split(' ')[0];
     };
@@ -262,8 +335,10 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
      * right on the Q/L boundary). Croydon (51.375°N) sits well inside.
      */
     it('Greater London (Croydon) labels as wQ', () => {
-      const [e, n] = proj4('+proj=longlat +ellps=airy +no_defs', WAR_OFFICE_CASSINI_CRS)
-        .forward([-0.0986, 51.3754]);
+      const [e, n] = proj4(
+        '+proj=longlat +ellps=airy +no_defs',
+        WAR_OFFICE_CASSINI_CRS,
+      ).forward([-0.0986, 51.3754]);
       expect(probe(e, n)).toBe('wQ');
     });
 
@@ -323,52 +398,84 @@ describe('War Office Cassini (Dunnose / WOFO) MBS factory', () => {
       // IIIF id 18966/189661153.
       // https://maps.nls.uk/view/189661153
       {
-        sheet: '11/90 S.E. & N.E.', url: 'https://maps.nls.uk/view/189661153', corner: 'NW',
-        e: 125_000, n: 910_000, expected: 'qB 250 100',
+        sheet: '11/90 S.E. & N.E.',
+        url: 'https://maps.nls.uk/view/189661153',
+        corner: 'NW',
+        e: 125_000,
+        n: 910_000,
+        expected: 'qB 250 100',
       },
       {
-        sheet: '11/90 S.E. & N.E.', url: 'https://maps.nls.uk/view/189661153', corner: 'NE',
-        e: 140_000, n: 910_000, expected: 'qB 400 100',
+        sheet: '11/90 S.E. & N.E.',
+        url: 'https://maps.nls.uk/view/189661153',
+        corner: 'NE',
+        e: 140_000,
+        n: 910_000,
+        expected: 'qB 400 100',
       },
       {
-        sheet: '11/90 S.E. & N.E.', url: 'https://maps.nls.uk/view/189661153', corner: 'SW',
-        e: 125_000, n: 900_000, expected: 'qB 250 000',
+        sheet: '11/90 S.E. & N.E.',
+        url: 'https://maps.nls.uk/view/189661153',
+        corner: 'SW',
+        e: 125_000,
+        n: 900_000,
+        expected: 'qB 250 000',
       },
       // Sheet 17/66 S.E., Islay (Inner Hebrides, Port Ellen).
       // IIIF id 18966/189661237.
       // https://maps.nls.uk/view/189661237
       {
-        sheet: '17/66 S.E.', url: 'https://maps.nls.uk/view/189661237', corner: 'NW',
-        e: 185_000, n: 670_000, expected: 'qR 850 700',
+        sheet: '17/66 S.E.',
+        url: 'https://maps.nls.uk/view/189661237',
+        corner: 'NW',
+        e: 185_000,
+        n: 670_000,
+        expected: 'qR 850 700',
       },
       // SE corner sits exactly on the qR/qS letter-cell boundary at E=200 km.
       // Factory's floor() puts boundary points in the eastward/northward cell,
       // i.e. the cell whose SW corner is the boundary point. Hence qS, not qR.
       {
-        sheet: '17/66 S.E.', url: 'https://maps.nls.uk/view/189661237', corner: 'SE',
-        e: 200_000, n: 660_000, expected: 'qS 000 600',
+        sheet: '17/66 S.E.',
+        url: 'https://maps.nls.uk/view/189661237',
+        corner: 'SE',
+        e: 200_000,
+        n: 660_000,
+        expected: 'qS 000 600',
       },
       // Sheet 17/94 N.E., Northern Scotland (~58.3°N).
       // IIIF id 18966/189661360.
       // https://maps.nls.uk/view/189661360
       {
-        sheet: '17/94 N.E.', url: 'https://maps.nls.uk/view/189661360', corner: 'NW',
-        e: 185_000, n: 960_000, expected: 'qB 850 600',
+        sheet: '17/94 N.E.',
+        url: 'https://maps.nls.uk/view/189661360',
+        corner: 'NW',
+        e: 185_000,
+        n: 960_000,
+        expected: 'qB 850 600',
       },
       // Sheet 29/66 S.E., central Scotland.
       // IIIF id 18966/189662194.
       // https://maps.nls.uk/view/189662194
       {
-        sheet: '29/66 S.E.', url: 'https://maps.nls.uk/view/189662194', corner: 'NW',
-        e: 305_000, n: 670_000, expected: 'qT 050 700',
+        sheet: '29/66 S.E.',
+        url: 'https://maps.nls.uk/view/189662194',
+        corner: 'NW',
+        e: 305_000,
+        n: 670_000,
+        expected: 'qT 050 700',
       },
     ];
 
     for (const a of anchors) {
       it(`${a.sheet} ${a.corner}, ${a.url}`, () => {
         const grid = createWarOfficeCassiniGridSystem();
-        const formatted = grid.formatCoordinate([a.e, a.n], WAR_OFFICE_CASSINI_CRS);
-        if (!('combined' in formatted)) throw new Error('expected combined label');
+        const formatted = grid.formatCoordinate(
+          [a.e, a.n],
+          WAR_OFFICE_CASSINI_CRS,
+        );
+        if (!('combined' in formatted))
+          throw new Error('expected combined label');
         expect(formatted.combined).toBe(a.expected);
       });
     }

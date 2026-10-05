@@ -3,7 +3,10 @@ import type { Extent } from 'ol/extent';
 import LineString from 'ol/geom/LineString';
 import type Feature from 'ol/Feature';
 import type { Geometry } from 'ol/geom';
-import { LineTransformCache, type LinePolyline } from '../lineTransformCache.js';
+import {
+  LineTransformCache,
+  type LinePolyline,
+} from '../lineTransformCache.js';
 import { ProjectedGridSystem } from '../ProjectedGridSystem.js';
 
 const entry = (band: number, pMin: number, pMax: number): LinePolyline => ({
@@ -60,7 +63,11 @@ describe('ProjectedGridSystem cached lines equivalence', () => {
   const RD_EXTENT: Extent = [-7000, 289000, 300000, 629000];
 
   const make = (): ProjectedGridSystem =>
-    new ProjectedGridSystem({ crs: 'EPSG:28992', proj4Def: RD, extent: RD_EXTENT });
+    new ProjectedGridSystem({
+      crs: 'EPSG:28992',
+      proj4Def: RD,
+      extent: RD_EXTENT,
+    });
 
   const lineKey = (f: Feature<Geometry>): string =>
     `${f.get('gridAxis')}:${f.get('gridValue')}:${f.get('gridLineType')}`;

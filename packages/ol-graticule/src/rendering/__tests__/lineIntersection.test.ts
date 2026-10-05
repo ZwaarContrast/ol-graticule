@@ -19,8 +19,14 @@ describe('lineIntersection', () => {
     const meridian = [40, 40, 45, 45]; // direction (1, 1)
     const parallel = [60, 40, 55, 45]; // direction (-1, 1)
     const p = lineIntersection(
-      meridian[0], meridian[1], meridian[2], meridian[3],
-      parallel[0], parallel[1], parallel[2], parallel[3],
+      meridian[0],
+      meridian[1],
+      meridian[2],
+      meridian[3],
+      parallel[0],
+      parallel[1],
+      parallel[2],
+      parallel[3],
       out,
     );
     expect(p).not.toBeNull();

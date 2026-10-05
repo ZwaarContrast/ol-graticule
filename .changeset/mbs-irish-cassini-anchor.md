@@ -1,5 +1,5 @@
 ---
-"@zwaarcontrast/ol-graticule-modified-british-system": patch
+'@zwaarcontrast/ol-graticule-modified-british-system': patch
 ---
 
 Pin the Irish Cassini false northing to the sheet that states it, after a

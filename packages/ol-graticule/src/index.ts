@@ -13,7 +13,10 @@ export type {
 export { isCombinedFormatted, isAxisFormatted } from './types.js';
 
 export { ParseError } from './util/ParseError.js';
-export { splitCoordinatePair, parsePairViaFormatter } from './util/parseCoordinatePair.js';
+export {
+  splitCoordinatePair,
+  parsePairViaFormatter,
+} from './util/parseCoordinatePair.js';
 
 export { DegreeIntervals } from './intervals/DegreeIntervals.js';
 export { PixelIntervals } from './intervals/PixelIntervals.js';
@@ -41,18 +44,28 @@ export { pointInRing } from './clipping/pointInRing.js';
 export { clipPolygonToConvex } from './clipping/clipPolygonToConvex.js';
 export { polygonArea, signedArea } from './clipping/polygonArea.js';
 export { clipPolylineToRect } from './clipping/clipPolylineToRect.js';
-export { PolygonEdgeIndex, createEdgeBuffer } from './clipping/PolygonEdgeIndex.js';
+export {
+  PolygonEdgeIndex,
+  createEdgeBuffer,
+} from './clipping/PolygonEdgeIndex.js';
 export type { EdgeBuffer } from './clipping/PolygonEdgeIndex.js';
 export {
   clipPolylineToPolygon,
   createClipScratch,
 } from './clipping/clipPolylineToPolygon.js';
 export type { ClipScratch } from './clipping/clipPolylineToPolygon.js';
-export { densifyRing, projectRing, densifyAndProject } from './clipping/densifyRing.js';
+export {
+  densifyRing,
+  projectRing,
+  densifyAndProject,
+} from './clipping/densifyRing.js';
 export { snapRingToCellGrid } from './clipping/snapRingToCellGrid.js';
 
 export { UniversalGraticule } from './UniversalGraticule.js';
-export type { UniversalGraticuleOptions, GraticuleRenderer } from './UniversalGraticule.js';
+export type {
+  UniversalGraticuleOptions,
+  GraticuleRenderer,
+} from './UniversalGraticule.js';
 export { CanvasGraticuleLayer } from './CanvasGraticuleLayer.js';
 export type { CanvasGraticuleLayerOptions } from './CanvasGraticuleLayer.js';
 
@@ -102,7 +115,11 @@ export { LruCache } from './util/lruCache.js';
 export { ProjectionScratch } from './util/projectionScratch.js';
 export { TransformCache, transformBatchCached } from './util/transformCache.js';
 export { formatDecimal } from './util/formatNumber.js';
-export { normalizeLon, extentFromPolygon, transformExtentSampled } from './util/geo.js';
+export {
+  normalizeLon,
+  extentFromPolygon,
+  transformExtentSampled,
+} from './util/geo.js';
 export {
   isOnMajorLine,
   buildStraightGridLine,

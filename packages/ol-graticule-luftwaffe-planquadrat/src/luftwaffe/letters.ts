@@ -11,7 +11,8 @@ const JMN_LETTER_COUNT = JMN_LETTERS.length;
 
 /** Letter at `index` in the Jägermeldenetz alphabet, or `undefined` if out of range. */
 export function letterFromIndex(index: number): string | undefined {
-  if (!Number.isInteger(index) || index < 0 || index >= JMN_LETTER_COUNT) return undefined;
+  if (!Number.isInteger(index) || index < 0 || index >= JMN_LETTER_COUNT)
+    return undefined;
   return JMN_LETTERS[index];
 }
 

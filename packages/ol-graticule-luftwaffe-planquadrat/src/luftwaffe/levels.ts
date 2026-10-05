@@ -36,10 +36,30 @@ export const MT_LON_DEG = 30 / 60;
 export const KT_LAT_DEG = 5 / 60;
 export const KT_LON_DEG = 10 / 60;
 
-const MELT_POST: CellDims = { latDeg: (1 + 40 / 60) / 60, lonDeg: (3 + 20 / 60) / 60, rows: 3, cols: 3 };
-const MELT_PRE:  CellDims = { latDeg: 2.5 / 60,            lonDeg: 5 / 60,             rows: 2, cols: 2 };
-const AT_POST:   CellDims = { latDeg: MELT_POST.latDeg / 3, lonDeg: MELT_POST.lonDeg / 3, rows: 3, cols: 3 };
-const AT_PRE:    CellDims = { latDeg: MELT_PRE.latDeg  / 2, lonDeg: MELT_PRE.lonDeg  / 2, rows: 2, cols: 2 };
+const MELT_POST: CellDims = {
+  latDeg: (1 + 40 / 60) / 60,
+  lonDeg: (3 + 20 / 60) / 60,
+  rows: 3,
+  cols: 3,
+};
+const MELT_PRE: CellDims = {
+  latDeg: 2.5 / 60,
+  lonDeg: 5 / 60,
+  rows: 2,
+  cols: 2,
+};
+const AT_POST: CellDims = {
+  latDeg: MELT_POST.latDeg / 3,
+  lonDeg: MELT_POST.lonDeg / 3,
+  rows: 3,
+  cols: 3,
+};
+const AT_PRE: CellDims = {
+  latDeg: MELT_PRE.latDeg / 2,
+  lonDeg: MELT_PRE.lonDeg / 2,
+  rows: 2,
+  cols: 2,
+};
 
 /** Northern boundary of the topmost ZZG band (89°N). */
 export const ZZG_NORTH_LIMIT = 89;

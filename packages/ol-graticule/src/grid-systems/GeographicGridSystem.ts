@@ -5,7 +5,13 @@ import type { TransformFunction } from 'ol/proj';
 import type { Extent } from 'ol/extent';
 import type { Geometry } from 'ol/geom';
 import type { ProjectionLike } from 'ol/proj';
-import type { GridSystem, GridLabel, IntervalStrategy, LabelFormatter, FormattedCoordinate } from '../types.js';
+import type {
+  GridSystem,
+  GridLabel,
+  IntervalStrategy,
+  LabelFormatter,
+  FormattedCoordinate,
+} from '../types.js';
 import { DegreeIntervals } from '../intervals/DegreeIntervals.js';
 import { DegreeFormatter } from '../formatters/DegreeFormatter.js';
 import { RenderCache } from '../util/renderCache.js';
@@ -18,7 +24,10 @@ import {
   type FlatLineSpec,
 } from '../util/gridlines.js';
 import { ProjectionScratch } from '../util/projectionScratch.js';
-import { TransformCache, transformBatchCached } from '../util/transformCache.js';
+import {
+  TransformCache,
+  transformBatchCached,
+} from '../util/transformCache.js';
 import { normalizeLon } from '../util/geo.js';
 import { ParseError } from '../util/ParseError.js';
 import { parsePairViaFormatter } from '../util/parseCoordinatePair.js';
@@ -69,18 +78,32 @@ export class GeographicGridSystem implements GridSystem {
     this.densificationPoints_ = options?.densificationPoints ?? 20;
   }
 
-  getFeatures(extent: Extent, resolution: number, viewProjection: ProjectionLike): Feature<Geometry>[] {
+  getFeatures(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): Feature<Geometry>[] {
     const ctx = this.renderContext_(extent, resolution, viewProjection);
     const features: Feature<Geometry>[] = [];
 
     this.generateLines_(features, ctx, ctx.interval, 'major');
     if (ctx.minorInterval !== undefined) {
-      this.generateLines_(features, ctx, ctx.minorInterval, 'minor', ctx.interval);
+      this.generateLines_(
+        features,
+        ctx,
+        ctx.minorInterval,
+        'minor',
+        ctx.interval,
+      );
     }
     return features;
   }
 
-  getLabels(extent: Extent, resolution: number, viewProjection: ProjectionLike): GridLabel[] {
+  getLabels(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): GridLabel[] {
     const ctx = this.renderContext_(extent, resolution, viewProjection);
     const { target, interval, transformFn, startX, endX, startY, endY } = ctx;
     const [tMinX, , , tMaxY] = target;
@@ -119,7 +142,10 @@ export class GeographicGridSystem implements GridSystem {
     return labels;
   }
 
-  formatCoordinate(coordinate: [number, number], viewProjection: ProjectionLike): FormattedCoordinate {
+  formatCoordinate(
+    coordinate: [number, number],
+    viewProjection: ProjectionLike,
+  ): FormattedCoordinate {
     const toDeg = requireTransform(viewProjection, 'EPSG:4326');
     const [rawLon, lat] = toDeg(coordinate, undefined, 2);
     if (rawLon === undefined || lat === undefined) {
@@ -135,24 +161,40 @@ export class GeographicGridSystem implements GridSystem {
     };
   }
 
-  parseCoordinate(text: string, viewProjection: ProjectionLike): [number, number] {
+  parseCoordinate(
+    text: string,
+    viewProjection: ProjectionLike,
+  ): [number, number] {
     const [lon, lat] = parsePairViaFormatter(this.formatter_, text);
     const projected = transform([lon, lat], 'EPSG:4326', viewProjection);
     const px = projected[0];
     const py = projected[1];
-    if (px === undefined || py === undefined || !Number.isFinite(px) || !Number.isFinite(py)) {
+    if (
+      px === undefined ||
+      py === undefined ||
+      !Number.isFinite(px) ||
+      !Number.isFinite(py)
+    ) {
       throw new ParseError(text, 'transform produced non-finite coordinate');
     }
     return [px, py];
   }
 
-  private renderContext_(extent: Extent, resolution: number, viewProjection: ProjectionLike): RenderContext {
+  private renderContext_(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): RenderContext {
     return this.ctxCache_.get(extent, resolution, viewProjection, () => {
       const target = transformExtent(extent, viewProjection, 'EPSG:4326');
       const transformFn = requireTransform('EPSG:4326', viewProjection);
       const fallback = target[2] - target[0];
-      const targetResolution = measureTargetResolution(target, transformFn, resolution) ?? fallback;
-      const interval = this.intervals_.getInterval(targetResolution, viewProjection);
+      const targetResolution =
+        measureTargetResolution(target, transformFn, resolution) ?? fallback;
+      const interval = this.intervals_.getInterval(
+        targetResolution,
+        viewProjection,
+      );
       const minorInterval = this.intervals_.getMinorInterval?.(interval);
 
       // Place points only where lines curve in view: in a Mercator view lat/lon
@@ -167,7 +209,18 @@ export class GeographicGridSystem implements GridSystem {
       const startY = Math.ceil(target[1] / interval) * interval;
       const endY = Math.floor(target[3] / interval) * interval;
 
-      return { target, interval, minorInterval, transformFn, xTs, yTs, startX, endX, startY, endY };
+      return {
+        target,
+        interval,
+        minorInterval,
+        transformFn,
+        xTs,
+        yTs,
+        startX,
+        endX,
+        startY,
+        endY,
+      };
     });
   }
 
@@ -191,8 +244,30 @@ export class GeographicGridSystem implements GridSystem {
 
     const specs: FlatLineSpec[] = [];
     const skip = type === 'minor' ? onMajor : undefined;
-    pushAxisGridLineSpecs(specs, 'x', startX, endX, interval, tMinY, tMaxY, xTs, type, skip);
-    pushAxisGridLineSpecs(specs, 'y', startY, endY, interval, tMinX, tMaxX, yTs, type, skip);
+    pushAxisGridLineSpecs(
+      specs,
+      'x',
+      startX,
+      endX,
+      interval,
+      tMinY,
+      tMaxY,
+      xTs,
+      type,
+      skip,
+    );
+    pushAxisGridLineSpecs(
+      specs,
+      'y',
+      startY,
+      endY,
+      interval,
+      tMinX,
+      tMaxX,
+      yTs,
+      type,
+      skip,
+    );
     emitFlatLineFeatures(features, this.projScratch_, specs, transformFn);
   }
 }

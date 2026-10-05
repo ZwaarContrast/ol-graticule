@@ -67,5 +67,10 @@ export function createMBSGridSystem(
 ): PolygonClippedGridSystem {
   registerCRS(crs, proj4);
   const { clipPolygon, ...projOptions } = options ?? {};
-  return assembleMBSGridSystem(crs, scheme, clipPolygon ?? defaultClip, projOptions);
+  return assembleMBSGridSystem(
+    crs,
+    scheme,
+    clipPolygon ?? defaultClip,
+    projOptions,
+  );
 }

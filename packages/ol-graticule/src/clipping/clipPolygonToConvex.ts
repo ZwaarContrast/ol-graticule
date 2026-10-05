@@ -55,12 +55,22 @@ export function clipPolygonToConvex(
   return output;
 }
 
-function isInsideEdge(p: Coordinate, a: Coordinate, b: Coordinate, ccw: boolean): boolean {
+function isInsideEdge(
+  p: Coordinate,
+  a: Coordinate,
+  b: Coordinate,
+  ccw: boolean,
+): boolean {
   const cross = (b[0] - a[0]) * (p[1] - a[1]) - (b[1] - a[1]) * (p[0] - a[0]);
   return ccw ? cross >= 0 : cross <= 0;
 }
 
-function intersect(p: Coordinate, q: Coordinate, a: Coordinate, b: Coordinate): Coordinate | null {
+function intersect(
+  p: Coordinate,
+  q: Coordinate,
+  a: Coordinate,
+  b: Coordinate,
+): Coordinate | null {
   const rx = q[0] - p[0];
   const ry = q[1] - p[1];
   const sx = b[0] - a[0];

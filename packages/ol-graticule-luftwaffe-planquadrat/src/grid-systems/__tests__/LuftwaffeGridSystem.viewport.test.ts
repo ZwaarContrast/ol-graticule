@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { findOffScreenFeatures, viewportExtentAt } from '@zwaarcontrast/test-utils';
+import {
+  findOffScreenFeatures,
+  viewportExtentAt,
+} from '@zwaarcontrast/test-utils';
 import { LuftwaffeGridSystem } from '../LuftwaffeGridSystem.js';
 
 type LuftwaffeSystem = 'gnmv' | 'jmn';
@@ -17,9 +20,16 @@ describe('LuftwaffeGridSystem viewport culling invariant', () => {
     (_label, lonLat, zoom, system) => {
       const grid = new LuftwaffeGridSystem({ system });
       const { extent, resolution } = viewportExtentAt(lonLat, zoom);
-      const failures = findOffScreenFeatures(grid, extent, resolution, 'EPSG:3857');
-      expect(failures, `off-screen lines: ${JSON.stringify(failures, null, 2)}`)
-        .toHaveLength(0);
+      const failures = findOffScreenFeatures(
+        grid,
+        extent,
+        resolution,
+        'EPSG:3857',
+      );
+      expect(
+        failures,
+        `off-screen lines: ${JSON.stringify(failures, null, 2)}`,
+      ).toHaveLength(0);
     },
   );
 });

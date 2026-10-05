@@ -77,16 +77,22 @@ describe('Kriegsmarine format', () => {
       // point that resolves to "BC" at lon=-66 must still resolve to
       // "BC" when expressed as lon=294, not silently pick up an
       // antimeridian-crossing rect in the normal range.
-      expect(coordinateToGridRef([47, 294], 0)).toBe(coordinateToGridRef([47, -66], 0));
+      expect(coordinateToGridRef([47, 294], 0)).toBe(
+        coordinateToGridRef([47, -66], 0),
+      );
     });
 
     it('normalizes longitudes from wrapped world copies (lon < -180)', () => {
       // Panning west past the antimeridian produces lon = actualLon - 360.
-      expect(coordinateToGridRef([47, -426], 0)).toBe(coordinateToGridRef([47, -66], 0));
+      expect(coordinateToGridRef([47, -426], 0)).toBe(
+        coordinateToGridRef([47, -66], 0),
+      );
     });
 
     it('normalizes longitudes at deeper subdivision too', () => {
-      expect(coordinateToGridRef([47, 294], 4)).toBe(coordinateToGridRef([47, -66], 4));
+      expect(coordinateToGridRef([47, 294], 4)).toBe(
+        coordinateToGridRef([47, -66], 4),
+      );
     });
 
     it('finds a square in a polygonal region (UK/Scotland area)', () => {

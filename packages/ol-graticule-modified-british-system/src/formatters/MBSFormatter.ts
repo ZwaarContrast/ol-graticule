@@ -59,7 +59,8 @@ export class MBSFormatter implements LabelFormatter {
 
   /** Resolve the grid-square label and the base of the enclosing 100 km cell. */
   private locate_(eastingKm: number, northingKm: number): MBSCell | undefined {
-    const { eOriginKm, nOriginKm, firstLetterGrid, secondLetterGrid } = this.scheme_;
+    const { eOriginKm, nOriginKm, firstLetterGrid, secondLetterGrid } =
+      this.scheme_;
     const relE = eastingKm - eOriginKm;
     const relN = northingKm - nOriginKm;
     if (relE < 0 || relN < 0) return undefined;
@@ -68,16 +69,26 @@ export class MBSFormatter implements LabelFormatter {
     const firstRow = Math.floor(relN / GRID_SIZE_MAJOR_KM);
     if (firstCol >= 5 || firstRow >= 5) return undefined;
 
-    const secondCol = Math.floor((relE % GRID_SIZE_MAJOR_KM) / GRID_SIZE_MINOR_KM);
-    const secondRow = Math.floor((relN % GRID_SIZE_MAJOR_KM) / GRID_SIZE_MINOR_KM);
+    const secondCol = Math.floor(
+      (relE % GRID_SIZE_MAJOR_KM) / GRID_SIZE_MINOR_KM,
+    );
+    const secondRow = Math.floor(
+      (relN % GRID_SIZE_MAJOR_KM) / GRID_SIZE_MINOR_KM,
+    );
 
     const firstLetter = firstLetterGrid[firstRow]![firstCol]!;
     const secondLetter = secondLetterGrid[secondRow]![secondCol]!;
     if (firstLetter === '-' || secondLetter === '-') return undefined;
     const gridSquare = firstLetter.toLowerCase() + secondLetter.toUpperCase();
 
-    const baseE = eOriginKm + firstCol * GRID_SIZE_MAJOR_KM + secondCol * GRID_SIZE_MINOR_KM;
-    const baseN = nOriginKm + firstRow * GRID_SIZE_MAJOR_KM + secondRow * GRID_SIZE_MINOR_KM;
+    const baseE =
+      eOriginKm +
+      firstCol * GRID_SIZE_MAJOR_KM +
+      secondCol * GRID_SIZE_MINOR_KM;
+    const baseN =
+      nOriginKm +
+      firstRow * GRID_SIZE_MAJOR_KM +
+      secondRow * GRID_SIZE_MINOR_KM;
 
     return { gridSquare, baseE, baseN };
   }
@@ -102,7 +113,12 @@ export class MBSFormatter implements LabelFormatter {
 
     const compound = trimmed.match(/^([a-zA-Z])\s*([a-zA-Z])([\d\s]*)$/);
     if (compound) {
-      return this.parseCompound_(text, compound[1]!, compound[2]!, compound[3]!);
+      return this.parseCompound_(
+        text,
+        compound[1]!,
+        compound[2]!,
+        compound[3]!,
+      );
     }
 
     return parseNumericPair_(text);
@@ -122,15 +138,20 @@ export class MBSFormatter implements LabelFormatter {
       throw new ParseError(text, 'digit count exceeds 10 (1 m precision)');
     }
 
-    const { eOriginKm, nOriginKm, firstLetterGrid, secondLetterGrid } = this.scheme_;
+    const { eOriginKm, nOriginKm, firstLetterGrid, secondLetterGrid } =
+      this.scheme_;
     const first = findInGrid_(firstLetterGrid, firstLetter, text);
     const second = findInGrid_(secondLetterGrid, secondLetter, text);
 
     const baseEastingM =
-      (eOriginKm + first.col * GRID_SIZE_MAJOR_KM + second.col * GRID_SIZE_MINOR_KM) *
+      (eOriginKm +
+        first.col * GRID_SIZE_MAJOR_KM +
+        second.col * GRID_SIZE_MINOR_KM) *
       METRES_PER_KM;
     const baseNorthingM =
-      (nOriginKm + first.row * GRID_SIZE_MAJOR_KM + second.row * GRID_SIZE_MINOR_KM) *
+      (nOriginKm +
+        first.row * GRID_SIZE_MAJOR_KM +
+        second.row * GRID_SIZE_MINOR_KM) *
       METRES_PER_KM;
 
     if (digits.length === 0) {
@@ -151,7 +172,11 @@ interface LetterPos {
   col: number;
 }
 
-function findInGrid_(grid: readonly string[], letter: string, text: string): LetterPos {
+function findInGrid_(
+  grid: readonly string[],
+  letter: string,
+  text: string,
+): LetterPos {
   const upper = letter.toUpperCase();
   for (let row = 0; row < grid.length; row++) {
     const col = grid[row]!.indexOf(upper);
@@ -167,11 +192,11 @@ function parseNumericPair_(text: string): [number, number] {
   if (unitMatch) {
     unit = unitMatch[1]!.toLowerCase() === 'km' ? 'km' : 'm';
   }
-  const numericPart = unitMatch ? trimmed.slice(0, unitMatch.index).trim() : trimmed;
+  const numericPart = unitMatch
+    ? trimmed.slice(0, unitMatch.index).trim()
+    : trimmed;
 
-  const parts = numericPart
-    .split(/[\s,]+/)
-    .filter((p) => p.length > 0);
+  const parts = numericPart.split(/[\s,]+/).filter((p) => p.length > 0);
   if (parts.length !== 2) {
     throw new ParseError(text, 'expected two numeric components');
   }

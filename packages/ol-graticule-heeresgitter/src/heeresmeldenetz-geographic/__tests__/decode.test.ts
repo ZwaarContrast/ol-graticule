@@ -45,8 +45,8 @@ describe('parseHmnGeo', () => {
   it.each([
     ['TD 5b 24', 'TD 5b 24'],
     ['td 5b 24', 'TD 5b 24'],
-    ['Td5B24',   'TD 5b 24'],
-    ['TD5b24',   'TD 5b 24'],
+    ['Td5B24', 'TD 5b 24'],
+    ['TD5b24', 'TD 5b 24'],
     ['  TD  5b   24  ', 'TD 5b 24'],
   ])('canonicalises %s → %s', (input, expected) => {
     expect(parseHmnGeo(input, { near: denHaag })?.canonical).toBe(expected);
@@ -70,7 +70,10 @@ describe('parseHmnGeo', () => {
   });
 
   it('round-trips sheetNumber verbatim', () => {
-    const ref = parseHmnGeo('TD 5b 24', { near: denHaag, sheetNumber: 'Den Haag' });
+    const ref = parseHmnGeo('TD 5b 24', {
+      near: denHaag,
+      sheetNumber: 'Den Haag',
+    });
     expect(ref?.sheetNumber).toBe('Den Haag');
   });
 });

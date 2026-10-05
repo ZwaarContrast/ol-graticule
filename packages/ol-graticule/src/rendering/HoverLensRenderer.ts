@@ -14,7 +14,11 @@ import type { FrameState } from 'ol/Map';
 import type { ResolvedHoverLens } from '../style.js';
 import { withAlpha } from '../util/color.js';
 import { worldOffsetOf } from '../util/worldWrap.js';
-import { collectLensHoles, eachSegmentPx, lineNearCursor } from './lensGeometry.js';
+import {
+  collectLensHoles,
+  eachSegmentPx,
+  lineNearCursor,
+} from './lensGeometry.js';
 import { LensPointers } from './LensPointers.js';
 
 /** One grid the canvas lens may swell, with its features source and lens style. */
@@ -112,7 +116,10 @@ export class HoverLensRenderer {
    * shift base-world source lines into that world. Zero when the projection does
    * not wrap in x.
    */
-  private cursorWorldOffset_(frameState: FrameState, cursorCss: [number, number]): number {
+  private cursorWorldOffset_(
+    frameState: FrameState,
+    cursorCss: [number, number],
+  ): number {
     const s = this.scratch_;
     s[0] = cursorCss[0];
     s[1] = cursorCss[1];
@@ -139,7 +146,12 @@ export class HoverLensRenderer {
     // At rotation 0 this resolves to the identity.
     const toBitmap = screenToBitmapTransform(this.transform_, inverse, pr);
     ctx.setTransform(
-      toBitmap[0], toBitmap[1], toBitmap[2], toBitmap[3], toBitmap[4], toBitmap[5],
+      toBitmap[0],
+      toBitmap[1],
+      toBitmap[2],
+      toBitmap[3],
+      toBitmap[4],
+      toBitmap[5],
     );
 
     // Only the grid under a pointer produces swell (grids are clipped to
@@ -149,7 +161,17 @@ export class HoverLensRenderer {
       if (!lens) continue;
       const features = grid.source.getFeatures();
       this.pointers_.forEach((pointer) => {
-        this.drawOneLens_(ctx, frameState, features, pr, toPixel, lens, pointer.x, pointer.y, pointer.intensity);
+        this.drawOneLens_(
+          ctx,
+          frameState,
+          features,
+          pr,
+          toPixel,
+          lens,
+          pointer.x,
+          pointer.y,
+          pointer.intensity,
+        );
       });
     }
 
@@ -164,9 +186,14 @@ export class HoverLensRenderer {
     pr: number,
     toPixel: FrameState['coordinateToPixelTransform'],
     lens: ResolvedHoverLens,
-    cursorCssX: number, cursorCssY: number, intensity: number,
+    cursorCssX: number,
+    cursorCssY: number,
+    intensity: number,
   ): void {
-    const worldOffset = this.cursorWorldOffset_(frameState, [cursorCssX, cursorCssY]);
+    const worldOffset = this.cursorWorldOffset_(frameState, [
+      cursorCssX,
+      cursorCssY,
+    ]);
     const cx = cursorCssX * pr;
     const cy = cursorCssY * pr;
     const radius = lens.radius * pr;
@@ -183,16 +210,25 @@ export class HoverLensRenderer {
     // the local cell size, so only the crossing(s) you are actually near light up
     // rather than the whole 3×3 block around the cursor.
     const holeCount = this.collectHoles_(
-      features, toPixel, pr, worldOffset, cx, cy, radius, lens.approachFraction, lens.approach * pr,
+      features,
+      toPixel,
+      pr,
+      worldOffset,
+      cx,
+      cy,
+      radius,
+      lens.approachFraction,
+      lens.approach * pr,
     );
     const holeX = this.holeX_;
     const holeY = this.holeY_;
     const holeS = this.holeS_;
     const cell = this.cellPx_;
     // Keep the clear hole from exceeding the cell on fine grids; soft edge.
-    const clearR = cell > 0
-      ? Math.min(lens.clearRadius * pr, cell * 0.42)
-      : lens.clearRadius * pr;
+    const clearR =
+      cell > 0
+        ? Math.min(lens.clearRadius * pr, cell * 0.42)
+        : lens.clearRadius * pr;
     const holeFeather = Math.min(12 * pr, clearR * 0.85);
 
     const runs = this.runs_;
@@ -202,16 +238,41 @@ export class HoverLensRenderer {
     for (const feature of features) {
       const geom = feature.getGeometry();
       if (!(geom instanceof LineString)) continue;
-      if (!lineNearCursor(geom, toPixel, pr, worldOffset, cx, cy, radius, scratch)) continue;
+      if (
+        !lineNearCursor(geom, toPixel, pr, worldOffset, cx, cy, radius, scratch)
+      )
+        continue;
 
-      eachSegmentPx(geom, toPixel, pr, worldOffset, scratch, (x0, y0, x1, y1) => {
-        accumulateSegment(
-          runs, x0, y0, x1, y1,
-          cx, cy, radius, sigmaSq, boost,
-          holeX, holeY, holeS, holeCount, clearR, holeFeather,
-          step, quantum, minWidth,
-        );
-      });
+      eachSegmentPx(
+        geom,
+        toPixel,
+        pr,
+        worldOffset,
+        scratch,
+        (x0, y0, x1, y1) => {
+          accumulateSegment(
+            runs,
+            x0,
+            y0,
+            x1,
+            y1,
+            cx,
+            cy,
+            radius,
+            sigmaSq,
+            boost,
+            holeX,
+            holeY,
+            holeS,
+            holeCount,
+            clearR,
+            holeFeather,
+            step,
+            quantum,
+            minWidth,
+          );
+        },
+      );
     }
 
     this.renderSwell_(ctx, lens, cx, cy, radius, intensity, pr);
@@ -231,7 +292,11 @@ export class HoverLensRenderer {
   private renderSwell_(
     ctx: CanvasRenderingContext2D,
     lens: ResolvedHoverLens,
-    cx: number, cy: number, radius: number, intensity: number, pr: number,
+    cx: number,
+    cy: number,
+    radius: number,
+    intensity: number,
+    pr: number,
   ): void {
     const runs = this.runs_;
     if (runs.length === 0) return;
@@ -244,7 +309,8 @@ export class HoverLensRenderer {
     const by0 = Math.max(0, Math.floor(cy - radius - pad));
     const bw = Math.min(cw, Math.ceil(cx + radius + pad)) - bx0;
     const bh = Math.min(ch, Math.ceil(cy + radius + pad)) - by0;
-    const bctx = bw > 0 && bh > 0 ? acquireLensBuffer(cw, ch, bx0, by0, bw, bh) : null;
+    const bctx =
+      bw > 0 && bh > 0 ? acquireLensBuffer(cw, ch, bx0, by0, bw, bh) : null;
     if (!bctx) return;
 
     bctx.lineCap = 'butt';
@@ -254,8 +320,14 @@ export class HoverLensRenderer {
       const x1 = runs[r + 2];
       const y1 = runs[r + 3];
       const w = runs[r + 4];
-      if (x0 === undefined || y0 === undefined || x1 === undefined ||
-          y1 === undefined || w === undefined) continue;
+      if (
+        x0 === undefined ||
+        y0 === undefined ||
+        x1 === undefined ||
+        y1 === undefined ||
+        w === undefined
+      )
+        continue;
       strokeFeatheredRun(bctx, x0, y0, x1, y1, w, opaque, transparent);
     }
     const ramp = bctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
@@ -279,7 +351,9 @@ export class HoverLensRenderer {
   private renderDots_(
     ctx: CanvasRenderingContext2D,
     lens: ResolvedHoverLens,
-    holeCount: number, intensity: number, pr: number,
+    holeCount: number,
+    intensity: number,
+    pr: number,
   ): void {
     if (holeCount === 0) return;
     const glowR = pr * 2.4;
@@ -329,8 +403,16 @@ export class HoverLensRenderer {
     fallbackApproach: number,
   ): number {
     const { holes, cell } = collectLensHoles(
-      features, toPixel, pr, worldOffset, cx, cy, searchRadius,
-      approachFraction, fallbackApproach, LENS_MAX_HOLES,
+      features,
+      toPixel,
+      pr,
+      worldOffset,
+      cx,
+      cy,
+      searchRadius,
+      approachFraction,
+      fallbackApproach,
+      LENS_MAX_HOLES,
     );
     this.cellPx_ = cell;
     const hx = this.holeX_;
@@ -363,12 +445,24 @@ export function screenToBitmapTransform(
 /** Resample a pixel-space segment and add each run to its width bucket. */
 function accumulateSegment(
   runs: number[],
-  ax: number, ay: number, bx: number, by: number,
-  cx: number, cy: number, radius: number,
-  sigmaSq: number, boost: number,
-  holeX: number[], holeY: number[], holeS: number[], holeCount: number,
-  clearR: number, holeFeather: number,
-  step: number, quantum: number, minWidth: number,
+  ax: number,
+  ay: number,
+  bx: number,
+  by: number,
+  cx: number,
+  cy: number,
+  radius: number,
+  sigmaSq: number,
+  boost: number,
+  holeX: number[],
+  holeY: number[],
+  holeS: number[],
+  holeCount: number,
+  clearR: number,
+  holeFeather: number,
+  step: number,
+  quantum: number,
+  minWidth: number,
 ): void {
   const dx = bx - ax;
   const dy = by - ay;
@@ -387,19 +481,46 @@ function accumulateSegment(
   let runStartX = ax;
   let runStartY = ay;
   let runWidth = widthAt(
-    ax, ay, cx, cy, radius, sigmaSq, boost,
-    holeX, holeY, holeS, holeCount, clearR, holeFeather, quantum, minWidth,
+    ax,
+    ay,
+    cx,
+    cy,
+    radius,
+    sigmaSq,
+    boost,
+    holeX,
+    holeY,
+    holeS,
+    holeCount,
+    clearR,
+    holeFeather,
+    quantum,
+    minWidth,
   );
   for (let i = 1; i <= samples; i++) {
     const f = i / samples;
     const sx = ax + dx * f;
     const sy = ay + dy * f;
     const width = widthAt(
-      sx, sy, cx, cy, radius, sigmaSq, boost,
-      holeX, holeY, holeS, holeCount, clearR, holeFeather, quantum, minWidth,
+      sx,
+      sy,
+      cx,
+      cy,
+      radius,
+      sigmaSq,
+      boost,
+      holeX,
+      holeY,
+      holeS,
+      holeCount,
+      clearR,
+      holeFeather,
+      quantum,
+      minWidth,
     );
     if (width !== runWidth) {
-      if (runWidth >= minWidth) runs.push(runStartX, runStartY, prevX, prevY, runWidth);
+      if (runWidth >= minWidth)
+        runs.push(runStartX, runStartY, prevX, prevY, runWidth);
       runStartX = prevX;
       runStartY = prevY;
       runWidth = width;
@@ -407,7 +528,8 @@ function accumulateSegment(
     prevX = sx;
     prevY = sy;
   }
-  if (runWidth >= minWidth) runs.push(runStartX, runStartY, prevX, prevY, runWidth);
+  if (runWidth >= minWidth)
+    runs.push(runStartX, runStartY, prevX, prevY, runWidth);
 }
 
 /**
@@ -416,11 +538,21 @@ function accumulateSegment(
  * not sum) so crossings stay clear and adjacent holes cross-fade smoothly.
  */
 function widthAt(
-  x: number, y: number, cx: number, cy: number, radius: number,
-  sigmaSq: number, boost: number,
-  holeX: number[], holeY: number[], holeS: number[], holeCount: number,
-  clearR: number, holeFeather: number,
-  quantum: number, minWidth: number,
+  x: number,
+  y: number,
+  cx: number,
+  cy: number,
+  radius: number,
+  sigmaSq: number,
+  boost: number,
+  holeX: number[],
+  holeY: number[],
+  holeS: number[],
+  holeCount: number,
+  clearR: number,
+  holeFeather: number,
+  quantum: number,
+  minWidth: number,
 ): number {
   const dxc = cx - x;
   const dyc = cy - y;
@@ -458,8 +590,13 @@ function widthAt(
  */
 function strokeFeatheredRun(
   ctx: CanvasRenderingContext2D,
-  x0: number, y0: number, x1: number, y1: number, width: number,
-  solid: string, transparent: string,
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+  width: number,
+  solid: string,
+  transparent: string,
 ): void {
   const dx = x1 - x0;
   const dy = y1 - y0;
@@ -470,7 +607,12 @@ function strokeFeatheredRun(
   const h = width / 2;
   const mx = (x0 + x1) / 2;
   const my = (y0 + y1) / 2;
-  const grd = ctx.createLinearGradient(mx - px * h, my - py * h, mx + px * h, my + py * h);
+  const grd = ctx.createLinearGradient(
+    mx - px * h,
+    my - py * h,
+    mx + px * h,
+    my + py * h,
+  );
   // Solid plateau in the middle, feather only the outer edges, so the line
   // keeps presence while the cross-section still glows softly.
   grd.addColorStop(0, transparent);

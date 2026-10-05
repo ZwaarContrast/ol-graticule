@@ -117,7 +117,7 @@ export function lonLatToMgrsParts(
   lat: number,
 ): MgrsParts | undefined {
   if (!Number.isFinite(lon) || !Number.isFinite(lat)) return undefined;
-  lon = ((lon + 180) % 360 + 360) % 360 - 180;
+  lon = ((((lon + 180) % 360) + 360) % 360) - 180;
 
   const north = upsIsNorth(lat);
   if (north !== undefined) {
@@ -161,7 +161,10 @@ export function lonLatToMgrsParts(
 }
 
 /** Format MGRS parts as a string at the requested precision. */
-export function formatMgrs(parts: MgrsParts, precision: MgrsPrecision = 5): string {
+export function formatMgrs(
+  parts: MgrsParts,
+  precision: MgrsPrecision = 5,
+): string {
   const gzd = parts.zone === 0 ? parts.band : `${parts.zone}${parts.band}`;
   if (precision === 0) return gzd;
   const factor = 10 ** (5 - precision);
@@ -189,11 +192,13 @@ export interface ParsedMgrs {
   precision: MgrsPrecision;
 }
 
-const MGRS_RE = /^(?:(\d{1,2})([C-HJ-NP-X])|([ABYZ]))(?:([A-HJ-NP-Z])([A-HJ-NP-V])(\d*))?$/;
+const MGRS_RE =
+  /^(?:(\d{1,2})([C-HJ-NP-X])|([ABYZ]))(?:([A-HJ-NP-Z])([A-HJ-NP-V])(\d*))?$/;
 
 /** Parse an MGRS reference into its component parts and the implied precision. */
 export function parseMgrsRef(text: string): ParsedMgrs {
-  if (typeof text !== 'string') throw new ParseError(String(text), 'expected string input');
+  if (typeof text !== 'string')
+    throw new ParseError(String(text), 'expected string input');
   const normalised = text.replace(/[\s/,;\-_]+/g, '').toUpperCase();
   if (normalised.length === 0) throw new ParseError(text, 'empty input');
   const m = MGRS_RE.exec(normalised);
@@ -204,7 +209,8 @@ export function parseMgrsRef(text: string): ParsedMgrs {
   let band: string;
   if (utmZone !== undefined && utmBand !== undefined) {
     zone = Number(utmZone);
-    if (zone < 1 || zone > 60) throw new ParseError(text, `UTM zone out of range: ${zone}`);
+    if (zone < 1 || zone > 60)
+      throw new ParseError(text, `UTM zone out of range: ${zone}`);
     band = utmBand;
   } else if (upsBand !== undefined) {
     zone = 0;
@@ -214,16 +220,25 @@ export function parseMgrsRef(text: string): ParsedMgrs {
   }
 
   if (col === undefined || row === undefined) {
-    return { parts: { zone, band, square: '', easting: 0, northing: 0 }, precision: 0 };
+    return {
+      parts: { zone, band, square: '', easting: 0, northing: 0 },
+      precision: 0,
+    };
   }
 
   if (digits.length % 2 !== 0 || digits.length > 10) {
-    throw new ParseError(text, `expected even number of digits (0–10), got ${digits.length}`);
+    throw new ParseError(
+      text,
+      `expected even number of digits (0–10), got ${digits.length}`,
+    );
   }
   const precision = (digits.length / 2) as MgrsPrecision;
   const square = col + row;
   if (precision === 0) {
-    return { parts: { zone, band, square, easting: 0, northing: 0 }, precision: 0 };
+    return {
+      parts: { zone, band, square, easting: 0, northing: 0 },
+      precision: 0,
+    };
   }
   const factor = 10 ** (5 - precision);
   const easting = Number(digits.slice(0, precision)) * factor;
@@ -272,7 +287,9 @@ export function mgrsPartsToLonLat(
   const approxLat = (latRange[0] + latRange[1]) / 2;
   const lonCentre = -180 + (zone - 1) * 6 + 3;
   const approx = lonLatToUtm(lonCentre, approxLat, zone);
-  const baseCycle = Math.round((approx.northing - cycleIdx * 100_000) / ROW_CYCLE_M);
+  const baseCycle = Math.round(
+    (approx.northing - cycleIdx * 100_000) / ROW_CYCLE_M,
+  );
   const cellN = baseCycle * ROW_CYCLE_M + cycleIdx * 100_000;
 
   const cellSize = 10 ** (5 - precision);

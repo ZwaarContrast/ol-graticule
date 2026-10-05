@@ -98,7 +98,11 @@ export function snapRingToCellGrid(
     if (used[start]) continue;
     const ringPts: [number, number][] = [];
     let idx = start;
-    for (let guard = 0; guard < edgeCount + 1 && idx >= 0 && !used[idx]; guard++) {
+    for (
+      let guard = 0;
+      guard < edgeCount + 1 && idx >= 0 && !used[idx];
+      guard++
+    ) {
       used[idx] = 1;
       const base = idx * 4;
       ringPts.push([edges[base]!, edges[base + 1]!]);

@@ -5,7 +5,10 @@ import TileLayer from 'ol/layer/Tile';
 import OSM from 'ol/source/OSM';
 import { transformExtent } from 'ol/proj';
 import { CursorPositionControl } from '@zwaarcontrast/ol-graticule';
-import type { GridSystem, UniversalGraticule } from '@zwaarcontrast/ol-graticule';
+import type {
+  GridSystem,
+  UniversalGraticule,
+} from '@zwaarcontrast/ol-graticule';
 import {
   createNordDeGuerreGridSystem,
   createFrenchLambert1GridSystem,
@@ -31,9 +34,18 @@ import {
   ITALIAN_SOUTHERN_BBOX_WGS84,
   IBERIAN_PENINSULA_BBOX_WGS84,
 } from '@zwaarcontrast/ol-graticule-modified-british-system';
-import { gridLine, edgeLabelText, cellLabelHandler, cursorStyle, hoverLens } from '../shared';
+import {
+  gridLine,
+  edgeLabelText,
+  cellLabelHandler,
+  cursorStyle,
+  hoverLens,
+} from '../shared';
 import { createGraticule, addRendererToggle } from '../renderer';
-import { createCoordinateInput, type CoordinateInputHandle } from '../coordinateInput';
+import {
+  createCoordinateInput,
+  type CoordinateInputHandle,
+} from '../coordinateInput';
 
 interface Theatre {
   label: string;
@@ -160,10 +172,11 @@ function applyTheatre(key: string): void {
     });
   }
 
-  map.getView().fit(
-    transformExtent(theatre.fitExtent, theatre.fitCrs, 'EPSG:3857'),
-    { padding: [40, 40, 40, 40] },
-  );
+  map
+    .getView()
+    .fit(transformExtent(theatre.fitExtent, theatre.fitCrs, 'EPSG:3857'), {
+      padding: [40, 40, 40, 40],
+    });
 }
 
 const select = document.getElementById('theatre') as HTMLSelectElement | null;

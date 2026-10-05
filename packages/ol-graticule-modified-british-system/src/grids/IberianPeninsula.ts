@@ -30,14 +30,27 @@ export const IBERIAN_PENINSULA_PROJ4 =
   '+x_0=600000 +y_0=530000 +ellps=intl +units=m +no_defs +type=crs';
 
 /** WGS84 bbox `[lonMin, latMin, lonMax, latMax]` covering the Iberian Peninsula plus buffer. */
-export const IBERIAN_PENINSULA_BBOX_WGS84: [number, number, number, number] = [-11, 35, 8, 45];
+export const IBERIAN_PENINSULA_BBOX_WGS84: [number, number, number, number] = [
+  -11, 35, 8, 45,
+];
 
 /** MBS coverage polygon for the Iberian Peninsula in projected metres ({@link IBERIAN_PENINSULA_CRS}). Open ring. */
 export const IBERIAN_PENINSULA_CLIP_POLYGON: [number, number][] = [
-  [-8118, 1008859], [339233, 1007778], [679488, 1007844], [806391, 1006094],
-  [807196, 905979], [1172983, 902317], [1410329, 901145], [1406490, 289811],
-  [1206888, 290710], [1206532, 193161], [904490, 192234], [904264, 93340],
-  [604069, 92719], [603965, -6123], [-5712, -7663],
+  [-8118, 1008859],
+  [339233, 1007778],
+  [679488, 1007844],
+  [806391, 1006094],
+  [807196, 905979],
+  [1172983, 902317],
+  [1410329, 901145],
+  [1406490, 289811],
+  [1206888, 290710],
+  [1206532, 193161],
+  [904490, 192234],
+  [904264, 93340],
+  [604069, 92719],
+  [603965, -6123],
+  [-5712, -7663],
 ];
 
 export type IberianPeninsulaGridSystemOptions = MBSGridSystemOptions;

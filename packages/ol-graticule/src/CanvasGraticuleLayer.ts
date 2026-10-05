@@ -10,7 +10,10 @@ import type { EventsKey } from 'ol/events';
 import type { ProjectionLike } from 'ol/proj';
 import type { StyleFunction } from 'ol/style/Style';
 import type { GridSystem } from './types.js';
-import { resolveGraticuleOptions, createLabelEngine } from './resolveOptions.js';
+import {
+  resolveGraticuleOptions,
+  createLabelEngine,
+} from './resolveOptions.js';
 import type { GraticuleOptions } from './options.js';
 import {
   resolveHoverLens,
@@ -21,7 +24,10 @@ import {
   type ResolvedHoverLens,
 } from './style.js';
 import { applyBlend, BLEND_LAYER_CLASS } from './util/blend.js';
-import { HoverLensRenderer, type CanvasLensGrid } from './rendering/HoverLensRenderer.js';
+import {
+  HoverLensRenderer,
+  type CanvasLensGrid,
+} from './rendering/HoverLensRenderer.js';
 import { LabelEngine } from './labels/LabelEngine.js';
 import { canonicalizeExtent } from './util/worldWrap.js';
 
@@ -63,8 +69,14 @@ export class CanvasGraticuleLayer extends VectorLayer {
   private readonly blend_: GraticuleBlendMode | undefined;
 
   constructor(options: CanvasGraticuleLayerOptions) {
-    const { specs, edgeConfig, maxLines: resolvedMaxLines, blend, lensLineStyle, layerOptions: vectorOptions } =
-      resolveGraticuleOptions(options);
+    const {
+      specs,
+      edgeConfig,
+      maxLines: resolvedMaxLines,
+      blend,
+      lensLineStyle,
+      layerOptions: vectorOptions,
+    } = resolveGraticuleOptions(options);
 
     // Each grid gets its OWN scan source, so the label placer's nearestLine_
     // and the lens only ever see that grid's own lines.
@@ -74,7 +86,12 @@ export class CanvasGraticuleLayer extends VectorLayer {
         gridSystem: g.gridSystem ?? null,
         lineStyle: g.style?.line,
         source: gridSource,
-        labelEngine: createLabelEngine(g, edgeConfig, resolvedMaxLines, gridSource),
+        labelEngine: createLabelEngine(
+          g,
+          edgeConfig,
+          resolvedMaxLines,
+          gridSource,
+        ),
         lens: resolveHoverLens(g.style?.hoverLens, g.style?.line),
       };
     });
@@ -108,7 +125,9 @@ export class CanvasGraticuleLayer extends VectorLayer {
     this.lensRenderer_ = new HoverLensRenderer(() => this.lensGrids_());
 
     this.setStyle(
-      built.length === 1 ? resolveLineStyle(built[0]?.lineStyle) : multiGridLineStyle(built),
+      built.length === 1
+        ? resolveLineStyle(built[0]?.lineStyle)
+        : multiGridLineStyle(built),
     );
     this.setRenderOrder(null);
 
@@ -134,7 +153,11 @@ export class CanvasGraticuleLayer extends VectorLayer {
     return [extent];
   }
 
-  private loaderFunction_(extent: Extent, resolution: number, projection: ProjectionLike): void {
+  private loaderFunction_(
+    extent: Extent,
+    resolution: number,
+    projection: ProjectionLike,
+  ): void {
     this.loadedExtent_ = extent;
     this.loadedResolution_ = resolution;
 
@@ -152,7 +175,11 @@ export class CanvasGraticuleLayer extends VectorLayer {
       grid.source.clear(true);
       if (!grid.gridSystem) continue;
 
-      const features = grid.gridSystem.getFeatures(canonical, resolution, projection);
+      const features = grid.gridSystem.getFeatures(
+        canonical,
+        resolution,
+        projection,
+      );
       let limited = features;
       if (features.length > ceiling) {
         limited = features.slice(0, ceiling);
@@ -160,8 +187,8 @@ export class CanvasGraticuleLayer extends VectorLayer {
           this.maxLinesWarned_ = true;
           console.warn(
             `[ol-graticule] grid system emitted ${features.length} features at ` +
-            `resolution ${resolution}; capped at ${ceiling}. ` +
-            `Raise UniversalGraticule.maxLines or tighten the grid system's interval strategy.`,
+              `resolution ${resolution}; capped at ${ceiling}. ` +
+              `Raise UniversalGraticule.maxLines or tighten the grid system's interval strategy.`,
           );
         }
       }
@@ -204,16 +231,22 @@ export class CanvasGraticuleLayer extends VectorLayer {
 
   private updatePostrenderListener_(): void {
     const wantsLabels = this.grids_.some(
-      (g) => g.gridSystem !== null && g.labelEngine !== null && (
-        g.labelEngine.hasEdgeLabels ||
-        (g.labelEngine.hasCellLabels && g.gridSystem.getCellLabels !== undefined)
-      ),
+      (g) =>
+        g.gridSystem !== null &&
+        g.labelEngine !== null &&
+        (g.labelEngine.hasEdgeLabels ||
+          (g.labelEngine.hasCellLabels &&
+            g.gridSystem.getCellLabels !== undefined)),
     );
-    const wantsLens = this.lensRenderer_.active && this.grids_.some((g) => g.gridSystem !== null);
+    const wantsLens =
+      this.lensRenderer_.active &&
+      this.grids_.some((g) => g.gridSystem !== null);
     // A blend keeps the listener alive even with nothing to draw: it applies there.
     const needed = wantsLabels || wantsLens || this.blend_ !== undefined;
     if (needed && !this.postrenderKey_) {
-      this.postrenderKey_ = this.on('postrender', (event) => this.handlePostrender_(event));
+      this.postrenderKey_ = this.on('postrender', (event) =>
+        this.handlePostrender_(event),
+      );
     } else if (!needed && this.postrenderKey_) {
       unByKey(this.postrenderKey_);
       this.postrenderKey_ = null;

@@ -1,6 +1,9 @@
 import Point from 'ol/geom/Point';
 import LineString from 'ol/geom/LineString';
-import { apply as applyTransform, create as createTransform } from 'ol/transform';
+import {
+  apply as applyTransform,
+  create as createTransform,
+} from 'ol/transform';
 import type { Transform } from 'ol/transform';
 import type Feature from 'ol/Feature';
 import type Geometry from 'ol/geom/Geometry';
@@ -79,9 +82,12 @@ export class PlacementSink implements LabelSink {
     const dash = stroke.getLineDash();
     const period = dash && dash.length ? dash.reduce((s, v) => s + v, 0) : 0;
     this.stroke_ = {
-      r, g, b, a,
+      r,
+      g,
+      b,
+      a,
       width: stroke.getWidth() ?? 1,
-      dashOn: dash && dash.length ? dash[0] ?? 0 : 0,
+      dashOn: dash && dash.length ? (dash[0] ?? 0) : 0,
       dashPeriod: period,
       dashOffset: stroke.getLineDashOffset() ?? 0,
     };
@@ -141,11 +147,15 @@ function fillTextStyle(p: LabelPlacement, text: Text): void {
   // Fill alpha becomes per-quad opacity; halo alpha is stored relative to it.
   const [fr, fg, fb, fa] = toRgbaNormalized(text.getFill()?.getColor());
   p.opacity = fa;
-  p.fill[0] = fr; p.fill[1] = fg; p.fill[2] = fb;
+  p.fill[0] = fr;
+  p.fill[1] = fg;
+  p.fill[2] = fb;
   const stroke = text.getStroke();
   if (stroke) {
     const [hr, hg, hb, ha] = toRgbaNormalized(stroke.getColor());
-    p.halo[0] = hr; p.halo[1] = hg; p.halo[2] = hb;
+    p.halo[0] = hr;
+    p.halo[1] = hg;
+    p.halo[2] = hb;
     p.haloAlpha = fa > 0 ? Math.min(1, ha / fa) : ha;
     p.haloWidth = stroke.getWidth() ?? 0;
   } else {
@@ -168,9 +178,19 @@ function textToString(text: string | string[] | undefined): string {
 
 function blankPlacement(): LabelPlacement {
   return {
-    x: 0, y: 0, text: '', font: '', fill: [0, 0, 0], halo: [0, 0, 0], haloAlpha: 0,
-    haloWidth: 0, opacity: 1, align: 'center', baseline: 'middle',
-    offsetX: 0, offsetY: 0, rotation: 0,
+    x: 0,
+    y: 0,
+    text: '',
+    font: '',
+    fill: [0, 0, 0],
+    halo: [0, 0, 0],
+    haloAlpha: 0,
+    haloWidth: 0,
+    opacity: 1,
+    align: 'center',
+    baseline: 'middle',
+    offsetX: 0,
+    offsetY: 0,
+    rotation: 0,
   };
 }
-

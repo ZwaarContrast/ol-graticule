@@ -40,12 +40,22 @@ describe('collectLensHoles', () => {
   const identity: Transform = [1, 0, 0, 1, 0, 0];
 
   function meridian(x: number): Feature {
-    const f = new Feature(new LineString([[x, -300], [x, 300]]));
+    const f = new Feature(
+      new LineString([
+        [x, -300],
+        [x, 300],
+      ]),
+    );
     f.set('gridAxis', 'x');
     return f;
   }
   function parallel(y: number): Feature {
-    const f = new Feature(new LineString([[-300, y], [300, y]]));
+    const f = new Feature(
+      new LineString([
+        [-300, y],
+        [300, y],
+      ]),
+    );
     f.set('gridAxis', 'y');
     return f;
   }
@@ -54,7 +64,16 @@ describe('collectLensHoles', () => {
     const features = [meridian(0), meridian(100), parallel(0), parallel(100)];
     // Cursor just off the (0,0) crossing; reach = max(cell*0.6, 34) = 60px.
     const { holes, cell } = collectLensHoles(
-      features, identity, 1, 0, 5, 5, 150, 0.6, 56, 8,
+      features,
+      identity,
+      1,
+      0,
+      5,
+      5,
+      150,
+      0.6,
+      56,
+      8,
     );
     expect(cell).toBe(100);
     expect(holes).toHaveLength(1);
@@ -66,13 +85,35 @@ describe('collectLensHoles', () => {
   it('lights up multiple crossings when several are within reach', () => {
     const features = [meridian(0), meridian(40), parallel(0), parallel(40)];
     // cell = 40, reach = max(24, 34) = 34px; cursor at the centre of the cell.
-    const { holes } = collectLensHoles(features, identity, 1, 0, 20, 20, 150, 0.6, 56, 8);
+    const { holes } = collectLensHoles(
+      features,
+      identity,
+      1,
+      0,
+      20,
+      20,
+      150,
+      0.6,
+      56,
+      8,
+    );
     expect(holes.length).toBe(4);
   });
 
   it('returns no holes when the cursor is far from every crossing', () => {
     const features = [meridian(0), meridian(100), parallel(0), parallel(100)];
-    const { holes } = collectLensHoles(features, identity, 1, 0, 50, 50, 150, 0.6, 56, 8);
+    const { holes } = collectLensHoles(
+      features,
+      identity,
+      1,
+      0,
+      50,
+      50,
+      150,
+      0.6,
+      56,
+      8,
+    );
     expect(holes).toHaveLength(0);
   });
 });

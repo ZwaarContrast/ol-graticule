@@ -29,7 +29,9 @@ const gridSystem = new ProjectedGridSystem({
   proj4Def: '+proj=utm +zone=33 +datum=WGS84 +units=m +no_defs',
 });
 
-map.addLayer(new UniversalGraticule({ gridSystem, style: { edgeLabel: true } }));
+map.addLayer(
+  new UniversalGraticule({ gridSystem, style: { edgeLabel: true } }),
+);
 ```
 
 `MetricIntervals` + `MetricFormatter` are auto-selected because the CRS uses
@@ -68,16 +70,16 @@ convenience shortcut that calls it for you.
 
 ## Options
 
-| Option | Type | Default | What it does |
-|---|---|---|---|
-| `crs` | `string` |, (required) | EPSG code or other proj4-known name. |
-| `proj4Def` | `string` |, | proj4 definition. Registered via `registerCRS` if provided. Omit if already registered. |
-| `extent` | `[minX, minY, maxX, maxY]` | projection's built-in extent | Axis-aligned validity bounds in CRS coordinates. Lines outside are clipped. |
-| `clipPolygon` | `[x, y][]` |, | Irregular boundary polygon in CRS coordinates (for non-rectangular coverage). Overrides `extent` for drawing. |
-| `intervals` | `IntervalStrategy` | auto from CRS units | Spacing strategy. Degrees → `DegreeIntervals`, metres → `MetricIntervals`. |
-| `formatter` | `LabelFormatter` | auto from CRS units | Label formatter. Degrees → `DegreeFormatter`, metres → `MetricFormatter`. |
-| `targetScreenPx` | `number` | `100` | Desired minimum spacing (px) between major lines. Drives interval selection. |
-| `densificationPoints` | `number` | `100` | Points per grid line for curved rendering across projections. Higher = smoother, slower. |
+| Option                | Type                       | Default                      | What it does                                                                                                  |
+| --------------------- | -------------------------- | ---------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `crs`                 | `string`                   | , (required)                 | EPSG code or other proj4-known name.                                                                          |
+| `proj4Def`            | `string`                   | ,                            | proj4 definition. Registered via `registerCRS` if provided. Omit if already registered.                       |
+| `extent`              | `[minX, minY, maxX, maxY]` | projection's built-in extent | Axis-aligned validity bounds in CRS coordinates. Lines outside are clipped.                                   |
+| `clipPolygon`         | `[x, y][]`                 | ,                            | Irregular boundary polygon in CRS coordinates (for non-rectangular coverage). Overrides `extent` for drawing. |
+| `intervals`           | `IntervalStrategy`         | auto from CRS units          | Spacing strategy. Degrees → `DegreeIntervals`, metres → `MetricIntervals`.                                    |
+| `formatter`           | `LabelFormatter`           | auto from CRS units          | Label formatter. Degrees → `DegreeFormatter`, metres → `MetricFormatter`.                                     |
+| `targetScreenPx`      | `number`                   | `100`                        | Desired minimum spacing (px) between major lines. Drives interval selection.                                  |
+| `densificationPoints` | `number`                   | `100`                        | Points per grid line for curved rendering across projections. Higher = smoother, slower.                      |
 
 ### Reverse: parse a typed coordinate back
 
@@ -88,7 +90,10 @@ coords:
 import { ParseError } from '@zwaarcontrast/ol-graticule';
 
 try {
-  const center = gridSystem.parseCoordinate('500000 5000000', map.getView().getProjection());
+  const center = gridSystem.parseCoordinate(
+    '500000 5000000',
+    map.getView().getProjection(),
+  );
   map.getView().animate({ center });
 } catch (err) {
   if (err instanceof ParseError) console.warn(err.reason);

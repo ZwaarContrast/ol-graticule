@@ -58,7 +58,8 @@ export class CursorPositionControl extends Control {
 
   constructor(options: CursorPositionControlOptions = {}) {
     const container = document.createElement('div');
-    container.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:20;';
+    container.style.cssText =
+      'position:absolute;inset:0;pointer-events:none;z-index:20;';
     container.setAttribute('aria-hidden', 'true');
     if (options.className) container.className = options.className;
 
@@ -71,7 +72,11 @@ export class CursorPositionControl extends Control {
     this.labelCss_ = options.style?.labelCss ?? DEFAULT_CURSOR_LABEL_CSS;
     this.guideLine_ = options.style?.guideLine ?? false;
 
-    const labelCss = (radius: string, padding: string, blockDisplay = true): string =>
+    const labelCss = (
+      radius: string,
+      padding: string,
+      blockDisplay = true,
+    ): string =>
       `${blockDisplay ? 'display:block;' : ''}white-space:nowrap;padding:${padding};border-radius:${radius};background:${this.color_};${this.labelCss_}`;
     const lineCss = (width: string, height: string, extra = ''): string =>
       `${extra}width:${width};height:${height};background:${this.color_};`;
@@ -181,7 +186,10 @@ export class CursorPositionControl extends Control {
       this.pointerMoveKey_ = null;
     }
     if (this.pointerLeaveHandler_ && this.pointerLeaveTarget_) {
-      this.pointerLeaveTarget_.removeEventListener('pointerleave', this.pointerLeaveHandler_);
+      this.pointerLeaveTarget_.removeEventListener(
+        'pointerleave',
+        this.pointerLeaveHandler_,
+      );
       this.pointerLeaveHandler_ = null;
       this.pointerLeaveTarget_ = null;
     }
@@ -221,7 +229,10 @@ export class CursorPositionControl extends Control {
     const projection = map.getView().getProjection();
     const coord: [number, number] = [cx, cy];
 
-    if (gridSystem.isValidCoordinate && !gridSystem.isValidCoordinate(coord, projection)) {
+    if (
+      gridSystem.isValidCoordinate &&
+      !gridSystem.isValidCoordinate(coord, projection)
+    ) {
       this.hide_();
       return;
     }
@@ -265,7 +276,8 @@ export class CursorPositionControl extends Control {
         // ponytail: assumes fixed label font/padding; re-measure on restyle if
         // the labels ever change style at runtime.
         if (this.xLabelH_ === 0) this.xLabelH_ = this.xLabel_.offsetHeight;
-        if (yTextChanged || this.yLabelW_ === 0) this.yLabelW_ = this.yLabel_.offsetWidth;
+        if (yTextChanged || this.yLabelW_ === 0)
+          this.yLabelW_ = this.yLabel_.offsetWidth;
         this.xLine_.style.height = `${Math.max(12, py - this.xLabelH_)}px`;
         this.yLine_.style.width = `${Math.max(12, px - this.yLabelW_)}px`;
       }

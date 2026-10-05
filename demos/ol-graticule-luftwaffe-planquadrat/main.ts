@@ -30,7 +30,10 @@ const snapCellLabelHandler = createDefaultCellLabelHandler({
 let activeSystem: LuftwaffeSystem = 'gnmv';
 let gridSystem = new LuftwaffeGridSystem({ system: activeSystem });
 let graticule = buildGraticule();
-let cursorControl = new CursorPositionControl({ gridSystem, style: cursorStyle });
+let cursorControl = new CursorPositionControl({
+  gridSystem,
+  style: cursorStyle,
+});
 
 const map = new Map({
   target: 'map',
@@ -81,7 +84,11 @@ function setActiveSystem(system: LuftwaffeSystem): void {
 function buildGraticule(): UniversalGraticule {
   return createGraticule({
     gridSystem,
-    style: { line: { major: gridLine }, cellLabel: snapCellLabelHandler, hoverLens },
+    style: {
+      line: { major: gridLine },
+      cellLabel: snapCellLabelHandler,
+      hoverLens,
+    },
     maxLines: 600,
   });
 }

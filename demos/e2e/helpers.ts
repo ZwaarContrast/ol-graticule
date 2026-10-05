@@ -42,10 +42,14 @@ interface HotFunction {
   totalMs: number;
 }
 
-export function tallyHotFunctions(profile: CpuProfile, limit: number): HotFunction[] {
+export function tallyHotFunctions(
+  profile: CpuProfile,
+  limit: number,
+): HotFunction[] {
   const sampleInterval =
     profile.timeDeltas && profile.timeDeltas.length > 0
-      ? profile.timeDeltas.reduce((a, b) => a + b, 0) / profile.timeDeltas.length
+      ? profile.timeDeltas.reduce((a, b) => a + b, 0) /
+        profile.timeDeltas.length
       : 1000;
   const nodesById = new Map<number, CpuProfileNode>();
   for (const node of profile.nodes) nodesById.set(node.id, node);
@@ -78,11 +82,13 @@ export function tallyHotFunctions(profile: CpuProfile, limit: number): HotFuncti
   for (const node of profile.nodes) totalFor(node.id);
 
   const ranked: HotFunction[] = profile.nodes.map((node) => {
-    const name = node.callFrame.functionName.length > 0
-      ? node.callFrame.functionName
-      : '(anonymous)';
+    const name =
+      node.callFrame.functionName.length > 0
+        ? node.callFrame.functionName
+        : '(anonymous)';
     const url = node.callFrame.url || '';
-    const line = node.callFrame.lineNumber >= 0 ? `:${node.callFrame.lineNumber + 1}` : '';
+    const line =
+      node.callFrame.lineNumber >= 0 ? `:${node.callFrame.lineNumber + 1}` : '';
     return {
       name,
       source: url ? `${url.split('/').slice(-2).join('/')}${line}` : '(native)',

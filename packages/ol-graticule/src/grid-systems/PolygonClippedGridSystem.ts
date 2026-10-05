@@ -17,7 +17,11 @@ import type {
 import { isCombinedFormatted } from '../types.js';
 import { pointInRing, pointInRings } from '../clipping/pointInRing.js';
 import { PolygonEdgeIndex } from '../clipping/PolygonEdgeIndex.js';
-import { clipPolylineToPolygon, createClipScratch, type ClipScratch } from '../clipping/clipPolylineToPolygon.js';
+import {
+  clipPolylineToPolygon,
+  createClipScratch,
+  type ClipScratch,
+} from '../clipping/clipPolylineToPolygon.js';
 import { clipPolygonToConvex } from '../clipping/clipPolygonToConvex.js';
 import { densifyRing, projectRing } from '../clipping/densifyRing.js';
 import { snapRingToCellGrid } from '../clipping/snapRingToCellGrid.js';
@@ -44,7 +48,10 @@ export interface PolygonClippedGridSystemOptions {
   ringStepsPerEdge?: number | undefined;
   /** Cell-aligned clipping callback returning cell size in polygon-CRS units, or undefined. */
   cellSnapInterval?:
-    | ((resolution: number, viewProjection: ProjectionLike) => number | undefined)
+    | ((
+        resolution: number,
+        viewProjection: ProjectionLike,
+      ) => number | undefined)
     | undefined;
 }
 
@@ -73,7 +80,10 @@ export class PolygonClippedGridSystem implements GridSystem {
   private readonly ringStepsPerEdge_: number;
   private readonly emitBoundary_: boolean;
   private readonly cellSnapInterval_:
-    | ((resolution: number, viewProjection: ProjectionLike) => number | undefined)
+    | ((
+        resolution: number,
+        viewProjection: ProjectionLike,
+      ) => number | undefined)
     | undefined;
   private readonly viewCache_: Map<string, ViewState> = new Map();
   private readonly clipScratch_: ClipScratch = createClipScratch();
@@ -87,13 +97,16 @@ export class PolygonClippedGridSystem implements GridSystem {
     if (rings.length === 0 || rings[0]!.length < 3) {
       throw new Error(
         'PolygonClippedGridSystem: clipPolygon.rings must contain at least ' +
-        'one outer ring with 3+ vertices',
+          'one outer ring with 3+ vertices',
       );
     }
     this.sourceRingOpen_ = rings[0]!;
 
     this.ringStepsPerEdge_ = options.ringStepsPerEdge ?? 4;
-    this.densifiedSourceRing_ = densifyRing(this.sourceRingOpen_, this.ringStepsPerEdge_);
+    this.densifiedSourceRing_ = densifyRing(
+      this.sourceRingOpen_,
+      this.ringStepsPerEdge_,
+    );
     this.emitBoundary_ = options.emitBoundary ?? true;
     this.cellSnapInterval_ = options.cellSnapInterval;
   }
@@ -107,7 +120,11 @@ export class PolygonClippedGridSystem implements GridSystem {
     const clippedExtent = getIntersection(extent, view.index.ringExtent);
     if (isEmpty(clippedExtent)) return [];
 
-    const sourceFeatures = this.source_.getFeatures(clippedExtent, resolution, viewProjection);
+    const sourceFeatures = this.source_.getFeatures(
+      clippedExtent,
+      resolution,
+      viewProjection,
+    );
     const out: Feature<Geometry>[] = [];
 
     for (const feature of sourceFeatures) {
@@ -130,13 +147,19 @@ export class PolygonClippedGridSystem implements GridSystem {
       );
 
       for (const piece of clipped) {
-        const f = new Feature<Geometry>({ geometry: new LineString(piece, 'XY') });
+        const f = new Feature<Geometry>({
+          geometry: new LineString(piece, 'XY'),
+        });
         copyFeatureProperties_(feature, f);
         out.push(f);
       }
     }
 
-    if (this.emitBoundary_ && !view.isSnap && extentOverlaps_(extent, view.index.ringExtent)) {
+    if (
+      this.emitBoundary_ &&
+      !view.isSnap &&
+      extentOverlaps_(extent, view.index.ringExtent)
+    ) {
       for (let r = 0; r < view.projectedRings.length; r++) {
         out.push(this.buildBoundaryFeature_(view.projectedRings[r]!));
       }
@@ -154,9 +177,16 @@ export class PolygonClippedGridSystem implements GridSystem {
     const clippedExtent = getIntersection(extent, view.index.ringExtent);
     if (isEmpty(clippedExtent)) return [];
 
-    const labels = this.source_.getLabels(clippedExtent, resolution, viewProjection);
+    const labels = this.source_.getLabels(
+      clippedExtent,
+      resolution,
+      viewProjection,
+    );
     const ringsPolyCrs = view.polyCrsRings;
-    const polyExtent = transformExtentSampled(clippedExtent, view.viewToPolygon);
+    const polyExtent = transformExtentSampled(
+      clippedExtent,
+      view.viewToPolygon,
+    );
     if (!isFinite(polyExtent[0]!)) return [];
     const [pMinX, pMinY, pMaxX, pMaxY] = polyExtent;
     return labels.filter((label) => {
@@ -167,16 +197,25 @@ export class PolygonClippedGridSystem implements GridSystem {
       if (px === undefined || py === undefined) return false;
       if (!isFinite(px) || !isFinite(py)) return false;
       const axis = label.axis;
-      const eps = axis === 'x'
-        ? Math.max(Math.abs(px), pMaxX - pMinX, 1) * 1e-9
-        : Math.max(Math.abs(py), pMaxY - pMinY, 1) * 1e-9;
+      const eps =
+        axis === 'x'
+          ? Math.max(Math.abs(px), pMaxX - pMinX, 1) * 1e-9
+          : Math.max(Math.abs(py), pMaxY - pMinY, 1) * 1e-9;
       const midX = axis === 'x' ? px : (pMinX + pMaxX) * 0.5;
       const midY = axis === 'x' ? (pMinY + pMaxY) * 0.5 : py;
       if (view.polyCrsIndex.pointInRing(midX, midY)) return true;
       for (let r = 0; r < ringsPolyCrs.length; r++) {
-        const hit = axis === 'x'
-          ? gridLineCrossesRing_(px, 'x', pMinY, pMaxY, ringsPolyCrs[r]!, eps)
-          : gridLineCrossesRing_(py, 'y', pMinX, pMaxX, ringsPolyCrs[r]!, eps);
+        const hit =
+          axis === 'x'
+            ? gridLineCrossesRing_(px, 'x', pMinY, pMaxY, ringsPolyCrs[r]!, eps)
+            : gridLineCrossesRing_(
+                py,
+                'y',
+                pMinX,
+                pMaxX,
+                ringsPolyCrs[r]!,
+                eps,
+              );
         if (hit) return true;
       }
       return false;
@@ -189,7 +228,11 @@ export class PolygonClippedGridSystem implements GridSystem {
     viewProjection: ProjectionLike,
   ): GridCellLabel[] {
     if (!this.source_.getCellLabels) return [];
-    const labels = this.source_.getCellLabels(extent, resolution, viewProjection);
+    const labels = this.source_.getCellLabels(
+      extent,
+      resolution,
+      viewProjection,
+    );
     const view = this.viewState_(viewProjection, resolution);
     const rings = view.projectedRings;
     const clipRing = rings[0];
@@ -211,7 +254,13 @@ export class PolygonClippedGridSystem implements GridSystem {
       if (clipped.length < 3) continue;
       const interior = new Polygon([clipped]).getFlatInteriorPoint();
       const [ix, iy] = interior;
-      if (ix === undefined || iy === undefined || !Number.isFinite(ix) || !Number.isFinite(iy)) continue;
+      if (
+        ix === undefined ||
+        iy === undefined ||
+        !Number.isFinite(ix) ||
+        !Number.isFinite(iy)
+      )
+        continue;
       const replaced: GridCellLabel = {
         point: new Point([ix, iy]),
         text: label.text,
@@ -227,8 +276,10 @@ export class PolygonClippedGridSystem implements GridSystem {
     coordinate: [number, number],
     viewProjection: ProjectionLike,
   ): boolean {
-    if (this.source_.isValidCoordinate &&
-        !this.source_.isValidCoordinate(coordinate, viewProjection)) {
+    if (
+      this.source_.isValidCoordinate &&
+      !this.source_.isValidCoordinate(coordinate, viewProjection)
+    ) {
       return false;
     }
     return this.coordIsInsidePolygon_(coordinate, viewProjection);
@@ -245,29 +296,47 @@ export class PolygonClippedGridSystem implements GridSystem {
     return isCombinedFormatted(sample) ? { combined: '-' } : { x: '-', y: '-' };
   }
 
-  parseCoordinate(text: string, viewProjection: ProjectionLike): [number, number] {
+  parseCoordinate(
+    text: string,
+    viewProjection: ProjectionLike,
+  ): [number, number] {
     if (!this.source_.parseCoordinate) {
-      throw new ParseError(text, 'source grid system does not support parseCoordinate');
+      throw new ParseError(
+        text,
+        'source grid system does not support parseCoordinate',
+      );
     }
     return this.source_.parseCoordinate(text, viewProjection);
   }
 
-  private viewState_(viewProjection: ProjectionLike, resolution: number): ViewState {
+  private viewState_(
+    viewProjection: ProjectionLike,
+    resolution: number,
+  ): ViewState {
     const snapInterval = this.cellSnapInterval_?.(resolution, viewProjection);
     const code = projectionCacheKey_(viewProjection);
-    const slack = snapInterval === undefined
-      ? 0
-      : Math.min(
-          snapInterval * MAX_CLIP_SLACK_RATIO,
-          Math.max(snapInterval * 1e-3, this.pixelSlack_(viewProjection, resolution)),
-        );
-    const variant = snapInterval !== undefined ? `snap:${snapInterval}:${slack}` : 'raw';
+    const slack =
+      snapInterval === undefined
+        ? 0
+        : Math.min(
+            snapInterval * MAX_CLIP_SLACK_RATIO,
+            Math.max(
+              snapInterval * 1e-3,
+              this.pixelSlack_(viewProjection, resolution),
+            ),
+          );
+    const variant =
+      snapInterval !== undefined ? `snap:${snapInterval}:${slack}` : 'raw';
     const key = `${code}|${variant}`;
     const cached = this.viewCache_.get(key);
     if (cached) return cached;
 
     const clipRingsInPolygonCrs = this.buildClipRings_(snapInterval, slack);
-    const projectedRings = projectRingList_(clipRingsInPolygonCrs, this.polygonCrs_, viewProjection);
+    const projectedRings = projectRingList_(
+      clipRingsInPolygonCrs,
+      this.polygonCrs_,
+      viewProjection,
+    );
     const state: ViewState = {
       projectedRings,
       index: new PolygonEdgeIndex(projectedRings),
@@ -306,7 +375,10 @@ export class PolygonClippedGridSystem implements GridSystem {
    * own densification (about a pixel of chord sag), so a clip tighter than that
    * chops it into fragments.
    */
-  private pixelSlack_(viewProjection: ProjectionLike, resolution: number): number {
+  private pixelSlack_(
+    viewProjection: ProjectionLike,
+    resolution: number,
+  ): number {
     if (!(resolution > 0) || !isFinite(resolution)) return 0;
     const toView = requireTransform(this.polygonCrs_, viewProjection);
     const toPolygon = requireTransform(viewProjection, this.polygonCrs_);
@@ -328,9 +400,10 @@ export class PolygonClippedGridSystem implements GridSystem {
   ): boolean {
     const projCode = projectionCacheKey_(viewProjection);
     const polyCode = projectionCacheKey_(this.polygonCrs_);
-    const [x, y] = projCode === polyCode
-      ? coordinate
-      : transform(coordinate, viewProjection, this.polygonCrs_);
+    const [x, y] =
+      projCode === polyCode
+        ? coordinate
+        : transform(coordinate, viewProjection, this.polygonCrs_);
     if (x === undefined || y === undefined) return false;
     if (!isFinite(x) || !isFinite(y)) return false;
     if (this.lastSnapRingsInPolygonCrs_) {

@@ -1,16 +1,16 @@
 # Primary-source validation
 
 The renderer and the encode / decode helpers are anchored to wartime
-*Deutsche Heereskarte* sheets held by the UC Berkeley Library
+_Deutsche Heereskarte_ sheets held by the UC Berkeley Library
 ([digital collection, record 105643][berkeley]), and to the explicit DHG
-specification in the *Planheft Schweiz* (OKH g 23/1, 16 March 1944,
+specification in the _Planheft Schweiz_ (OKH g 23/1, 16 March 1944,
 pages C 1–C 3).
 
 All map sheet reproductions on this page are courtesy of the UC Berkeley
 Library, German WWII Captured Maps digital collection. If you reuse the
 images, please cite Berkeley.
 
-## Kolosjoki, *Norwegen / Finnland 1:50 000* sheet R-36-X-West-7, October 1943
+## Kolosjoki, _Norwegen / Finnland 1:50 000_ sheet R-36-X-West-7, October 1943
 
 Carries both grids. The black fine grid is the DHG km lattice; the
 orange overprint is the HMN.
@@ -37,7 +37,7 @@ The printed legend on the sheet gives `JQ 4d Flußgabel oder JQ 4d 24`
 as a sample report, where `Flußgabel` ("river fork") substitutes for the
 100 m tenths suffix.
 
-## Hadres, *Alpen- und Donau-Reichsgaue 1:50 000* Blatt 4558 Ost
+## Hadres, _Alpen- und Donau-Reichsgaue 1:50 000_ Blatt 4558 Ost
 
 Letter cells `PA`, `QA`, `OB`, `PB`, `QB`, `OC`, `PC`, `QC` of the orange
 HMN overprint, with the black DHG km grid underneath:
@@ -56,7 +56,7 @@ into the 2 × 2 grid `a b / c d`:
 
 This is the canonical row-major layout the encoder produces.
 
-## Owrutsch, *Osteuropa 1:300 000* Zusammendruck V52/W50 Owrutsch-Tscherkassy
+## Owrutsch, _Osteuropa 1:300 000_ Zusammendruck V52/W50 Owrutsch-Tscherkassy
 
 Confirms the DHG at a different theatre and a different scale, with no
 HMN overprint (1:300 000 was too small for the orange grid). The NW
@@ -67,7 +67,7 @@ corner is labelled `28°20' E / 52° N`:
   CM 27° E ≈ 92 km east of CM → 592 km Rechtswert. The label sits on the
   600 km grid line itself ✓
 
-## Embenskij Post, *Osteuropa 1:300 000* Zusammendruck II/49–III/47
+## Embenskij Post, _Osteuropa 1:300 000_ Zusammendruck II/49–III/47
 
 Confirms the same projection over the Caspian steppe, a 6th theatre tag
 on the system.
@@ -76,8 +76,8 @@ on the system.
 
 ## Planheft Schweiz, p. C 2: the world-coverage plate
 
-The *Streifen des Deutschen Heeresgitters und Einteilung der Weltkarte
-1:1.000.000* plate enumerates the system's operational rectangle: zones
+The _Streifen des Deutschen Heeresgitters und Einteilung der Weltkarte
+1:1.000.000_ plate enumerates the system's operational rectangle: zones
 55 (CM 33° W) to 14 (CM 81° E), latitude band 32° S to 72° N. The
 renderer uses these four numbers as its hard clip envelope.
 
@@ -86,7 +86,7 @@ renderer uses these four numbers as its hard clip envelope.
 ## E27O Romfo Bildplankarte: the geographic HMN
 
 The cleanest published primary source for the geographic HMN is the
-`E27O Romfo (Nordteil)` *Bildplankarte*. The sheet header literally
+`E27O Romfo (Nordteil)` _Bildplankarte_. The sheet header literally
 reads **`Heeresmeldenetz (geogr.)`**, removing any ambiguity about which
 variant the orange overprint encodes.
 
@@ -112,9 +112,9 @@ Romfo town centre is at approximately **62°36′N, 9°30′E**:
 ```ts
 import { encodeHmnGeo } from '@zwaarcontrast/ol-graticule-heeresgitter';
 
-const ref = encodeHmnGeo([62 + 36/60, 9 + 30/60], { depth: 2 });
-ref.canonical;     // -> "VW"
-ref.grosstrapez;   // -> { gx: 3, gy: 37 }
+const ref = encodeHmnGeo([62 + 36 / 60, 9 + 30 / 60], { depth: 2 });
+ref.canonical; // -> "VW"
+ref.grosstrapez; // -> { gx: 3, gy: 37 }
 ```
 
 Reproducing that by hand against the spec:
@@ -146,11 +146,11 @@ package uses `0°40′N`.
 
 ```ts
 encodeHmnGeo([52.07944, 4.30833], { depth: 2 }).canonical; // -> "TD"
-encodeHmnGeo([52.07944, 4.30833]).canonical;               // -> "TD 7c 03"
+encodeHmnGeo([52.07944, 4.30833]).canonical; // -> "TD 7c 03"
 ```
 
 Cross-checked against a wartime Atlantikwall sector overprint on a
-captured Dutch *Topografische kaart*: Den Haag reads `TD` and the
+captured Dutch _Topografische kaart_: Den Haag reads `TD` and the
 neighbouring Scheveningen reads `SD`, both inside Großtrapez
 `(gx=1, gy=30)` with NW corner `(52°20′N, 2°30′E)`.
 

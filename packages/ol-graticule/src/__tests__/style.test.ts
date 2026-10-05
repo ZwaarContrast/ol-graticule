@@ -230,7 +230,11 @@ describe('resolveLineStyle', () => {
     const majorFeat = new Feature();
     const minorFeat = new Feature();
     minorFeat.set('gridLineType', 'minor');
-    expect(callStyleFn(resolved, majorFeat).getStroke()).toBe(DEFAULT_LINE_STROKE);
-    expect(callStyleFn(resolved, minorFeat).getStroke()).toBe(DEFAULT_MINOR_LINE_STROKE);
+    expect(callStyleFn(resolved, majorFeat).getStroke()).toBe(
+      DEFAULT_LINE_STROKE,
+    );
+    expect(callStyleFn(resolved, minorFeat).getStroke()).toBe(
+      DEFAULT_MINOR_LINE_STROKE,
+    );
   });
 });

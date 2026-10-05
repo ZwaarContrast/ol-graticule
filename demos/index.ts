@@ -11,7 +11,10 @@ import {
   createDefaultCellLabelHandler,
   type GridSystem,
 } from '@zwaarcontrast/ol-graticule';
-import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
+import {
+  ProjectedGridSystem,
+  registerCRS,
+} from '@zwaarcontrast/ol-graticule-projected';
 import { MgrsGridSystem } from '@zwaarcontrast/ol-graticule-mgrs';
 import { createRDNewGridSystem } from '@zwaarcontrast/ol-graticule-rd';
 import { createNordDeGuerreGridSystem } from '@zwaarcontrast/ol-graticule-modified-british-system';
@@ -136,7 +139,11 @@ const map = new Map({
     maxZoom: 12,
   }),
   controls: [],
-  interactions: defaultInteractions({ mouseWheelZoom: false, doubleClickZoom: false, dragPan: false }),
+  interactions: defaultInteractions({
+    mouseWheelZoom: false,
+    doubleClickZoom: false,
+    dragPan: false,
+  }),
 });
 
 let lastIdx = 0;

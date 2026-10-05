@@ -16,8 +16,12 @@ import { MgrsGridSystem } from '../MgrsGridSystem.js';
  */
 class FixedInterval implements IntervalStrategy {
   constructor(private readonly interval: number) {}
-  getInterval(): number { return this.interval; }
-  getMinorInterval(): undefined { return undefined; }
+  getInterval(): number {
+    return this.interval;
+  }
+  getMinorInterval(): undefined {
+    return undefined;
+  }
 }
 
 /**
@@ -43,11 +47,12 @@ function gridFeaturesByUtm(
   axis: 'e' | 'n',
   constUtm: number,
 ): Feature<Geometry>[] {
-  return features.filter((f) =>
-    f.get('mgrsKind') === 'grid' &&
-    f.get('gridZoneKey') === zoneKey &&
-    f.get('gridAxis') === axis &&
-    Math.abs((f.get('gridConstUtm') as number) - constUtm) < 1e-6,
+  return features.filter(
+    (f) =>
+      f.get('mgrsKind') === 'grid' &&
+      f.get('gridZoneKey') === zoneKey &&
+      f.get('gridAxis') === axis &&
+      Math.abs((f.get('gridConstUtm') as number) - constUtm) < 1e-6,
   );
 }
 
@@ -111,7 +116,11 @@ describe('MgrsGridSystem per-tile cache: stitching invariants', () => {
     // are interior to tile E=5, each must appear exactly once and
     // only from that tile.
     const grid = tileTestGrid(10_000);
-    const features = grid.getFeatures([3.05, 52.85, 3.55, 53.25], 0.001, 'EPSG:4326');
+    const features = grid.getFeatures(
+      [3.05, 52.85, 3.55, 53.25],
+      0.001,
+      'EPSG:4326',
+    );
 
     for (const e of [510_000, 520_000, 530_000]) {
       const matches = gridFeaturesByUtm(features, '31', 'e', e);
@@ -239,7 +248,7 @@ describe('MgrsGridSystem per-tile cache: UPS pole-crossing seam handling', () =>
     for (const f of zMatches) {
       const coords = (f.getGeometry() as LineString).getCoordinates();
       for (let i = 1; i < coords.length; i++) {
-        const dLon = Math.abs(coords[i]![0]! - coords[i-1]![0]!);
+        const dLon = Math.abs(coords[i]![0]! - coords[i - 1]![0]!);
         // Adjacent vertices in any single feature must not jump >180°
         // in lon, that's only possible if a phantom cross-world
         // segment got injected at the seam.
@@ -251,7 +260,7 @@ describe('MgrsGridSystem per-tile cache: UPS pole-crossing seam handling', () =>
     for (const f of yMatches) {
       const coords = (f.getGeometry() as LineString).getCoordinates();
       for (let i = 1; i < coords.length; i++) {
-        const dLon = Math.abs(coords[i]![0]! - coords[i-1]![0]!);
+        const dLon = Math.abs(coords[i]![0]! - coords[i - 1]![0]!);
         expect(dLon).toBeLessThan(180 + 1e-6);
       }
     }

@@ -20,7 +20,9 @@ export class RenderCache<T> {
     compute: () => T,
   ): T {
     const projKey =
-      typeof projection === 'string' ? projection : (projection?.getCode() ?? '');
+      typeof projection === 'string'
+        ? projection
+        : (projection?.getCode() ?? '');
     if (
       this.has_ &&
       this.resolution_ === resolution &&

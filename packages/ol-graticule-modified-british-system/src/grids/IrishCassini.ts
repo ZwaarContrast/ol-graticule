@@ -25,12 +25,18 @@ export const IRISH_CASSINI_PROJ4 =
   '+ellps=airy +units=m +no_defs +type=crs';
 
 /** WGS84 bbox `[lonMin, latMin, lonMax, latMax]` covering Ireland plus buffer. */
-export const IRISH_CASSINI_BBOX_WGS84: [number, number, number, number] = [-12.0, 50.0, -4.5, 56.5];
+export const IRISH_CASSINI_BBOX_WGS84: [number, number, number, number] = [
+  -12.0, 50.0, -4.5, 56.5,
+];
 
 /** MBS coverage polygon for Ireland in Cassini metres ({@link IRISH_CASSINI_CRS}). Open ring. */
 export const IRISH_CASSINI_CLIP_POLYGON: [number, number][] = [
-  [-4448, 504651], [200506, 503942], [404710, 504102],
-  [403253, -3106], [198965, -4687], [-3077, -4788],
+  [-4448, 504651],
+  [200506, 503942],
+  [404710, 504102],
+  [403253, -3106],
+  [198965, -4687],
+  [-3077, -4788],
 ];
 
 export type IrishCassiniGridSystemOptions = MBSGridSystemOptions;

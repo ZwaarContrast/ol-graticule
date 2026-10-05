@@ -1,5 +1,10 @@
 import { bench, describe } from 'vitest';
-import { coordinateToGridRef, gridRefToCoordinate, formatGridRef, parseGridRef } from '../format.js';
+import {
+  coordinateToGridRef,
+  gridRefToCoordinate,
+  formatGridRef,
+  parseGridRef,
+} from '../format.js';
 
 const points: Array<[number, number]> = [];
 for (let i = 0; i < 100; i++) {
@@ -9,8 +14,12 @@ for (let i = 0; i < 100; i++) {
   points.push([lat, lon]);
 }
 
-const refsD1 = points.map((p) => coordinateToGridRef(p, 1)).filter((r): r is string => !!r);
-const refsD4 = points.map((p) => coordinateToGridRef(p, 4)).filter((r): r is string => !!r);
+const refsD1 = points
+  .map((p) => coordinateToGridRef(p, 1))
+  .filter((r): r is string => !!r);
+const refsD4 = points
+  .map((p) => coordinateToGridRef(p, 4))
+  .filter((r): r is string => !!r);
 
 describe('Marinequadratkarte encoders — ×100', () => {
   bench('coordinateToGridRef depth=1', () => {

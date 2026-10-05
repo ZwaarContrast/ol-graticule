@@ -62,7 +62,10 @@ export class GlyphAtlas {
     // The atlas ctx is only used to pack SDF bitmaps and to measure baselines,
     // both of which read pixels back, so hint the browser to keep it CPU-side.
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    if (!ctx) throw new Error('[ol-graticule] 2D context unavailable for the glyph atlas');
+    if (!ctx)
+      throw new Error(
+        '[ol-graticule] 2D context unavailable for the glyph atlas',
+      );
     this.canvas = canvas;
     this.ctx = ctx;
     if (typeof document !== 'undefined' && document.fonts) {
@@ -160,7 +163,6 @@ export class GlyphAtlas {
     return sdf;
   }
 
-
   private bake_(char: string, font: string): Glyph | null {
     const dpr = this.dpr;
     const sdf = this.sdfFor_(font);
@@ -168,7 +170,17 @@ export class GlyphAtlas {
     const advance = g.glyphAdvance / dpr;
     // Whitespace and zero-ink glyphs carry an advance but no quad.
     if (g.width === 0 || g.height === 0) {
-      return { u0: 0, v0: 0, u1: 0, v1: 0, cellW: 0, cellH: 0, bearingLeft: 0, bearingTop: 0, advance };
+      return {
+        u0: 0,
+        v0: 0,
+        u1: 0,
+        v1: 0,
+        cellW: 0,
+        cellH: 0,
+        bearingLeft: 0,
+        bearingTop: 0,
+        advance,
+      };
     }
     const cellW = g.width;
     const cellH = g.height;
@@ -216,20 +228,32 @@ export class GlyphAtlas {
   }
 }
 
-function parseFont(font: string): { family: string; weight: string; style: string; size: number } {
+function parseFont(font: string): {
+  family: string;
+  weight: string;
+  style: string;
+  size: number;
+} {
   const params = getFontParameters(font);
   if (!params) {
-    return { family: font || 'sans-serif', weight: 'normal', style: 'normal', size: 10 };
+    return {
+      family: font || 'sans-serif',
+      weight: 'normal',
+      style: 'normal',
+      size: 10,
+    };
   }
   const size = parseFloat(params.size);
   return {
-    family: params.families && params.families.length > 0 ? params.families.join(', ') : (params.family || 'sans-serif'),
+    family:
+      params.families && params.families.length > 0
+        ? params.families.join(', ')
+        : params.family || 'sans-serif',
     weight: String(params.weight || 'normal'),
     style: params.style || 'normal',
     size: Number.isFinite(size) && size > 0 ? size : 10,
   };
 }
-
 
 function orElse(value: number | undefined, fallback: number): number {
   return value !== undefined && value > 0 ? value : fallback;

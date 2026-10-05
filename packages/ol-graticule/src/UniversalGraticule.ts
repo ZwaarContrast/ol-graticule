@@ -30,16 +30,30 @@ export class UniversalGraticule extends LayerGroup {
   constructor(options: UniversalGraticuleOptions) {
     const {
       renderer = 'auto',
-      opacity, visible, extent, zIndex,
-      minResolution, maxResolution, minZoom, maxZoom, properties,
+      opacity,
+      visible,
+      extent,
+      zIndex,
+      minResolution,
+      maxResolution,
+      minZoom,
+      maxZoom,
+      properties,
       ...graticuleOptions
     } = options;
     const impl = useWebGL(renderer)
       ? new WebGLGraticuleLayer(graticuleOptions)
       : new CanvasGraticuleLayer(graticuleOptions);
     super({
-      opacity, visible, extent, zIndex,
-      minResolution, maxResolution, minZoom, maxZoom, properties,
+      opacity,
+      visible,
+      extent,
+      zIndex,
+      minResolution,
+      maxResolution,
+      minZoom,
+      maxZoom,
+      properties,
       layers: [impl],
     });
     this.impl_ = impl;
@@ -76,7 +90,10 @@ function useWebGL(renderer: GraticuleRenderer): boolean {
 }
 
 function probeWebGL(): boolean {
-  if (typeof document === 'undefined' || typeof WebGL2RenderingContext === 'undefined') {
+  if (
+    typeof document === 'undefined' ||
+    typeof WebGL2RenderingContext === 'undefined'
+  ) {
     return false;
   }
   try {
@@ -85,7 +102,9 @@ function probeWebGL(): boolean {
     // Restricted in Firefox and under fingerprinting protection, so an empty
     // name means "unknown", not "hardware".
     const info = gl.getExtension('WEBGL_debug_renderer_info');
-    const name = info ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL)) : '';
+    const name = info
+      ? String(gl.getParameter(info.UNMASKED_RENDERER_WEBGL))
+      : '';
     gl.getExtension('WEBGL_lose_context')?.loseContext();
     return !/swiftshader|llvmpipe|software|basic render/i.test(name);
   } catch {

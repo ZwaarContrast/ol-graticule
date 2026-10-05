@@ -12,10 +12,17 @@ import {
 } from '../viewport-invariant.js';
 
 interface FakeGrid {
-  getFeatures(extent: Extent, resolution: number, viewProjection: ProjectionLike): Feature<Geometry>[];
+  getFeatures(
+    extent: Extent,
+    resolution: number,
+    viewProjection: ProjectionLike,
+  ): Feature<Geometry>[];
 }
 
-function lineFeature(coords: [number, number][], attrs: Record<string, unknown> = {}): Feature<Geometry> {
+function lineFeature(
+  coords: [number, number][],
+  attrs: Record<string, unknown> = {},
+): Feature<Geometry> {
   const f = new Feature<Geometry>({ geometry: new LineString(coords) });
   for (const [k, v] of Object.entries(attrs)) f.set(k, v);
   return f;
@@ -27,8 +34,14 @@ describe('findOffScreenFeatures', () => {
   it('returns empty when every feature intersects the viewport', () => {
     const grid: FakeGrid = {
       getFeatures: () => [
-        lineFeature([[10, 10], [90, 90]]),
-        lineFeature([[-10, 50], [110, 50]]),
+        lineFeature([
+          [10, 10],
+          [90, 90],
+        ]),
+        lineFeature([
+          [-10, 50],
+          [110, 50],
+        ]),
       ],
     };
     expect(findOffScreenFeatures(grid, viewport, 1, 'EPSG:3857')).toEqual([]);
@@ -37,8 +50,17 @@ describe('findOffScreenFeatures', () => {
   it('flags features whose bbox is entirely outside the viewport', () => {
     const grid: FakeGrid = {
       getFeatures: () => [
-        lineFeature([[10, 10], [90, 90]]),
-        lineFeature([[200, 200], [300, 300]], { gridLineType: 'minor', gridAxis: 'x', gridValue: 7 }),
+        lineFeature([
+          [10, 10],
+          [90, 90],
+        ]),
+        lineFeature(
+          [
+            [200, 200],
+            [300, 300],
+          ],
+          { gridLineType: 'minor', gridAxis: 'x', gridValue: 7 },
+        ),
       ],
     };
     const out = findOffScreenFeatures(grid, viewport, 1, 'EPSG:3857');
@@ -51,7 +73,12 @@ describe('findOffScreenFeatures', () => {
 
   it('treats features that touch the viewport edge as on-screen', () => {
     const grid: FakeGrid = {
-      getFeatures: () => [lineFeature([[100, 50], [200, 50]])],
+      getFeatures: () => [
+        lineFeature([
+          [100, 50],
+          [200, 50],
+        ]),
+      ],
     };
     expect(findOffScreenFeatures(grid, viewport, 1, 'EPSG:3857')).toEqual([]);
   });
@@ -70,7 +97,12 @@ describe('findOffScreenFeatures', () => {
 
   it('leaves missing grid* attributes as undefined (not the string "undefined")', () => {
     const grid: FakeGrid = {
-      getFeatures: () => [lineFeature([[200, 200], [300, 300]])],
+      getFeatures: () => [
+        lineFeature([
+          [200, 200],
+          [300, 300],
+        ]),
+      ],
     };
     const out = findOffScreenFeatures(grid, viewport, 1, 'EPSG:3857');
     expect(out[0]!.gridLineType).toBeUndefined();
@@ -107,7 +139,12 @@ describe('viewportExtentAt', () => {
   });
 
   it('respects custom viewport dimensions', () => {
-    const { extent, resolution } = viewportExtentAt([4.895, 52.37], 10, 640, 480);
+    const { extent, resolution } = viewportExtentAt(
+      [4.895, 52.37],
+      10,
+      640,
+      480,
+    );
     expect(extent[2]! - extent[0]!).toBeCloseTo(640 * resolution, 3);
     expect(extent[3]! - extent[1]!).toBeCloseTo(480 * resolution, 3);
   });

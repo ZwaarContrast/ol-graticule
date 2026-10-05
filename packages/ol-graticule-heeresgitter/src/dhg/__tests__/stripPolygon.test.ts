@@ -27,17 +27,25 @@ describe('pointInsideValidity', () => {
   });
 
   it('accepts the four corners (inclusive)', () => {
-    expect(pointInsideValidity(VALIDITY_WEST_LON, VALIDITY_SOUTH_LAT)).toBe(true);
-    expect(pointInsideValidity(VALIDITY_EAST_LON, VALIDITY_NORTH_LAT)).toBe(true);
-    expect(pointInsideValidity(VALIDITY_WEST_LON, VALIDITY_NORTH_LAT)).toBe(true);
-    expect(pointInsideValidity(VALIDITY_EAST_LON, VALIDITY_SOUTH_LAT)).toBe(true);
+    expect(pointInsideValidity(VALIDITY_WEST_LON, VALIDITY_SOUTH_LAT)).toBe(
+      true,
+    );
+    expect(pointInsideValidity(VALIDITY_EAST_LON, VALIDITY_NORTH_LAT)).toBe(
+      true,
+    );
+    expect(pointInsideValidity(VALIDITY_WEST_LON, VALIDITY_NORTH_LAT)).toBe(
+      true,
+    );
+    expect(pointInsideValidity(VALIDITY_EAST_LON, VALIDITY_SOUTH_LAT)).toBe(
+      true,
+    );
   });
 
   it('rejects points past each edge', () => {
     expect(pointInsideValidity(-37, 0)).toBe(false); // too far west
-    expect(pointInsideValidity(85, 0)).toBe(false);  // too far east
+    expect(pointInsideValidity(85, 0)).toBe(false); // too far east
     expect(pointInsideValidity(0, -33)).toBe(false); // too far south
-    expect(pointInsideValidity(0, 73)).toBe(false);  // too far north
+    expect(pointInsideValidity(0, 73)).toBe(false); // too far north
   });
 });
 
@@ -61,7 +69,7 @@ describe('zoneIntersectsValidity', () => {
     expect(zoneIntersectsValidity(zoneByKennziffer(30))).toBe(false);
   });
 
-  it('includes a neighbouring zone when extended by the 30\' strip overlap', () => {
+  it("includes a neighbouring zone when extended by the 30' strip overlap", () => {
     // Zone 54 (CM 39°W, strip 42°W..36°W) is on the western edge of the envelope
     // and excluded by default, but its overlap band extends to 35.5°W which is
     // inside the envelope.
@@ -100,7 +108,9 @@ describe('stripClipPolygon', () => {
     expect(ring).toHaveLength(3);
     // Degenerate triangle is around the origin so PolygonClippedGridSystem
     // emits nothing for any practical view extent.
-    expect(ring.every(([x, y]) => Math.abs(x!) < 0.01 && Math.abs(y!) < 0.01)).toBe(true);
+    expect(
+      ring.every(([x, y]) => Math.abs(x!) < 0.01 && Math.abs(y!) < 0.01),
+    ).toBe(true);
   });
 
   it('widens the ring when overlap is applied', () => {

@@ -13,7 +13,8 @@ export const HMN_LETTER_COUNT = ALPHABET.length;
 
 /** Letter at `index`, or `undefined` if out of range. */
 export function letterFromIndex(index: number): string | undefined {
-  if (!Number.isInteger(index) || index < 0 || index >= HMN_LETTER_COUNT) return undefined;
+  if (!Number.isInteger(index) || index < 0 || index >= HMN_LETTER_COUNT)
+    return undefined;
   return ALPHABET[index];
 }
 

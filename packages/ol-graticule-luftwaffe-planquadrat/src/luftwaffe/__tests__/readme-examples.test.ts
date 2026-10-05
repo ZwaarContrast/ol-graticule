@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { encodeGnmv, encodeJmn } from '../encode.js';
 
 describe('README code-block examples must match actual output', () => {
-  const berlin: [number, number] = [52.518720, 13.376257];
+  const berlin: [number, number] = [52.51872, 13.376257];
   const koln: [number, number] = [50.991111, 6.895];
 
   it('encodeGnmv(Berlin) == "15O33397c"', () => {

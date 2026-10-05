@@ -29,7 +29,9 @@ const CANVAS_TOLERANCE = { maxDiffPixelRatio: 0.02 } as const;
 // threshold absorbs AA/GL-backend jitter, structural divergence still trips it.
 const WEBGL_TOLERANCE = { maxDiffPixelRatio: 0.02, threshold: 0.3 } as const;
 
-const tolerance = (r: Renderer): { maxDiffPixelRatio: number; threshold?: number } =>
+const tolerance = (
+  r: Renderer,
+): { maxDiffPixelRatio: number; threshold?: number } =>
   r === 'canvas' ? CANVAS_TOLERANCE : WEBGL_TOLERANCE;
 
 /**
@@ -52,7 +54,9 @@ async function expectPainted(target: Locator): Promise<void> {
     }
     return false;
   });
-  expect(anyOpaque, 'graticule painted no pixels onto any 2D canvas').toBe(true);
+  expect(anyOpaque, 'graticule painted no pixels onto any 2D canvas').toBe(
+    true,
+  );
 }
 
 /**
@@ -70,9 +74,15 @@ async function expectRenderer(page: Page, renderer: Renderer): Promise<void> {
     return n;
   });
   if (renderer === 'webgl') {
-    expect(webglCanvases, 'expected a WebGL graticule layer, found none (Canvas fallback?)').toBeGreaterThan(0);
+    expect(
+      webglCanvases,
+      'expected a WebGL graticule layer, found none (Canvas fallback?)',
+    ).toBeGreaterThan(0);
   } else {
-    expect(webglCanvases, 'expected an all-Canvas map, found a WebGL context').toBe(0);
+    expect(
+      webglCanvases,
+      'expected an all-Canvas map, found a WebGL context',
+    ).toBe(0);
   }
 }
 
@@ -89,9 +99,13 @@ async function rotateView45(page: Page): Promise<void> {
   await page.keyboard.down('Shift');
   await page.mouse.move(cx + r, cy);
   await page.mouse.down();
-  await page.mouse.move(cx + r * Math.cos(-Math.PI / 4), cy + r * Math.sin(-Math.PI / 4), {
-    steps: 20,
-  });
+  await page.mouse.move(
+    cx + r * Math.cos(-Math.PI / 4),
+    cy + r * Math.sin(-Math.PI / 4),
+    {
+      steps: 20,
+    },
+  );
   await page.mouse.up();
   await page.keyboard.up('Shift');
   await page.keyboard.up('Alt');
@@ -99,7 +113,12 @@ async function rotateView45(page: Page): Promise<void> {
 
 /** Load a demo with the chosen renderer selected (via the localStorage key the
  * demos read) and wait for its first canvas to mount + one render cycle. */
-async function loadDemo(page: Page, path: string, selector: string, renderer: Renderer): Promise<Locator> {
+async function loadDemo(
+  page: Page,
+  path: string,
+  selector: string,
+  renderer: Renderer,
+): Promise<Locator> {
   await page.addInitScript((r) => {
     try {
       localStorage.setItem('demo-renderer', r);
@@ -112,7 +131,9 @@ async function loadDemo(page: Page, path: string, selector: string, renderer: Re
   await page.waitForLoadState('domcontentloaded');
   const target = page.locator(selector);
   await expect(target).toBeAttached();
-  await expect(target.locator('canvas').first()).toBeAttached({ timeout: 10_000 });
+  await expect(target.locator('canvas').first()).toBeAttached({
+    timeout: 10_000,
+  });
   await page.waitForTimeout(1500);
   // Hide the dynamic info panel and the renderer toggle (whose label is the one
   // thing that differs between variants) so the snapshot is just the graticule.
@@ -125,22 +146,51 @@ async function loadDemo(page: Page, path: string, selector: string, renderer: Re
   return target;
 }
 
-const DEMOS: { path: string; selector: string; name: string; renderers?: readonly Renderer[] }[] = [
+const DEMOS: {
+  path: string;
+  selector: string;
+  name: string;
+  renderers?: readonly Renderer[];
+}[] = [
   // The landing background has no toggle; in production it uses the facade's
   // 'auto' pick. The e2e forces each renderer via the localStorage key, so test
   // both against the shared baseline like every other demo.
   { path: '/', selector: '#bg-map', name: 'index' },
   { path: '/ol-graticule/', selector: '#map', name: 'ol-graticule' },
-  { path: '/ol-graticule-pixel/', selector: '#map', name: 'ol-graticule-pixel' },
-  { path: '/ol-graticule-projected/', selector: '#map', name: 'ol-graticule-projected' },
-  { path: '/ol-graticule-modified-british-system/', selector: '#map', name: 'mbs' },
+  {
+    path: '/ol-graticule-pixel/',
+    selector: '#map',
+    name: 'ol-graticule-pixel',
+  },
+  {
+    path: '/ol-graticule-projected/',
+    selector: '#map',
+    name: 'ol-graticule-projected',
+  },
+  {
+    path: '/ol-graticule-modified-british-system/',
+    selector: '#map',
+    name: 'mbs',
+  },
   { path: '/ol-graticule-rd/', selector: '#map', name: 'rd' },
   { path: '/ol-graticule-nei/', selector: '#map', name: 'nei' },
   { path: '/ol-graticule-ngo/', selector: '#map', name: 'ngo' },
   { path: '/ol-graticule-mgrs/', selector: '#map', name: 'mgrs' },
-  { path: '/ol-graticule-marinequadratkarte/', selector: '#map', name: 'kriegsmarine' },
-  { path: '/ol-graticule-luftwaffe-planquadrat/', selector: '#map', name: 'luftwaffe' },
-  { path: '/ol-graticule-heeresgitter/', selector: '#map', name: 'heeresgitter' },
+  {
+    path: '/ol-graticule-marinequadratkarte/',
+    selector: '#map',
+    name: 'kriegsmarine',
+  },
+  {
+    path: '/ol-graticule-luftwaffe-planquadrat/',
+    selector: '#map',
+    name: 'luftwaffe',
+  },
+  {
+    path: '/ol-graticule-heeresgitter/',
+    selector: '#map',
+    name: 'heeresgitter',
+  },
 ];
 
 test.beforeEach(async ({ page }) => {
@@ -149,7 +199,9 @@ test.beforeEach(async ({ page }) => {
 
 for (const demo of DEMOS) {
   for (const renderer of demo.renderers ?? RENDERERS) {
-    test(`${demo.name} [${renderer}]: renders and matches the shared baseline`, async ({ page }) => {
+    test(`${demo.name} [${renderer}]: renders and matches the shared baseline`, async ({
+      page,
+    }) => {
       const pageErrors: string[] = [];
       page.on('pageerror', (err) => pageErrors.push(err.message));
 
@@ -160,10 +212,15 @@ for (const demo of DEMOS) {
 
       // Both renderers diff against the SAME baseline: canvas is the reference
       // (regression), webgl matching it is the no-divergence guarantee.
-      await expect(target).toHaveScreenshot(`${demo.name}.png`, tolerance(renderer));
+      await expect(target).toHaveScreenshot(
+        `${demo.name}.png`,
+        tolerance(renderer),
+      );
     });
 
-    test(`${demo.name} [${renderer}]: 45° rotation matches the shared baseline`, async ({ page }) => {
+    test(`${demo.name} [${renderer}]: 45° rotation matches the shared baseline`, async ({
+      page,
+    }) => {
       const pageErrors: string[] = [];
       page.on('pageerror', (err) => pageErrors.push(err.message));
 
@@ -174,7 +231,10 @@ for (const demo of DEMOS) {
       if (renderer === 'canvas') await expectPainted(target);
       expect(pageErrors, `page errors:\n${pageErrors.join('\n')}`).toEqual([]);
 
-      await expect(target).toHaveScreenshot(`${demo.name}-rotated.png`, tolerance(renderer));
+      await expect(target).toHaveScreenshot(
+        `${demo.name}-rotated.png`,
+        tolerance(renderer),
+      );
     });
   }
 }

@@ -86,14 +86,20 @@ export function decomposeHmnGeo(point: LatLon): HmnGeoBreakdown {
   const ay = Math.floor((meldeNwLatSec - latSec) / ARBEITSTRAPEZ_LAT_SEC);
   const arbeitstrapez = ARBEIT_LABELS[ay * 2 + ax];
   if (arbeitstrapez === undefined) {
-    throw new RangeError(`Geographic HMN Arbeitstrapez index out of range: ax=${ax}, ay=${ay}.`);
+    throw new RangeError(
+      `Geographic HMN Arbeitstrapez index out of range: ax=${ax}, ay=${ay}.`,
+    );
   }
   const arbeitNwLonSec = meldeNwLonSec + ax * ARBEITSTRAPEZ_LON_SEC;
   const arbeitNwLatSec = meldeNwLatSec - ay * ARBEITSTRAPEZ_LAT_SEC;
 
   const arbeitSwLatSec = arbeitNwLatSec - ARBEITSTRAPEZ_LAT_SEC;
-  const tenthEast = clampTenth(Math.floor((lonSec - arbeitNwLonSec) / TENTH_LON_SEC));
-  const tenthNorth = clampTenth(Math.floor((latSec - arbeitSwLatSec) / TENTH_LAT_SEC));
+  const tenthEast = clampTenth(
+    Math.floor((lonSec - arbeitNwLonSec) / TENTH_LON_SEC),
+  );
+  const tenthNorth = clampTenth(
+    Math.floor((latSec - arbeitSwLatSec) / TENTH_LAT_SEC),
+  );
 
   return {
     grosstrapez: { gx, gy },
@@ -139,7 +145,10 @@ export function encodeHmnGeo(
   const depth = options.depth ?? 5;
   const canonical = formatHmnGeo(breakdown, options);
 
-  const { nwLonSec, nwLatSec, sizeLonSec, sizeLatSec } = nwCornerForDepth(breakdown, depth);
+  const { nwLonSec, nwLatSec, sizeLonSec, sizeLatSec } = nwCornerForDepth(
+    breakdown,
+    depth,
+  );
   const minLon = nwLonSec / ARCSEC_PER_DEG;
   const maxLat = nwLatSec / ARCSEC_PER_DEG;
   const maxLon = (nwLonSec + sizeLonSec) / ARCSEC_PER_DEG;
@@ -204,4 +213,3 @@ function nwCornerForDepth(b: HmnGeoBreakdown, depth: number): CellCorner {
     sizeLatSec: TENTH_LAT_SEC,
   };
 }
-

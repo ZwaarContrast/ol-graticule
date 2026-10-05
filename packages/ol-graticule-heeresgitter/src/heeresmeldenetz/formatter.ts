@@ -34,9 +34,14 @@ export class HmnIntervalStrategy extends SteppingIntervalStrategy {
  *
  * `midE`/`midN` are in DHG metres (real Rechtswert / Hochwert in the zone).
  */
-export function hmnHierarchicalLabel(midE: number, midN: number, interval: number): string | undefined {
+export function hmnHierarchicalLabel(
+  midE: number,
+  midN: number,
+  interval: number,
+): string | undefined {
   const eFromCm = midE - FALSE_EASTING;
-  const grossNwE = FALSE_EASTING + Math.floor(eFromCm / GROSSQUADRAT_M) * GROSSQUADRAT_M;
+  const grossNwE =
+    FALSE_EASTING + Math.floor(eFromCm / GROSSQUADRAT_M) * GROSSQUADRAT_M;
   const grossNwN = (Math.floor(midN / GROSSQUADRAT_M) + 1) * GROSSQUADRAT_M;
 
   const kx = Math.floor((midE - grossNwE) / KLEINQUADRAT_M);

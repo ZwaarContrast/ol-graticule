@@ -19,12 +19,19 @@ function wgs84(): Projection {
 
 // A bounded, non-global projection: canWrapX() is false, so there is one world.
 function nonWrapping(): Projection {
-  return new Projection({ code: 'test-nowrap', units: 'm', extent: [0, 0, 100, 100] });
+  return new Projection({
+    code: 'test-nowrap',
+    units: 'm',
+    extent: [0, 0, 100, 100],
+  });
 }
 
 describe('wrapParams', () => {
   it('returns the extent and 360° width for a wrapping projection', () => {
-    expect(wrapParams(wgs84())).toEqual({ projExtent: [-180, -90, 180, 90], worldWidth: 360 });
+    expect(wrapParams(wgs84())).toEqual({
+      projExtent: [-180, -90, 180, 90],
+      worldWidth: 360,
+    });
   });
 
   it('is null for a projection that does not wrap in x', () => {
@@ -44,7 +51,9 @@ describe('worldOffsets', () => {
   });
 
   it('spans every copy a wide view touches', () => {
-    expect(worldOffsets([-400, -10, 400, 10], world, 360)).toEqual([-360, 0, 360]);
+    expect(worldOffsets([-400, -10, 400, 10], world, 360)).toEqual([
+      -360, 0, 360,
+    ]);
   });
 
   it('picks the single western copy for a view entirely past the antimeridian', () => {
@@ -58,7 +67,9 @@ describe('visibleWorldOffsets', () => {
   });
 
   it('is [0] for a non-wrapping projection regardless of extent', () => {
-    expect(visibleWorldOffsets([-1000, -1000, 1000, 1000], nonWrapping())).toEqual([0]);
+    expect(
+      visibleWorldOffsets([-1000, -1000, 1000, 1000], nonWrapping()),
+    ).toEqual([0]);
   });
 });
 
@@ -80,19 +91,27 @@ describe('worldOffsetOf', () => {
 
 describe('canonicalizeExtent', () => {
   it('leaves a within-world extent unchanged', () => {
-    expect(canonicalizeExtent([-10, -10, 10, 10], wgs84())).toEqual([-10, -10, 10, 10]);
+    expect(canonicalizeExtent([-10, -10, 10, 10], wgs84())).toEqual([
+      -10, -10, 10, 10,
+    ]);
   });
 
   it('expands an antimeridian-crossing view to the base-world longitude span', () => {
-    expect(canonicalizeExtent([170, -10, 190, 10], wgs84())).toEqual([-180, -10, 180, 10]);
+    expect(canonicalizeExtent([170, -10, 190, 10], wgs84())).toEqual([
+      -180, -10, 180, 10,
+    ]);
   });
 
   it('collapses a multi-world view to the full base-world width', () => {
-    expect(canonicalizeExtent([-400, -10, 400, 10], wgs84())).toEqual([-180, -10, 180, 10]);
+    expect(canonicalizeExtent([-400, -10, 400, 10], wgs84())).toEqual([
+      -180, -10, 180, 10,
+    ]);
   });
 
   it('leaves the extent unchanged for a non-wrapping projection', () => {
-    expect(canonicalizeExtent([10, 20, 30, 40], nonWrapping())).toEqual([10, 20, 30, 40]);
+    expect(canonicalizeExtent([10, 20, 30, 40], nonWrapping())).toEqual([
+      10, 20, 30, 40,
+    ]);
   });
 
   it('keeps the y-extent untouched while canonicalising x', () => {

@@ -11,7 +11,9 @@ for (let i = 0; i < 100; i++) {
   points.push([lat, lon]);
 }
 
-const rdCoords = points.map((p) => proj4('EPSG:4326', RD_NEW_PROJ4, [p[1], p[0]]));
+const rdCoords = points.map((p) =>
+  proj4('EPSG:4326', RD_NEW_PROJ4, [p[1], p[0]]),
+);
 
 describe('RD transformations (RDNAPTRANS with GSB) — ×100', () => {
   bench('forward', () => {

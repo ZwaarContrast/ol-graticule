@@ -1,5 +1,9 @@
 import type { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
-import { buildRDProj4, createRDGridSystem, type RDGridSystemOptions } from './shared.js';
+import {
+  buildRDProj4,
+  createRDGridSystem,
+  type RDGridSystemOptions,
+} from './shared.js';
 import { RD_NEW_CLIP_POLYGON } from './RDNew.js';
 
 /**

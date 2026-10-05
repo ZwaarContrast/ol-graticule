@@ -5,7 +5,10 @@
 
 import type VectorSource from 'ol/source/Vector';
 import type { GraticuleBlendMode, GraticuleLineStyle } from './style.js';
-import { createDefaultCellLabelHandler, resolveEdgeLabelHandler } from './style.js';
+import {
+  createDefaultCellLabelHandler,
+  resolveEdgeLabelHandler,
+} from './style.js';
 import type { GraticuleGridSpec, GraticuleOptions } from './options.js';
 import type { EdgeLabelConfig } from './labels/EdgeLabelPlacer.js';
 import { LabelEngine } from './labels/LabelEngine.js';
@@ -26,14 +29,24 @@ export function resolveGraticuleOptions<T extends GraticuleOptions>(
   options: T,
 ): ResolvedGraticuleConfig<Omit<T, keyof GraticuleOptions>> {
   const {
-    gridSystem, style, grids,
-    xLabelPosition, yLabelPosition, xLabelOffset, yLabelOffset,
-    edgeLabelCoverage, edgeLabelLeader, edgeLabelExtend,
-    maxLines, blend,
+    gridSystem,
+    style,
+    grids,
+    xLabelPosition,
+    yLabelPosition,
+    xLabelOffset,
+    yLabelOffset,
+    edgeLabelCoverage,
+    edgeLabelLeader,
+    edgeLabelExtend,
+    maxLines,
+    blend,
     ...layerOptions
   } = options;
 
-  const specs: GraticuleGridSpec[] = grids ?? [{ gridSystem: gridSystem ?? null, style }];
+  const specs: GraticuleGridSpec[] = grids ?? [
+    { gridSystem: gridSystem ?? null, style },
+  ];
 
   return {
     specs,
@@ -62,7 +75,8 @@ export function createLabelEngine(
 ): LabelEngine | null {
   const edgeLabelHandler = resolveEdgeLabelHandler(spec.style?.edgeLabel);
   const cell = spec.style?.cellLabel;
-  const cellLabelHandler = cell === false ? null : cell ?? createDefaultCellLabelHandler();
+  const cellLabelHandler =
+    cell === false ? null : (cell ?? createDefaultCellLabelHandler());
   if (!edgeLabelHandler && !cellLabelHandler) return null;
   return new LabelEngine({
     edgeLabelHandler,

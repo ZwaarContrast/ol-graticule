@@ -3,14 +3,23 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { blockExternalTiles, tallyHotFunctions, type CpuProfile } from './helpers.js';
+import {
+  blockExternalTiles,
+  tallyHotFunctions,
+  type CpuProfile,
+} from './helpers.js';
 
 // Headless Chromium defaults to SwiftShader (SOFTWARE WebGL), which cripples the
 // GL variant while Canvas 2D (CPU) is unaffected — a false ~4x gap. Force the
 // real GPU (ANGLE/Metal) so this benchmark measures what users actually get.
 test.use({
   launchOptions: {
-    args: ['--use-gl=angle', '--use-angle=metal', '--enable-gpu', '--ignore-gpu-blocklist'],
+    args: [
+      '--use-gl=angle',
+      '--use-angle=metal',
+      '--enable-gpu',
+      '--ignore-gpu-blocklist',
+    ],
   },
 });
 
@@ -70,7 +79,12 @@ async function getMetrics(client: CDPSession): Promise<Record<string, number>> {
 }
 
 // Seeded so the wheel sequence is identical across renderers/runs (fair A/B).
-async function driveZoomCycles(page: Page, cx: number, cy: number, steps: number): Promise<void> {
+async function driveZoomCycles(
+  page: Page,
+  cx: number,
+  cy: number,
+  steps: number,
+): Promise<void> {
   let seed = 0x9e3779b1;
   const rng = (): number => {
     seed = (Math.imul(seed, 1103515245) + 12345) & 0x7fffffff;
@@ -92,7 +106,11 @@ function pct(sorted: number[], p: number): number {
   return sorted[i] ?? 0;
 }
 
-async function measure(page: Page, renderer: Renderer, path: string): Promise<Sample> {
+async function measure(
+  page: Page,
+  renderer: Renderer,
+  path: string,
+): Promise<Sample> {
   // Select renderer before any page script runs + install a rAF frame recorder.
   await page.addInitScript((r) => {
     try {
@@ -147,10 +165,12 @@ async function measure(page: Page, renderer: Renderer, path: string): Promise<Sa
   const wallMs = Date.now() - t0;
   const stopped = await client.send('Profiler.stop');
   const after = await getMetrics(client);
-  const frames: number[] = await page.evaluate(
-    () => (window as unknown as { __frames: number[] }).__frames.slice(),
+  const frames: number[] = await page.evaluate(() =>
+    (window as unknown as { __frames: number[] }).__frames.slice(),
   );
-  const canvases = await page.evaluate(() => document.querySelectorAll('canvas').length);
+  const canvases = await page.evaluate(
+    () => document.querySelectorAll('canvas').length,
+  );
   await client.detach();
 
   const hot = tallyHotFunctions(stopped.profile as unknown as CpuProfile, 12)
@@ -184,7 +204,9 @@ for (const demo of DEMOS) {
     test.slow();
     const samples: Record<Renderer, Sample> = {} as Record<Renderer, Sample>;
     for (const renderer of RENDERERS) {
-      const context = await browser.newContext({ viewport: { width: 1280, height: 800 } });
+      const context = await browser.newContext({
+        viewport: { width: 1280, height: 800 },
+      });
       const page = await context.newPage();
       await blockExternalTiles(page);
       samples[renderer] = await measure(page, renderer, demo.path);
@@ -195,25 +217,30 @@ for (const demo of DEMOS) {
     const g = samples.webgl;
     const ratio = c.wallMs > 0 ? (g.wallMs / c.wallMs).toFixed(2) : 'n/a';
     const lines: string[] = [];
-    lines.push(`==== ${demo.name} (${demo.path}) — ${WHEELS} seeded wheel steps ====`);
+    lines.push(
+      `==== ${demo.name} (${demo.path}) — ${WHEELS} seeded wheel steps ====`,
+    );
     lines.push(
       `             ${'wall ms'.padStart(9)} ${'script s'.padStart(9)} ${'layout s'.padStart(9)} ` +
-      `${'fps'.padStart(6)} ${'med ms'.padStart(7)} ${'p95 ms'.padStart(7)} ${'max ms'.padStart(7)} ` +
-      `${'jank'.padStart(5)} ${'canv'.padStart(5)}`,
+        `${'fps'.padStart(6)} ${'med ms'.padStart(7)} ${'p95 ms'.padStart(7)} ${'max ms'.padStart(7)} ` +
+        `${'jank'.padStart(5)} ${'canv'.padStart(5)}`,
     );
     for (const r of RENDERERS) {
       const s = samples[r];
       lines.push(
         `  ${r.padEnd(10)} ${String(s.wallMs).padStart(9)} ${s.scriptS.toFixed(3).padStart(9)} ` +
-        `${s.layoutS.toFixed(3).padStart(9)} ${s.fps.toFixed(1).padStart(6)} ` +
-        `${s.medianFrameMs.toFixed(1).padStart(7)} ${s.p95FrameMs.toFixed(1).padStart(7)} ` +
-        `${s.maxFrameMs.toFixed(1).padStart(7)} ${String(s.longFrames).padStart(5)} ${String(s.canvases).padStart(5)}`,
+          `${s.layoutS.toFixed(3).padStart(9)} ${s.fps.toFixed(1).padStart(6)} ` +
+          `${s.medianFrameMs.toFixed(1).padStart(7)} ${s.p95FrameMs.toFixed(1).padStart(7)} ` +
+          `${s.maxFrameMs.toFixed(1).padStart(7)} ${String(s.longFrames).padStart(5)} ${String(s.canvases).padStart(5)}`,
       );
     }
     lines.push(`  webgl/canvas wall ratio: ${ratio}x  (< 1.0 = WebGL faster)`);
     lines.push('');
     lines.push('  webgl hot self-time:');
-    for (const f of g.hot) lines.push(`    ${f.selfMs.toFixed(1).padStart(8)} ms  ${f.name} [${f.source}]`);
+    for (const f of g.hot)
+      lines.push(
+        `    ${f.selfMs.toFixed(1).padStart(8)} ms  ${f.name} [${f.source}]`,
+      );
     const summary = lines.join('\n') + '\n';
     writeFileSync(join(OUT_DIR, `renderers-${demo.name}.txt`), summary);
     console.log('\n' + summary);

@@ -51,10 +51,10 @@ subdivides as you zoom in, down to the Kleinquadrat (6-character code like
 
 ### Options
 
-| Option | Type | Default | What it does |
-|---|---|---|---|
-| `maxDepth` | `0`–`4` | `4` | Subdivision depth. `0` = large squares only, `4` = Kleinquadrat. |
-| `minSquarePx` | `number` | `80` | Squares smaller than this won't subdivide further. |
+| Option        | Type     | Default | What it does                                                     |
+| ------------- | -------- | ------- | ---------------------------------------------------------------- |
+| `maxDepth`    | `0`–`4`  | `4`     | Subdivision depth. `0` = large squares only, `4` = Kleinquadrat. |
+| `minSquarePx` | `number` | `80`    | Squares smaller than this won't subdivide further.               |
 
 ### Looking up a grid reference for a coordinate
 
@@ -67,11 +67,11 @@ import {
   formatGridRef,
 } from '@zwaarcontrast/ol-graticule-marinequadratkarte';
 
-const ref = coordinateToGridRef([54.5, 5.2]);        // -> "AN3828"
-formatGridRef(ref!);                                  // -> "AN 3828"
+const ref = coordinateToGridRef([54.5, 5.2]); // -> "AN3828"
+formatGridRef(ref!); // -> "AN 3828"
 
 // Cap the resolution, handy for text like "ship operating in AN".
-coordinateToGridRef([54.5, 5.2], 0);                  // -> "AN"
+coordinateToGridRef([54.5, 5.2], 0); // -> "AN"
 ```
 
 Input order is `[latitude, longitude]`. Returns `undefined` when the point
@@ -87,8 +87,8 @@ import {
 } from '@zwaarcontrast/ol-graticule-marinequadratkarte';
 import { ParseError } from '@zwaarcontrast/ol-graticule';
 
-parseGridRef('bc 6175');           // -> "BC6175" (canonical, whitespace-free)
-gridRefToCoordinate('BC 6175');    // -> [lat, lon] of the cell centre
+parseGridRef('bc 6175'); // -> "BC6175" (canonical, whitespace-free)
+gridRefToCoordinate('BC 6175'); // -> [lat, lon] of the cell centre
 
 // Or, via the GridSystem (returns view-projection coords):
 try {

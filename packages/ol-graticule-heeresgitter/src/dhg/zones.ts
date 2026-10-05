@@ -71,7 +71,7 @@ export function zoneForLon(lon: number): DhgZone {
 export function zonesContainingLon(lon: number): DhgZone[] {
   const primary = zoneForLon(lon);
   const result: DhgZone[] = [primary];
-  const normalized = ((lon + 180) % 360 + 360) % 360 - 180;
+  const normalized = ((((lon + 180) % 360) + 360) % 360) - 180;
   const distFromCm = Math.abs(normalized - primary.cm);
   // Within 30' of a 6° boundary → also include the neighbouring zone.
   if (distFromCm > STRIP_HALF_WIDTH_DEG - STRIP_OVERLAP_DEG) {

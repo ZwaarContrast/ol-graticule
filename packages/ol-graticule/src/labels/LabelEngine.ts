@@ -11,7 +11,12 @@ import type {
 import type { LabelSink } from './LabelSink.js';
 import { visibleWorldOffsets } from '../util/worldWrap.js';
 import { LabelCollector } from './LabelCollector.js';
-import { EdgeLabelPlacer, edgeLabelFrame, type EdgeLabelConfig, type ScreenFrame } from './EdgeLabelPlacer.js';
+import {
+  EdgeLabelPlacer,
+  edgeLabelFrame,
+  type EdgeLabelConfig,
+  type ScreenFrame,
+} from './EdgeLabelPlacer.js';
 import { CellLabelRenderer } from './CellLabelRenderer.js';
 
 export interface LabelEngineOptions {
@@ -42,7 +47,12 @@ export class LabelEngine {
     this.maxLines_ = options.maxLines;
     this.source_ = options.source;
     this.edgePlacer_ = options.edgeLabelHandler
-      ? new EdgeLabelPlacer(options.edgeConfig, options.edgeLabelHandler, this.source_, options.lineStyle)
+      ? new EdgeLabelPlacer(
+          options.edgeConfig,
+          options.edgeLabelHandler,
+          this.source_,
+          options.lineStyle,
+        )
       : null;
     this.cellRenderer_ = options.cellLabelHandler
       ? new CellLabelRenderer(options.cellLabelHandler)
@@ -74,7 +84,9 @@ export class LabelEngine {
       // WebGL path: keep the placer's nearestLine_ source current each frame.
       const ceiling = this.maxLines_ * 2;
       this.source_.clear(true);
-      this.source_.addFeatures(features.length > ceiling ? features.slice(0, ceiling) : features);
+      this.source_.addFeatures(
+        features.length > ceiling ? features.slice(0, ceiling) : features,
+      );
     }
 
     const screen: ScreenFrame = {
@@ -87,23 +99,41 @@ export class LabelEngine {
 
     if (this.edgePlacer_) {
       const { xBuf, xCount, yBuf, yCount } = this.collector_.collectEdge(
-        offsets, extent,
+        offsets,
+        extent,
         (shifted) => gridSystem.getLabels(shifted, resolution, projection),
       );
       if (xCount > 0 || yCount > 0) {
-        const frame = edgeLabelFrame(center, size, resolution, rotation, projection);
-        this.edgePlacer_.place(sink, frame, screen, extent, resolution, xBuf, xCount, yBuf, yCount);
+        const frame = edgeLabelFrame(
+          center,
+          size,
+          resolution,
+          rotation,
+          projection,
+        );
+        this.edgePlacer_.place(
+          sink,
+          frame,
+          screen,
+          extent,
+          resolution,
+          xBuf,
+          xCount,
+          yBuf,
+          yCount,
+        );
       }
     }
 
     const getCellLabels = gridSystem.getCellLabels;
     if (this.cellRenderer_ && getCellLabels) {
       const { buf, count } = this.collector_.collectCells(
-        offsets, extent,
-        (shifted) => getCellLabels.call(gridSystem, shifted, resolution, projection),
+        offsets,
+        extent,
+        (shifted) =>
+          getCellLabels.call(gridSystem, shifted, resolution, projection),
       );
       if (count > 0) this.cellRenderer_.draw(sink, screen, buf, count);
     }
   }
 }
-

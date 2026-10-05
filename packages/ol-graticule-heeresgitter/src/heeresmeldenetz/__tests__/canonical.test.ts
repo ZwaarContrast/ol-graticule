@@ -10,7 +10,9 @@ import {
 
 describe('canonicalizeHmnLabel', () => {
   it('depth 2: just the Kleinquadrat letter pair', () => {
-    expect(canonicalizeHmnLabel('PE', undefined, undefined, undefined)).toBe('PE');
+    expect(canonicalizeHmnLabel('PE', undefined, undefined, undefined)).toBe(
+      'PE',
+    );
   });
 
   it('depth 3: Kleinquadrat + Meldetrapez', () => {
@@ -53,27 +55,23 @@ describe('clampTenth', () => {
 });
 
 describe('HMN_LABEL_PATTERN', () => {
-  it.each([
-    'PE',
-    'PE 5',
-    'PE 5b',
-    'PE 5b 24',
-    'pe5b24',
-    '  PE   5b   24  ',
-  ])('accepts canonical-shaped %s', (text) => {
-    expect(HMN_LABEL_PATTERN.test(text)).toBe(true);
-  });
+  it.each(['PE', 'PE 5', 'PE 5b', 'PE 5b 24', 'pe5b24', '  PE   5b   24  '])(
+    'accepts canonical-shaped %s',
+    (text) => {
+      expect(HMN_LABEL_PATTERN.test(text)).toBe(true);
+    },
+  );
 
   it.each([
     '',
-    'P',          // single letter
-    'PEE',        // three letters
-    'PI',         // contains I
-    'IP',         // contains I
-    'PE 0',       // Meldetrapez must be 1..9
-    'PE 5e',      // Arbeitstrapez must be a..d
-    'PE 5b 5',    // tenths must be 2 digits
-    'PE 5 24',    // tenths without Arbeitstrapez
+    'P', // single letter
+    'PEE', // three letters
+    'PI', // contains I
+    'IP', // contains I
+    'PE 0', // Meldetrapez must be 1..9
+    'PE 5e', // Arbeitstrapez must be a..d
+    'PE 5b 5', // tenths must be 2 digits
+    'PE 5 24', // tenths without Arbeitstrapez
   ])('rejects %s', (text) => {
     expect(HMN_LABEL_PATTERN.test(text)).toBe(false);
   });
@@ -86,7 +84,7 @@ describe('parseHmnTokens', () => {
     expect(tokens!.col).toBe('P');
     expect(tokens!.row).toBe('E');
     expect(tokens!.kx).toBe(14); // P = index 14 (A..H = 0..7, J = 8, ..., P = 14)
-    expect(tokens!.ky).toBe(4);  // E = index 4
+    expect(tokens!.ky).toBe(4); // E = index 4
     expect(tokens!.meldetrapez).toBe(5);
     expect(tokens!.arbeitstrapez).toBe('b');
     expect(tokens!.tenths).toEqual([2, 4]);

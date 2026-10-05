@@ -11,7 +11,8 @@ import type { TransformFunction } from 'ol/proj';
  * `maxEntries` is exceeded.
  */
 export class TransformCache {
-  private readonly outer_: Map<number, Map<number, [number, number]>> = new Map();
+  private readonly outer_: Map<number, Map<number, [number, number]>> =
+    new Map();
   private size_ = 0;
   private readonly maxEntries_: number;
 

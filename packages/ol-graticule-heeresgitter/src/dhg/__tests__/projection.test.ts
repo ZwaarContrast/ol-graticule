@@ -1,6 +1,11 @@
 import { afterEach, describe, expect, it } from 'vitest';
 
-import { encodeDhg, encodeDhgText, formatEasting, formatNorthing } from '../encode.js';
+import {
+  encodeDhg,
+  encodeDhgText,
+  formatEasting,
+  formatNorthing,
+} from '../encode.js';
 import { parseDhg, parseShortDigits } from '../decode.js';
 import {
   dhgCrsCode,
@@ -12,7 +17,14 @@ import {
   setDhgDatumShift,
 } from '../projection.js';
 import type { DatumShift } from '../types.js';
-import { ALL_ZONES, cmForKennziffer, kennzifferForCm, zoneByKennziffer, zoneForLon, zonesContainingLon } from '../zones.js';
+import {
+  ALL_ZONES,
+  cmForKennziffer,
+  kennzifferForCm,
+  zoneByKennziffer,
+  zoneForLon,
+  zonesContainingLon,
+} from '../zones.js';
 
 describe('DHG zone math', () => {
   it('matches the Planheft Schweiz table', () => {
@@ -58,7 +70,7 @@ describe('DHG zone math', () => {
     expect(zoneForLon(30).kennziffer).toBe(6);
   });
 
-  it('28°20\'E falls in zone 5 (CM 27°E)', () => {
+  it("28°20'E falls in zone 5 (CM 27°E)", () => {
     expect(zoneForLon(28 + 20 / 60).kennziffer).toBe(5);
   });
 
@@ -69,8 +81,10 @@ describe('DHG zone math', () => {
     expect(zoneForLon(-175).kennziffer).toBe(31);
   });
 
-  it('30°E is inside the 30\' overlap of both adjacent zones', () => {
-    const kzs = zonesContainingLon(30).map((z) => z.kennziffer).sort();
+  it("30°E is inside the 30' overlap of both adjacent zones", () => {
+    const kzs = zonesContainingLon(30)
+      .map((z) => z.kennziffer)
+      .sort();
     expect(kzs).toEqual([5, 6]);
   });
 
@@ -102,7 +116,7 @@ describe('DHG forward projection', () => {
   // grid label printed on the sheet reads "7715". On the Bessel ellipsoid
   // the meridian arc to 69.5°N is ~7716 km, so the print label is a few
   // metres off the true corner, close enough for a sanity check.
-  it('Kolosjoki NW (30°E, 69°30\'N) lands near the printed 7715 / 383 km labels', () => {
+  it("Kolosjoki NW (30°E, 69°30'N) lands near the printed 7715 / 383 km labels", () => {
     const coord = encodeDhg([69.5, 30.0]);
     expect(coord.kennziffer).toBe(6);
     expect(coord.easting / 1000).toBeGreaterThan(382);
@@ -114,7 +128,7 @@ describe('DHG forward projection', () => {
   // Owrutsch NW corner is annotated 28°20'E / 52°N; the corner labels print
   // N = 5760 km (a grid line a hair south of lat 52°N) and E starts "5600"
   // (= zone 5, Rechtswert 600 km, on the grid line east of the actual corner).
-  it('Owrutsch NW (28°20\'E, 52°N) is in zone 5, Northing ~5763 km', () => {
+  it("Owrutsch NW (28°20'E, 52°N) is in zone 5, Northing ~5763 km", () => {
     const coord = encodeDhg([52, 28 + 20 / 60]);
     expect(coord.kennziffer).toBe(5);
     // Meridian arc to 52°N on Bessel ≈ 5763 km.
@@ -126,7 +140,12 @@ describe('DHG forward projection', () => {
   });
 
   it('round-trips lat/lon ↔ DHG metres', () => {
-    for (const point of [[69.5, 30.0], [48.75, 16.17], [52, 28.33], [40, -3]] as Array<[number, number]>) {
+    for (const point of [
+      [69.5, 30.0],
+      [48.75, 16.17],
+      [52, 28.33],
+      [40, -3],
+    ] as Array<[number, number]>) {
       const forward = encodeDhg(point);
       const [lat, lon] = inverse(forward);
       expect(lat).toBeCloseTo(point[0], 4);

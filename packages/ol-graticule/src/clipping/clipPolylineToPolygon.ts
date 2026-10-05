@@ -11,7 +11,11 @@
  * inequalities per segment.
  */
 import { createOrUpdateFromFlatCoordinates, intersects } from 'ol/extent';
-import { PolygonEdgeIndex, createEdgeBuffer, type EdgeBuffer } from './PolygonEdgeIndex.js';
+import {
+  PolygonEdgeIndex,
+  createEdgeBuffer,
+  type EdgeBuffer,
+} from './PolygonEdgeIndex.js';
 
 const T_EPSILON = 1e-9;
 
@@ -49,14 +53,20 @@ export function clipPolylineToPolygon(
   const count = (end - offset) / stride;
   if (count < 2) return [];
 
-  const bbox = createOrUpdateFromFlatCoordinates(flatCoordinates, offset, end, stride);
+  const bbox = createOrUpdateFromFlatCoordinates(
+    flatCoordinates,
+    offset,
+    end,
+    stride,
+  );
   if (!intersects(bbox, index.ringExtent)) return [];
 
   const scr = scratch ?? createClipScratch();
   const inside = scr.insideFlags;
   inside.length = 0;
   for (let i = offset; i < end; i += stride) {
-    const x = flatCoordinates[i]!, y = flatCoordinates[i + 1]!;
+    const x = flatCoordinates[i]!,
+      y = flatCoordinates[i + 1]!;
     inside.push(index.pointInRing(x, y));
   }
 
@@ -69,8 +79,10 @@ export function clipPolylineToPolygon(
   for (let i = 0; i < count - 1; i++) {
     const o0 = offset + i * stride;
     const o1 = o0 + stride;
-    const p0x = flatCoordinates[o0]!, p0y = flatCoordinates[o0 + 1]!;
-    const p1x = flatCoordinates[o1]!, p1y = flatCoordinates[o1 + 1]!;
+    const p0x = flatCoordinates[o0]!,
+      p0y = flatCoordinates[o0 + 1]!;
+    const p1x = flatCoordinates[o1]!,
+      p1y = flatCoordinates[o1 + 1]!;
     let state = inside[i]!;
 
     if (state && current === null) {
@@ -119,8 +131,14 @@ export function clipPolylineToPolygon(
 }
 
 function segmentSegmentTU_(
-  ax1: number, ay1: number, ax2: number, ay2: number,
-  bx1: number, by1: number, bx2: number, by2: number,
+  ax1: number,
+  ay1: number,
+  ax2: number,
+  ay2: number,
+  bx1: number,
+  by1: number,
+  bx2: number,
+  by2: number,
   out: { t: number; u: number; hit: boolean },
 ): void {
   const rx = ax2 - ax1;
@@ -128,12 +146,18 @@ function segmentSegmentTU_(
   const sx = bx2 - bx1;
   const sy = by2 - by1;
   const denom = rx * sy - ry * sx;
-  if (denom === 0) { out.hit = false; return; }
+  if (denom === 0) {
+    out.hit = false;
+    return;
+  }
   const dx = bx1 - ax1;
   const dy = by1 - ay1;
   const t = (dx * sy - dy * sx) / denom;
   const u = (dx * ry - dy * rx) / denom;
-  if (t < 0 || t > 1 || u < 0 || u > 1) { out.hit = false; return; }
+  if (t < 0 || t > 1 || u < 0 || u > 1) {
+    out.hit = false;
+    return;
+  }
   out.t = t;
   out.u = u;
   out.hit = true;

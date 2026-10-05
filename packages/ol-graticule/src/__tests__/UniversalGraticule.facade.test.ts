@@ -16,19 +16,28 @@ function child(g: UniversalGraticule) {
 
 describe('UniversalGraticule facade', () => {
   it("renderer:'canvas' backs the group with a CanvasGraticuleLayer", () => {
-    expect(child(new UniversalGraticule({ renderer: 'canvas' }))).toBeInstanceOf(CanvasGraticuleLayer);
+    expect(
+      child(new UniversalGraticule({ renderer: 'canvas' })),
+    ).toBeInstanceOf(CanvasGraticuleLayer);
   });
 
   it("renderer:'gl' backs the group with a WebGLGraticuleLayer", () => {
-    expect(child(new UniversalGraticule({ renderer: 'gl' }))).toBeInstanceOf(WebGLGraticuleLayer);
+    expect(child(new UniversalGraticule({ renderer: 'gl' }))).toBeInstanceOf(
+      WebGLGraticuleLayer,
+    );
   });
 
   it("renderer:'auto' falls back to canvas when WebGL is unavailable (node env)", () => {
-    expect(child(new UniversalGraticule({}))).toBeInstanceOf(CanvasGraticuleLayer);
+    expect(child(new UniversalGraticule({}))).toBeInstanceOf(
+      CanvasGraticuleLayer,
+    );
   });
 
   it('forwards grid + lens controls to the active variant', () => {
-    const g = new UniversalGraticule({ renderer: 'canvas', gridSystem: stubGrid });
+    const g = new UniversalGraticule({
+      renderer: 'canvas',
+      gridSystem: stubGrid,
+    });
     expect(g.getGridSystem()).toBe(stubGrid);
     g.setGridSystem(null);
     expect(g.getGridSystem()).toBeNull();

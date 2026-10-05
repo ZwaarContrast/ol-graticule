@@ -1,5 +1,8 @@
 import { PolygonClippedGridSystem } from '@zwaarcontrast/ol-graticule';
-import { ProjectedGridSystem, registerCRS } from '@zwaarcontrast/ol-graticule-projected';
+import {
+  ProjectedGridSystem,
+  registerCRS,
+} from '@zwaarcontrast/ol-graticule-projected';
 import type { ProjectedGridSystemOptions } from '@zwaarcontrast/ol-graticule-projected';
 import { registerRDNAPTRANS2018 } from '../rdnaptrans.js';
 

@@ -21,8 +21,8 @@ once.
 
 ## GNMV, ZZG + Großtrapez + Mitteltrapez: Weltkarte K-34 Sofia (1942)
 
-The *Generalstab der Luftwaffe*'s 1942 *Weltkarte 1:1 000 000*, sheet
-K-34 *Sofia* (the German military edition of the Internationale
+The _Generalstab der Luftwaffe_'s 1942 _Weltkarte 1:1 000 000_, sheet
+K-34 _Sofia_ (the German military edition of the Internationale
 Weltkarte), prints the GNMV Großtrapez grid across the southern
 Adriatic, Albania, and the western Balkans. The printed cell digits
 match this package's rendering across the boundary between ZZG
@@ -39,8 +39,8 @@ and on
 
 ## GNMV, explicit ZZG label + Großtrapez: Heereskarte I 35 NW Kreta
 
-The *Deutsche Heereskarte* sheet **I 35 NW Kreta** (1:500 000,
-*Fliegerausgabe Europa*, OKH / Gen.St.d.H., 1942) carries the explicit
+The _Deutsche Heereskarte_ sheet **I 35 NW Kreta** (1:500 000,
+_Fliegerausgabe Europa_, OKH / Gen.St.d.H., 1942) carries the explicit
 marginal annotation "**Zusatzzahl 23 ost**" and prints GT digits `36` /
 `46` / `56` / `66` / `76` across Crete's middle latitude band, exactly
 the cells this package renders for ZZG `23 Ost` (NW corner 39°N / 20°E,
@@ -58,7 +58,7 @@ The red GT digits run `93` / `94` / `95` along lon 9°-10°E and then
 flip to `03` / `04` / `05` at lon 10°-11°E, the exact ZZG `05 Ost`
 → `15 Ost` boundary this package places at lon=10°E. Each GT cell
 carries the 4 × 2 Mitteltrapez subdivision (`1`-`8`) printed in
-miniature, and the sheet's *Unterteilung* legend explains the
+miniature, and the sheet's _Unterteilung_ legend explains the
 subdivision scheme used at the deeper levels.
 
 ![Bundesarchiv RL 12/143 plate showing the full GNMV layout for Northern Germany and the Baltic](https://github.com/ZwaarContrast/ol-graticule/raw/main/packages/ol-graticule-luftwaffe-planquadrat/images/Bundesarchiv-gradnetz-meldeverfahren.jpg)

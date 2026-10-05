@@ -9,7 +9,11 @@
 
 import proj4 from 'proj4';
 
-import { DEFAULT_DATUM_SHIFT, datumShiftKey, registerZoneCrs } from '../gaussKrueger.js';
+import {
+  DEFAULT_DATUM_SHIFT,
+  datumShiftKey,
+  registerZoneCrs,
+} from '../gaussKrueger.js';
 import type { DatumShift, DhgCoord, DhgZone, LatLon } from './types.js';
 import { ALL_ZONES, zoneByKennziffer, zoneForLon } from './zones.js';
 
@@ -18,7 +22,10 @@ export { DEFAULT_DATUM_SHIFT };
 let activeDatumShift: DatumShift = DEFAULT_DATUM_SHIFT;
 
 /** EPSG-like code identifying a DHG zone for a given datum shift in the proj4 registry. */
-export function dhgCrsCode(kennziffer: number, shift: DatumShift = activeDatumShift): string {
+export function dhgCrsCode(
+  kennziffer: number,
+  shift: DatumShift = activeDatumShift,
+): string {
   return `DHG:Z${String(kennziffer).padStart(2, '0')}${datumShiftKey(shift)}`;
 }
 
@@ -54,8 +61,13 @@ export function resetDhgDatumShift(): void {
 }
 
 /** Register a zone's CRS with proj4 and OpenLayers under the shift-specific code. Idempotent. */
-export function registerZone(zone: DhgZone, shift: DatumShift = activeDatumShift): string {
-  return registerZoneCrs(dhgCrsCode(zone.kennziffer, shift), () => proj4DefFor(zone, shift));
+export function registerZone(
+  zone: DhgZone,
+  shift: DatumShift = activeDatumShift,
+): string {
+  return registerZoneCrs(dhgCrsCode(zone.kennziffer, shift), () =>
+    proj4DefFor(zone, shift),
+  );
 }
 
 /** Register every DHG zone under the given shift (defaults to the active shift). */
@@ -64,7 +76,10 @@ export function registerAllZones(shift: DatumShift = activeDatumShift): void {
 }
 
 /** Forward project a WGS 84 `(lat, lon)` to DHG `(easting, northing)` in the strip whose CM is nearest `lon`. */
-export function forward(point: LatLon, shift: DatumShift = activeDatumShift): DhgCoord {
+export function forward(
+  point: LatLon,
+  shift: DatumShift = activeDatumShift,
+): DhgCoord {
   const zone = zoneForLon(point[1]);
   return forwardInZone(point, zone.kennziffer, shift);
 }
@@ -78,7 +93,10 @@ export function forwardInZone(
   const zone = zoneByKennziffer(kennziffer);
   const code = registerZone(zone, shift);
   const [lat, lon] = point;
-  const [easting, northing] = proj4('EPSG:4326', code, [lon, lat]) as [number, number];
+  const [easting, northing] = proj4('EPSG:4326', code, [lon, lat]) as [
+    number,
+    number,
+  ];
   return {
     kennziffer: zone.kennziffer,
     easting,
@@ -87,10 +105,16 @@ export function forwardInZone(
 }
 
 /** Inverse project DHG `(easting, northing)` in a given zone to WGS 84 `(lat, lon)`. */
-export function inverse(coord: DhgCoord, shift: DatumShift = activeDatumShift): LatLon {
+export function inverse(
+  coord: DhgCoord,
+  shift: DatumShift = activeDatumShift,
+): LatLon {
   const zone = zoneByKennziffer(coord.kennziffer);
   const code = registerZone(zone, shift);
-  const [lon, lat] = proj4(code, 'EPSG:4326', [coord.easting, coord.northing]) as [number, number];
+  const [lon, lat] = proj4(code, 'EPSG:4326', [
+    coord.easting,
+    coord.northing,
+  ]) as [number, number];
   return [lat, lon];
 }
 

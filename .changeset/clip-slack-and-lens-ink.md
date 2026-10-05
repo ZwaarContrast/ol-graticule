@@ -1,5 +1,5 @@
 ---
-"@zwaarcontrast/ol-graticule": patch
+'@zwaarcontrast/ol-graticule': patch
 ---
 
 Fix two clipped-grid rendering defects.

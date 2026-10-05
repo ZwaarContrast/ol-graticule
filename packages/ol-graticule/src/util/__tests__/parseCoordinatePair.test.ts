@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { splitCoordinatePair, parsePairViaFormatter } from '../parseCoordinatePair.js';
+import {
+  splitCoordinatePair,
+  parsePairViaFormatter,
+} from '../parseCoordinatePair.js';
 import { ParseError } from '../ParseError.js';
 import type { LabelFormatter } from '../../types.js';
 

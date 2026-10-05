@@ -1,5 +1,5 @@
 ---
-"@zwaarcontrast/ol-graticule": minor
+'@zwaarcontrast/ol-graticule': minor
 ---
 
 Adaptive grid-line densification. Grid lines are now sampled only where they

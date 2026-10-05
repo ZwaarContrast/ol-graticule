@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { findOffScreenFeatures, viewportExtentAt } from '@zwaarcontrast/test-utils';
+import {
+  findOffScreenFeatures,
+  viewportExtentAt,
+} from '@zwaarcontrast/test-utils';
 import { KriegsmarineGridSystem } from '../KriegsmarineGridSystem.js';
 
 const cases: Array<[string, [number, number], number]> = [
@@ -10,11 +13,21 @@ const cases: Array<[string, [number, number], number]> = [
 ];
 
 describe('KriegsmarineGridSystem viewport culling invariant', () => {
-  it.each(cases)('emits no line whose bbox is entirely off-screen — %s', (_label, lonLat, zoom) => {
-    const grid = new KriegsmarineGridSystem();
-    const { extent, resolution } = viewportExtentAt(lonLat, zoom);
-    const failures = findOffScreenFeatures(grid, extent, resolution, 'EPSG:3857');
-    expect(failures, `off-screen lines: ${JSON.stringify(failures, null, 2)}`)
-      .toHaveLength(0);
-  });
+  it.each(cases)(
+    'emits no line whose bbox is entirely off-screen — %s',
+    (_label, lonLat, zoom) => {
+      const grid = new KriegsmarineGridSystem();
+      const { extent, resolution } = viewportExtentAt(lonLat, zoom);
+      const failures = findOffScreenFeatures(
+        grid,
+        extent,
+        resolution,
+        'EPSG:3857',
+      );
+      expect(
+        failures,
+        `off-screen lines: ${JSON.stringify(failures, null, 2)}`,
+      ).toHaveLength(0);
+    },
+  );
 });

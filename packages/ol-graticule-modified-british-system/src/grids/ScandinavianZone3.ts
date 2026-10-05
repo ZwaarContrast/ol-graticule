@@ -30,13 +30,22 @@ export const SCANDINAVIAN_ZONE_3_PROJ4 =
   '+ellps=bessel +no_defs +type=crs';
 
 /** WGS84 bbox `[lonMin, latMin, lonMax, latMax]` covering mainland Norway, Sweden, Denmark plus buffer. */
-export const SCANDINAVIAN_ZONE_3_BBOX_WGS84: [number, number, number, number] = [-2, 53, 32, 72];
+export const SCANDINAVIAN_ZONE_3_BBOX_WGS84: [number, number, number, number] =
+  [-2, 53, 32, 72];
 
 /** MBS coverage polygon for Scandinavia in projected metres ({@link SCANDINAVIAN_ZONE_3_CRS}). Open ring. */
 export const SCANDINAVIAN_ZONE_3_CLIP_POLYGON: [number, number][] = [
-  [-4966, 196188], [-6034, 907506], [225034, 904869], [475355, 906060],
-  [689413, 905343], [906260, 903688], [905954, 295372], [704459, 294265],
-  [704686, 196032], [386326, 193466], [159493, 193857],
+  [-4966, 196188],
+  [-6034, 907506],
+  [225034, 904869],
+  [475355, 906060],
+  [689413, 905343],
+  [906260, 903688],
+  [905954, 295372],
+  [704459, 294265],
+  [704686, 196032],
+  [386326, 193466],
+  [159493, 193857],
 ];
 
 export type ScandinavianZone3GridSystemOptions = MBSGridSystemOptions;

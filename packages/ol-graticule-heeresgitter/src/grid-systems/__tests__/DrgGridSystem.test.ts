@@ -3,13 +3,22 @@ import { fromLonLat, transform } from 'ol/proj';
 
 import { DrgGridSystem } from '../DrgGridSystem.js';
 
-function extentOf(west: number, south: number, east: number, north: number): [number, number, number, number] {
+function extentOf(
+  west: number,
+  south: number,
+  east: number,
+  north: number,
+): [number, number, number, number] {
   const [minX, minY] = fromLonLat([west, south]);
   const [maxX, maxY] = fromLonLat([east, north]);
   return [minX, minY, maxX, maxY];
 }
 
-function extentAround(lon: number, lat: number, padDeg: number): [number, number, number, number] {
+function extentAround(
+  lon: number,
+  lat: number,
+  padDeg: number,
+): [number, number, number, number] {
   return extentOf(lon - padDeg, lat - padDeg, lon + padDeg, lat + padDeg);
 }
 
@@ -32,8 +41,12 @@ describe('DrgGridSystem render smoke', () => {
   it('labels the eastings the sheet prints, 2512..2523', () => {
     const grid = new DrgGridSystem();
     const labels = grid.getLabels(SHEET_EXTENT, ZOOM13_RES, 'EPSG:3857');
-    const eastings = labels.filter((l) => l.axis === 'x').map((l) => Number(l.text));
-    const northings = labels.filter((l) => l.axis === 'y').map((l) => Number(l.text));
+    const eastings = labels
+      .filter((l) => l.axis === 'x')
+      .map((l) => Number(l.text));
+    const northings = labels
+      .filter((l) => l.axis === 'y')
+      .map((l) => Number(l.text));
     expect(eastings).toContain(2512);
     expect(eastings).toContain(2523);
     expect(northings).toContain(5585);

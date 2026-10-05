@@ -37,29 +37,39 @@ describe('encodeDhg', () => {
 
 describe('formatEasting / formatNorthing', () => {
   it('long-form easting prepends Kennziffer to 3-digit km', () => {
-    expect(formatEasting({ kennziffer: 5, easting: 600_000, northing: 0 })).toBe('5600');
+    expect(
+      formatEasting({ kennziffer: 5, easting: 600_000, northing: 0 }),
+    ).toBe('5600');
   });
 
   it('short-form easting writes only last 2 digits zero-padded', () => {
-    expect(formatEasting(
-      { kennziffer: 5, easting: 383_000, northing: 0 },
-      { form: 'short' },
-    )).toBe('83');
-    expect(formatEasting(
-      { kennziffer: 5, easting: 300_000, northing: 0 },
-      { form: 'short' },
-    )).toBe('00');
+    expect(
+      formatEasting(
+        { kennziffer: 5, easting: 383_000, northing: 0 },
+        { form: 'short' },
+      ),
+    ).toBe('83');
+    expect(
+      formatEasting(
+        { kennziffer: 5, easting: 300_000, northing: 0 },
+        { form: 'short' },
+      ),
+    ).toBe('00');
   });
 
   it('northing long form has no Kennziffer prefix', () => {
-    expect(formatNorthing({ kennziffer: 5, easting: 0, northing: 5_760_000 })).toBe('5760');
+    expect(
+      formatNorthing({ kennziffer: 5, easting: 0, northing: 5_760_000 }),
+    ).toBe('5760');
   });
 
   it('northing short form is the last 2 km digits, padded', () => {
-    expect(formatNorthing(
-      { kennziffer: 5, easting: 0, northing: 5_703_000 },
-      { form: 'short' },
-    )).toBe('03');
+    expect(
+      formatNorthing(
+        { kennziffer: 5, easting: 0, northing: 5_703_000 },
+        { form: 'short' },
+      ),
+    ).toBe('03');
   });
 });
 

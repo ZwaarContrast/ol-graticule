@@ -28,7 +28,7 @@ import {
 } from '../codec.js';
 
 describe('strip constants', () => {
-  it('half-width is 1°30\', overlap is 10 arc-minutes, false easting is 500 km', () => {
+  it("half-width is 1°30', overlap is 10 arc-minutes, false easting is 500 km", () => {
     expect(STRIP_HALF_WIDTH_DEG).toBe(1.5);
     expect(STRIP_OVERLAP_DEG).toBeCloseTo(1 / 6, 12);
     expect(FALSE_EASTING).toBe(500_000);
@@ -51,7 +51,9 @@ describe('strip constants', () => {
     expect(zoneForLon(7.6).kennziffer).toBe(3);
     expect(zonesContainingLon(6).map((z) => z.kennziffer)).toEqual([2]);
     // 7°25' E is within 10' of the 7°30' strip edge.
-    expect(zonesContainingLon(7 + 25 / 60).map((z) => z.kennziffer)).toEqual([2, 3]);
+    expect(zonesContainingLon(7 + 25 / 60).map((z) => z.kennziffer)).toEqual([
+      2, 3,
+    ]);
   });
 
   // Planheft, "Das Deutsche Reichsgitter" (Planheft Schweiz OKH g 23/1,
@@ -59,8 +61,12 @@ describe('strip constants', () => {
   it('reproduces the Planheft strip table verbatim', () => {
     //   3°  6°  9°  12°  15°   ostwärts Greenwich
     //   1   2   3   4    5     Kennziffern
-    expect(PUBLISHED_KENNZIFFERN.map(cmForKennziffer)).toEqual([3, 6, 9, 12, 15]);
-    expect([3, 6, 9, 12, 15].map(kennzifferForCm)).toEqual([...PUBLISHED_KENNZIFFERN]);
+    expect(PUBLISHED_KENNZIFFERN.map(cmForKennziffer)).toEqual([
+      3, 6, 9, 12, 15,
+    ]);
+    expect([3, 6, 9, 12, 15].map(kennzifferForCm)).toEqual([
+      ...PUBLISHED_KENNZIFFERN,
+    ]);
   });
 
   it('separates a strip the Planheft tabulates from one the formula merely admits', () => {
@@ -72,7 +78,7 @@ describe('strip constants', () => {
     expect(zoneByKennziffer(11).cm).toBe(33);
   });
 
-  it("counts Hochwert from the equator and Rechtswert from the CM at 500 000", () => {
+  it('counts Hochwert from the equator and Rechtswert from the CM at 500 000', () => {
     // "Die Hochwerte werden vom Äquator mit dem Hochwert 0 und die Rechtswerte
     //  vom Mittelmeridian mit dem Rechtswert 500 000 gezählt."
     // Input is WGS 84, so a point on the 6° E WGS 84 meridian lands ~41 m off
@@ -207,13 +213,19 @@ describe('label and reference formatting', () => {
 describe('parseDrg', () => {
   it('reads metres, kilometres and a split Kennziffer alike', () => {
     expect(parseDrg('2512200 5585450')?.coord).toEqual({
-      kennziffer: 2, easting: 2_512_200, northing: 5_585_450,
+      kennziffer: 2,
+      easting: 2_512_200,
+      northing: 5_585_450,
     });
     expect(parseDrg('2512 5585')?.coord).toEqual({
-      kennziffer: 2, easting: 2_512_000, northing: 5_585_000,
+      kennziffer: 2,
+      easting: 2_512_000,
+      northing: 5_585_000,
     });
     expect(parseDrg('2 512200 5585450')?.coord).toEqual({
-      kennziffer: 2, easting: 2_512_200, northing: 5_585_450,
+      kennziffer: 2,
+      easting: 2_512_200,
+      northing: 5_585_450,
     });
     expect(parseDrg('2-512-5585')?.coord.easting).toBe(2_512_000);
   });

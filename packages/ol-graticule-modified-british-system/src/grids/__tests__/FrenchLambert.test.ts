@@ -44,7 +44,8 @@ describe('French Lambert MBS factories', () => {
     it(`${name}`, () => {
       const grid = create();
       const formatted = grid.formatCoordinate(lambert, crs);
-      if (!('combined' in formatted)) throw new Error('expected combined label');
+      if (!('combined' in formatted))
+        throw new Error('expected combined label');
       expect(formatted.combined).toBe(expected);
     });
   }
@@ -91,7 +92,9 @@ describe('French Lambert MBS factories', () => {
     it(`${zone.name} matches the EPSG canonical proj4 within 1 m`, () => {
       zone.create();
       const [ours_x, ours_y] = proj4('EPSG:4326', zone.crs).forward(zone.probe);
-      const [epsg_x, epsg_y] = proj4('EPSG:4326', zone.canonical).forward(zone.probe);
+      const [epsg_x, epsg_y] = proj4('EPSG:4326', zone.canonical).forward(
+        zone.probe,
+      );
       // The k_0 values differ by ~1 × 10⁻⁹ between our IGN-authoritative
       // value (0.999877340) and EPSG's printed value, this produces sub-mm
       // residual; allow 1 m headroom for any pm/digit-precision noise.
@@ -106,7 +109,10 @@ describe('French Lambert MBS factories', () => {
     // and the formatter sees the expected Lambert easting.
     const grid = createFrenchLambert2GridSystem();
     // Lyon ≈ 834 km E, 89 km N in Lambert II.
-    const formatted = grid.formatCoordinate([834_000, 89_000], FRENCH_LAMBERT_2_CRS);
+    const formatted = grid.formatCoordinate(
+      [834_000, 89_000],
+      FRENCH_LAMBERT_2_CRS,
+    );
     if (!('combined' in formatted)) throw new Error('expected combined label');
     expect(formatted.combined).toMatch(/^w[A-Z] \d{3} \d{3}$/);
   });

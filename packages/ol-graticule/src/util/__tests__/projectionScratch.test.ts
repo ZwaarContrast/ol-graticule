@@ -57,7 +57,11 @@ describe('ProjectionScratch', () => {
     const s = new ProjectionScratch();
     s.push2(1, 2);
     s.push2(3, 4);
-    const doubleAll = (input: number[], output: number[] | undefined, stride: number): number[] => {
+    const doubleAll = (
+      input: number[],
+      output: number[] | undefined,
+      stride: number,
+    ): number[] => {
       const out = output ?? new Array<number>(input.length);
       for (let i = 0; i < input.length; i += stride) {
         out[i] = input[i]! * 2;

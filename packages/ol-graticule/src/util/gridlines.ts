@@ -6,8 +6,15 @@ import type { TransformFunction } from 'ol/proj';
 import type { ProjectionScratch } from './projectionScratch.js';
 
 /** True when `value` is within `epsilon` of a multiple of `majorInterval`. */
-export function isOnMajorLine(value: number, majorInterval: number, epsilon: number): boolean {
-  return Math.abs(Math.round(value / majorInterval) * majorInterval - value) < epsilon;
+export function isOnMajorLine(
+  value: number,
+  majorInterval: number,
+  epsilon: number,
+): boolean {
+  return (
+    Math.abs(Math.round(value / majorInterval) * majorInterval - value) <
+    epsilon
+  );
 }
 
 /** Derive target-CRS units per pixel from the viewport's projected corners. */
@@ -76,9 +83,10 @@ function probeAxisSag(
   transformFn: TransformFunction,
 ): number[] {
   const [minX, minY, maxX, maxY] = extent;
-  const probeConsts = axis === 'x'
-    ? [minX, (minX + maxX) / 2, maxX]
-    : [minY, (minY + maxY) / 2, maxY];
+  const probeConsts =
+    axis === 'x'
+      ? [minX, (minX + maxX) / 2, maxX]
+      : [minY, (minY + maxY) / 2, maxY];
   const sweepStart = axis === 'x' ? minY : minX;
   const sweepEnd = axis === 'x' ? maxY : maxX;
   const buckets = AXIS_PROBE_BUCKETS;
@@ -95,20 +103,33 @@ function probeAxisSag(
     transformFn(probeBuffer, probeBuffer, 2);
     for (let b = 0; b < buckets; b++) {
       // each bucket spans 3 consecutive samples: start, mid, end
-      const x0 = probeBuffer[4 * b], y0 = probeBuffer[4 * b + 1];
-      const xm = probeBuffer[4 * b + 2], ym = probeBuffer[4 * b + 3];
-      const x1 = probeBuffer[4 * b + 4], y1 = probeBuffer[4 * b + 5];
-      if (x0 === undefined || y0 === undefined || xm === undefined || ym === undefined ||
-          x1 === undefined || y1 === undefined ||
-          !Number.isFinite(x0) || !Number.isFinite(xm) || !Number.isFinite(x1)) {
+      const x0 = probeBuffer[4 * b],
+        y0 = probeBuffer[4 * b + 1];
+      const xm = probeBuffer[4 * b + 2],
+        ym = probeBuffer[4 * b + 3];
+      const x1 = probeBuffer[4 * b + 4],
+        y1 = probeBuffer[4 * b + 5];
+      if (
+        x0 === undefined ||
+        y0 === undefined ||
+        xm === undefined ||
+        ym === undefined ||
+        x1 === undefined ||
+        y1 === undefined ||
+        !Number.isFinite(x0) ||
+        !Number.isFinite(xm) ||
+        !Number.isFinite(x1)
+      ) {
         continue;
       }
       // sag: how far the mid sample bows off the start-to-end chord (its curvature)
-      const dx = x1 - x0, dy = y1 - y0;
+      const dx = x1 - x0,
+        dy = y1 - y0;
       const len = Math.hypot(dx, dy);
-      const bucketSag = len < 1e-9
-        ? Math.hypot(xm - x0, ym - y0)
-        : Math.abs(dx * (ym - y0) - dy * (xm - x0)) / len;
+      const bucketSag =
+        len < 1e-9
+          ? Math.hypot(xm - x0, ym - y0)
+          : Math.abs(dx * (ym - y0) - dy * (xm - x0)) / len;
       if (bucketSag > (sag[b] ?? 0)) sag[b] = bucketSag;
     }
   }
@@ -120,7 +141,10 @@ function distributeByDensity(weights: number[], count: number): number[] {
   const buckets = weights.length;
   const cumulative = [0];
   let running = 0;
-  for (const w of weights) { running += w; cumulative.push(running); }
+  for (const w of weights) {
+    running += w;
+    cumulative.push(running);
+  }
   const total = running;
 
   const ts = [0];
@@ -147,8 +171,14 @@ export function buildStraightGridLine(
 ): Feature<Geometry> {
   const geometry = new LineString(
     axis === 'y'
-      ? [[sweepStart, constValue], [sweepEnd, constValue]]
-      : [[constValue, sweepStart], [constValue, sweepEnd]],
+      ? [
+          [sweepStart, constValue],
+          [sweepEnd, constValue],
+        ]
+      : [
+          [constValue, sweepStart],
+          [constValue, sweepEnd],
+        ],
   );
   return new Feature<Geometry>({
     geometry,
@@ -201,15 +231,19 @@ export function pushAxisGridLineSpecs(
     if (skip?.(v)) continue;
     if (axis === 'x') {
       specs.push({
-        startX: v, startY: perpStart,
-        endX: v, endY: perpEnd,
+        startX: v,
+        startY: perpStart,
+        endX: v,
+        endY: perpEnd,
         ts,
         props: { gridValue: v, gridAxis: 'x', gridLineType: type },
       });
     } else {
       specs.push({
-        startX: perpStart, startY: v,
-        endX: perpEnd, endY: v,
+        startX: perpStart,
+        startY: v,
+        endX: perpEnd,
+        endY: v,
         ts,
         props: { gridValue: v, gridAxis: 'y', gridLineType: type },
       });
@@ -257,4 +291,3 @@ export function emitFlatLineFeatures(
     out[baseIndex + i] = f;
   }
 }
-

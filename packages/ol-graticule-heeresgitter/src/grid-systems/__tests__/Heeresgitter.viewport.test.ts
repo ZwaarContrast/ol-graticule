@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { findOffScreenFeatures, viewportExtentAt } from '@zwaarcontrast/test-utils';
+import {
+  findOffScreenFeatures,
+  viewportExtentAt,
+} from '@zwaarcontrast/test-utils';
 import { DhgGridSystem } from '../DhgGridSystem.js';
 import { HmnGridSystem } from '../HmnGridSystem.js';
 import { GeographicHmnGridSystem } from '../GeographicHmnGridSystem.js';
@@ -19,31 +22,61 @@ const hmnGeoCases: Array<[string, [number, number], number]> = [
 ];
 
 describe('DhgGridSystem viewport culling invariant', () => {
-  it.each(dhgCases)('emits no line whose bbox is entirely off-screen — %s', (_label, lonLat, zoom) => {
-    const grid = new DhgGridSystem();
-    const { extent, resolution } = viewportExtentAt(lonLat, zoom);
-    const failures = findOffScreenFeatures(grid, extent, resolution, 'EPSG:3857');
-    expect(failures, `off-screen lines: ${JSON.stringify(failures, null, 2)}`)
-      .toHaveLength(0);
-  });
+  it.each(dhgCases)(
+    'emits no line whose bbox is entirely off-screen — %s',
+    (_label, lonLat, zoom) => {
+      const grid = new DhgGridSystem();
+      const { extent, resolution } = viewportExtentAt(lonLat, zoom);
+      const failures = findOffScreenFeatures(
+        grid,
+        extent,
+        resolution,
+        'EPSG:3857',
+      );
+      expect(
+        failures,
+        `off-screen lines: ${JSON.stringify(failures, null, 2)}`,
+      ).toHaveLength(0);
+    },
+  );
 });
 
 describe('HmnGridSystem viewport culling invariant', () => {
-  it.each(hmnCases)('emits no line whose bbox is entirely off-screen — %s', (_label, lonLat, zoom) => {
-    const grid = new HmnGridSystem();
-    const { extent, resolution } = viewportExtentAt(lonLat, zoom);
-    const failures = findOffScreenFeatures(grid, extent, resolution, 'EPSG:3857');
-    expect(failures, `off-screen lines: ${JSON.stringify(failures, null, 2)}`)
-      .toHaveLength(0);
-  });
+  it.each(hmnCases)(
+    'emits no line whose bbox is entirely off-screen — %s',
+    (_label, lonLat, zoom) => {
+      const grid = new HmnGridSystem();
+      const { extent, resolution } = viewportExtentAt(lonLat, zoom);
+      const failures = findOffScreenFeatures(
+        grid,
+        extent,
+        resolution,
+        'EPSG:3857',
+      );
+      expect(
+        failures,
+        `off-screen lines: ${JSON.stringify(failures, null, 2)}`,
+      ).toHaveLength(0);
+    },
+  );
 });
 
 describe('GeographicHmnGridSystem viewport culling invariant', () => {
-  it.each(hmnGeoCases)('emits no line whose bbox is entirely off-screen — %s', (_label, lonLat, zoom) => {
-    const grid = new GeographicHmnGridSystem();
-    const { extent, resolution } = viewportExtentAt(lonLat, zoom);
-    const failures = findOffScreenFeatures(grid, extent, resolution, 'EPSG:3857');
-    expect(failures, `off-screen lines: ${JSON.stringify(failures, null, 2)}`)
-      .toHaveLength(0);
-  });
+  it.each(hmnGeoCases)(
+    'emits no line whose bbox is entirely off-screen — %s',
+    (_label, lonLat, zoom) => {
+      const grid = new GeographicHmnGridSystem();
+      const { extent, resolution } = viewportExtentAt(lonLat, zoom);
+      const failures = findOffScreenFeatures(
+        grid,
+        extent,
+        resolution,
+        'EPSG:3857',
+      );
+      expect(
+        failures,
+        `off-screen lines: ${JSON.stringify(failures, null, 2)}`,
+      ).toHaveLength(0);
+    },
+  );
 });

@@ -1,5 +1,11 @@
 import { describe, it, expect } from 'vitest';
-import { shift, steps, subSquare, regularSquare, twoByFiveSquare } from '../subdivision.js';
+import {
+  shift,
+  steps,
+  subSquare,
+  regularSquare,
+  twoByFiveSquare,
+} from '../subdivision.js';
 import type { RectSquare } from '../types.js';
 
 describe('Kriegsmarine subdivision', () => {
@@ -31,10 +37,21 @@ describe('Kriegsmarine subdivision', () => {
     });
 
     it('preserves id and other properties', () => {
-      const sq: RectSquare = { id: 'TEST', nw: [10, 20], se: [5, 30], sub: [[1, 2], [3, 4]] };
+      const sq: RectSquare = {
+        id: 'TEST',
+        nw: [10, 20],
+        se: [5, 30],
+        sub: [
+          [1, 2],
+          [3, 4],
+        ],
+      };
       const result = shift(sq, 'h', 1);
       expect(result.id).toBe('TEST');
-      expect(result.sub).toEqual([[1, 2], [3, 4]]);
+      expect(result.sub).toEqual([
+        [1, 2],
+        [3, 4],
+      ]);
     });
   });
 
@@ -66,7 +83,11 @@ describe('Kriegsmarine subdivision', () => {
     });
 
     it('maps 2-column partial layout', () => {
-      const sub = [[1, 2], [4, 5], [7, 8]];
+      const sub = [
+        [1, 2],
+        [4, 5],
+        [7, 8],
+      ];
       expect(steps(1, sub)).toEqual([0, 0]);
       expect(steps(2, sub)).toEqual([1, 0]);
       expect(steps(5, sub)).toEqual([1, 1]);
@@ -106,7 +127,12 @@ describe('Kriegsmarine subdivision', () => {
     });
 
     it('handles partial layout', () => {
-      const partial: RectSquare = { id: 'OF', nw: [41.9, 167], se: [33.8, 170.6], sub: [[1], [4], [7]] };
+      const partial: RectSquare = {
+        id: 'OF',
+        nw: [41.9, 167],
+        se: [33.8, 170.6],
+        sub: [[1], [4], [7]],
+      };
       const result = subSquare(partial, 4);
       expect(result).toBeDefined();
       expect(result!.id).toBe('OF4');
@@ -117,7 +143,12 @@ describe('Kriegsmarine subdivision', () => {
     });
 
     it('returns undefined for position not in partial layout', () => {
-      const partial: RectSquare = { id: 'OF', nw: [41.9, 167], se: [33.8, 170.6], sub: [[1], [4], [7]] };
+      const partial: RectSquare = {
+        id: 'OF',
+        nw: [41.9, 167],
+        se: [33.8, 170.6],
+        sub: [[1], [4], [7]],
+      };
       expect(subSquare(partial, 2)).toBeUndefined();
       expect(subSquare(partial, 5)).toBeUndefined();
     });
@@ -149,8 +180,16 @@ describe('Kriegsmarine subdivision', () => {
   });
 
   describe('twoByFiveSquare', () => {
-    const hDef = { nw: [60.9, -71.5] as [number, number], se: [59.1, -62.5] as [number, number], so: 'h' as const };
-    const vDef = { nw: [60.9, -37.3] as [number, number], se: [56.4, -33.7] as [number, number], so: 'v' as const };
+    const hDef = {
+      nw: [60.9, -71.5] as [number, number],
+      se: [59.1, -62.5] as [number, number],
+      so: 'h' as const,
+    };
+    const vDef = {
+      nw: [60.9, -37.3] as [number, number],
+      se: [56.4, -33.7] as [number, number],
+      so: 'v' as const,
+    };
 
     it('horizontal: position 1 is top-left', () => {
       const result = twoByFiveSquare('ÄA11', hDef);

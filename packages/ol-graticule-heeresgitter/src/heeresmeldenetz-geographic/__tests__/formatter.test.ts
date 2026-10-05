@@ -39,9 +39,13 @@ describe('hmnGeoHierarchicalLabel', () => {
     for (let row = 0; row < 3; row++) {
       for (let col = 0; col < 3; col++) {
         const midLatDeg =
-          kleinNwLat - (row * MELDETRAPEZ_LAT_SEC + MELDETRAPEZ_LAT_SEC / 2) / ARCSEC_PER_DEG;
+          kleinNwLat -
+          (row * MELDETRAPEZ_LAT_SEC + MELDETRAPEZ_LAT_SEC / 2) /
+            ARCSEC_PER_DEG;
         const midLonDeg =
-          kleinNwLon + (col * MELDETRAPEZ_LON_SEC + MELDETRAPEZ_LON_SEC / 2) / ARCSEC_PER_DEG;
+          kleinNwLon +
+          (col * MELDETRAPEZ_LON_SEC + MELDETRAPEZ_LON_SEC / 2) /
+            ARCSEC_PER_DEG;
         const result = hmnGeoHierarchicalLabel(
           midLonDeg * ARCSEC_PER_DEG,
           midLatDeg * ARCSEC_PER_DEG,
@@ -61,9 +65,13 @@ describe('hmnGeoHierarchicalLabel', () => {
     for (let row = 0; row < 2; row++) {
       for (let col = 0; col < 2; col++) {
         const midLatDeg =
-          meldeNwLat - (row * ARBEITSTRAPEZ_LAT_SEC + ARBEITSTRAPEZ_LAT_SEC / 2) / ARCSEC_PER_DEG;
+          meldeNwLat -
+          (row * ARBEITSTRAPEZ_LAT_SEC + ARBEITSTRAPEZ_LAT_SEC / 2) /
+            ARCSEC_PER_DEG;
         const midLonDeg =
-          meldeNwLon + (col * ARBEITSTRAPEZ_LON_SEC + ARBEITSTRAPEZ_LON_SEC / 2) / ARCSEC_PER_DEG;
+          meldeNwLon +
+          (col * ARBEITSTRAPEZ_LON_SEC + ARBEITSTRAPEZ_LON_SEC / 2) /
+            ARCSEC_PER_DEG;
         const result = hmnGeoHierarchicalLabel(
           midLonDeg * ARCSEC_PER_DEG,
           midLatDeg * ARCSEC_PER_DEG,

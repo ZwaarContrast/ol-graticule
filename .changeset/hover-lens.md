@@ -1,5 +1,5 @@
 ---
-"@zwaarcontrast/ol-graticule": minor
+'@zwaarcontrast/ol-graticule': minor
 ---
 
 Add an optional pointer "hover lens". As the cursor moves over the grid, lines

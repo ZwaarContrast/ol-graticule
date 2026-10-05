@@ -14,7 +14,8 @@ export class PolygonEdgeIndex {
   private currentGen_: number = 0;
 
   constructor(
-    input: ReadonlyArray<readonly [number, number]>
+    input:
+      | ReadonlyArray<readonly [number, number]>
       | ReadonlyArray<ReadonlyArray<readonly [number, number]>>,
   ) {
     const rings = normaliseRings_(input);
@@ -22,7 +23,9 @@ export class PolygonEdgeIndex {
     for (let r = 0; r < rings.length; r++) {
       const m = rings[r]!.length;
       if (m < 3) {
-        throw new Error(`PolygonEdgeIndex: ring needs at least 3 vertices, got ${m}`);
+        throw new Error(
+          `PolygonEdgeIndex: ring needs at least 3 vertices, got ${m}`,
+        );
       }
       totalEdges += m;
     }
@@ -100,8 +103,12 @@ export class PolygonEdgeIndex {
 
   /** Even-odd ray-casting point-in-ring test using the bucket index. */
   pointInRing(x: number, y: number): boolean {
-    if (x < this.extent_[0] || x > this.extent_[2] ||
-        y < this.extent_[1] || y > this.extent_[3]) {
+    if (
+      x < this.extent_[0] ||
+      x > this.extent_[2] ||
+      y < this.extent_[1] ||
+      y > this.extent_[3]
+    ) {
       return false;
     }
     this.currentGen_++;
@@ -123,7 +130,7 @@ export class PolygonEdgeIndex {
         const yi = buf[base + 1]!;
         const xj = buf[base + 2]!;
         const yj = buf[base + 3]!;
-        if ((yi > y) !== (yj > y) && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
+        if (yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi) {
           inside = !inside;
         }
       }
@@ -140,8 +147,12 @@ export class PolygonEdgeIndex {
     out: number[],
   ): void {
     out.length = 0;
-    if (maxX < this.extent_[0] || minX > this.extent_[2] ||
-        maxY < this.extent_[1] || minY > this.extent_[3]) {
+    if (
+      maxX < this.extent_[0] ||
+      minX > this.extent_[2] ||
+      maxY < this.extent_[1] ||
+      minY > this.extent_[3]
+    ) {
       return;
     }
     this.currentGen_++;
@@ -194,12 +205,14 @@ export function createEdgeBuffer(): EdgeBuffer {
 type RingInput = ReadonlyArray<readonly [number, number]>;
 type MultiRingInput = ReadonlyArray<RingInput>;
 
-function normaliseRings_(
-  input: RingInput | MultiRingInput,
-): MultiRingInput {
+function normaliseRings_(input: RingInput | MultiRingInput): MultiRingInput {
   if (input.length === 0) return [] as unknown as MultiRingInput;
   const first = input[0]!;
-  if (Array.isArray(first) && first.length === 2 && typeof first[0] === 'number') {
+  if (
+    Array.isArray(first) &&
+    first.length === 2 &&
+    typeof first[0] === 'number'
+  ) {
     return [input as RingInput];
   }
   return input as MultiRingInput;

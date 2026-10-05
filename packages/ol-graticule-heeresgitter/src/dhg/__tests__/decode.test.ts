@@ -5,18 +5,30 @@ describe('parseDhg', () => {
   it('parses the 3-token form "5 600 5760"', () => {
     const r = parseDhg('5 600 5760');
     expect(r).toBeDefined();
-    expect(r!.coord).toEqual({ kennziffer: 5, easting: 600_000, northing: 5_760_000 });
+    expect(r!.coord).toEqual({
+      kennziffer: 5,
+      easting: 600_000,
+      northing: 5_760_000,
+    });
     expect(r!.canonical).toBe('5 600 5760');
   });
 
   it('parses the 2-token zone-prefixed km form "5600 5760"', () => {
     const r = parseDhg('5600 5760');
-    expect(r!.coord).toEqual({ kennziffer: 5, easting: 600_000, northing: 5_760_000 });
+    expect(r!.coord).toEqual({
+      kennziffer: 5,
+      easting: 600_000,
+      northing: 5_760_000,
+    });
   });
 
   it('parses metric form "5600000 5760000" as full metres', () => {
     const r = parseDhg('5600000 5760000');
-    expect(r!.coord).toEqual({ kennziffer: 5, easting: 600_000, northing: 5_760_000 });
+    expect(r!.coord).toEqual({
+      kennziffer: 5,
+      easting: 600_000,
+      northing: 5_760_000,
+    });
   });
 
   it('accepts alternative separators (hyphens, slashes, underscores)', () => {

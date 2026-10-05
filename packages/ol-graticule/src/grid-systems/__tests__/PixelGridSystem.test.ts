@@ -11,11 +11,13 @@ describe('PixelGridSystem', () => {
       // resolution=1 → interval=120 (1*120=120, first interval ≥120 is 200)
       const features = system.getFeatures(extent, 1, '');
 
-      const majorFeatures = features.filter(f => f.get('gridLineType') === 'major');
+      const majorFeatures = features.filter(
+        (f) => f.get('gridLineType') === 'major',
+      );
       expect(majorFeatures.length).toBeGreaterThan(0);
 
-      const xLines = majorFeatures.filter(f => f.get('gridAxis') === 'x');
-      const yLines = majorFeatures.filter(f => f.get('gridAxis') === 'y');
+      const xLines = majorFeatures.filter((f) => f.get('gridAxis') === 'x');
+      const yLines = majorFeatures.filter((f) => f.get('gridAxis') === 'y');
       expect(xLines.length).toBeGreaterThan(0);
       expect(yLines.length).toBeGreaterThan(0);
     });
@@ -24,7 +26,9 @@ describe('PixelGridSystem', () => {
       const system = new PixelGridSystem();
       const features = system.getFeatures(extent, 1, '');
 
-      const minorFeatures = features.filter(f => f.get('gridLineType') === 'minor');
+      const minorFeatures = features.filter(
+        (f) => f.get('gridLineType') === 'minor',
+      );
       expect(minorFeatures.length).toBeGreaterThan(0);
     });
 
@@ -34,11 +38,13 @@ describe('PixelGridSystem', () => {
 
       const majorValues = new Set(
         features
-          .filter(f => f.get('gridLineType') === 'major')
-          .map(f => `${f.get('gridAxis')}_${f.get('gridValue') as number}`),
+          .filter((f) => f.get('gridLineType') === 'major')
+          .map((f) => `${f.get('gridAxis')}_${f.get('gridValue') as number}`),
       );
 
-      const minorFeatures = features.filter(f => f.get('gridLineType') === 'minor');
+      const minorFeatures = features.filter(
+        (f) => f.get('gridLineType') === 'minor',
+      );
       for (const f of minorFeatures) {
         const key = `${f.get('gridAxis')}_${f.get('gridValue') as number}`;
         expect(majorValues.has(key)).toBe(false);
@@ -62,8 +68,10 @@ describe('PixelGridSystem', () => {
       const features = system.getFeatures(testExtent, 1, '');
 
       const xMajors = features
-        .filter(f => f.get('gridLineType') === 'major' && f.get('gridAxis') === 'x')
-        .map(f => f.get('gridValue') as number);
+        .filter(
+          (f) => f.get('gridLineType') === 'major' && f.get('gridAxis') === 'x',
+        )
+        .map((f) => f.get('gridValue') as number);
 
       // First line should be at or before the extent start
       expect(Math.min(...xMajors)).toBeLessThanOrEqual(100);
@@ -77,8 +85,8 @@ describe('PixelGridSystem', () => {
       const system = new PixelGridSystem();
       const labels = system.getLabels([0, 0, 2000, 1000], 1, '');
 
-      const xLabels = labels.filter(l => l.axis === 'x');
-      const yLabels = labels.filter(l => l.axis === 'y');
+      const xLabels = labels.filter((l) => l.axis === 'x');
+      const yLabels = labels.filter((l) => l.axis === 'y');
       expect(xLabels.length).toBeGreaterThan(0);
       expect(yLabels.length).toBeGreaterThan(0);
     });
@@ -88,7 +96,7 @@ describe('PixelGridSystem', () => {
       const system = new PixelGridSystem();
       const labels = system.getLabels(testExtent, 1, '');
 
-      const xLabels = labels.filter(l => l.axis === 'x');
+      const xLabels = labels.filter((l) => l.axis === 'x');
       for (const label of xLabels) {
         const coords = label.point.getCoordinates();
         expect(coords[1]).toBe(1000); // maxY
@@ -100,7 +108,7 @@ describe('PixelGridSystem', () => {
       const system = new PixelGridSystem();
       const labels = system.getLabels(testExtent, 1, '');
 
-      const yLabels = labels.filter(l => l.axis === 'y');
+      const yLabels = labels.filter((l) => l.axis === 'y');
       for (const label of yLabels) {
         const coords = label.point.getCoordinates();
         expect(coords[0]).toBe(0); // minX
@@ -132,7 +140,7 @@ describe('PixelGridSystem', () => {
       // IIIF-style: OL y is negative, but display y should be positive
       const labels = system.getLabels([0, -1000, 2000, 0], 1, '');
 
-      const yLabels = labels.filter(l => l.axis === 'y');
+      const yLabels = labels.filter((l) => l.axis === 'y');
       expect(yLabels.length).toBeGreaterThan(0);
       for (const label of yLabels) {
         const value = parseInt(label.text, 10);
@@ -173,7 +181,10 @@ describe('PixelGridSystem', () => {
       const original: [number, number] = [1234, -567];
       const formatted = system.formatCoordinate(original, '');
       if (!('x' in formatted)) throw new Error('expected axis-formatted');
-      const [px, py] = system.parseCoordinate(`${formatted.x} ${formatted.y}`, '');
+      const [px, py] = system.parseCoordinate(
+        `${formatted.x} ${formatted.y}`,
+        '',
+      );
       expect(px).toBe(1234);
       expect(py).toBe(-567);
     });
