@@ -1,5 +1,37 @@
 # @zwaarcontrast/ol-graticule-luftwaffe-planquadrat
 
+## 4.0.0
+
+### Minor Changes
+
+- 0d86e43: Add an ol-free `/headless` subpath to every package. It exports the grid
+  codecs (parsing, formatting, CRS definitions, validity rings and plane geometry)
+  without importing `ol` anywhere in its graph, so it runs under plain Node and in
+  workers. The main entry re-exports everything from `/headless`; nothing is
+  removed from it.
+
+  `@zwaarcontrast/ol-graticule-projected` adds `registerProj4` (register a CRS
+  with proj4 only) and `syncOlProjections` (push proj4's definitions into
+  OpenLayers afterwards). `registerCRS` now also syncs OpenLayers for a code the
+  headless path registered first.
+
+### Patch Changes
+
+- ea57c4e: Build against OpenLayers 10.11, whose `getTransform` may return `null` and
+  `Map.getViewport()` may return `undefined`. A missing transform now throws a
+  clear error naming both projections.
+- Updated dependencies [6b960f9]
+- Updated dependencies [f975503]
+- Updated dependencies [579f34a]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [0d86e43]
+- Updated dependencies [28d9a14]
+- Updated dependencies [ea57c4e]
+- Updated dependencies [f975503]
+- Updated dependencies [c901af8]
+  - @zwaarcontrast/ol-graticule@4.0.0
+
 ## 3.0.0
 
 ### Patch Changes

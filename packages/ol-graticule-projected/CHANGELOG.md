@@ -1,5 +1,69 @@
 # @zwaarcontrast/ol-graticule-projected
 
+## 4.0.0
+
+### Minor Changes
+
+- 24941be: Raise the `proj4` peer range from `^2.9.0` to `^2.12.0`, matching the `^2.12.0`
+  that `ol-graticule-heeresgitter` already declares.
+
+  proj4 keeps its CRS registry in module-level state, so a consumer combining
+  heeresgitter (which depends on proj4 directly) with these packages could resolve
+  two proj4 copies when the ranges did not overlap, leaving definitions registered
+  through one copy invisible to the other. A single range across the monorepo
+  dedupes to one instance.
+
+- f975503: Add an optional `getCellInterval` to `IntervalStrategy`, so a grid whose label
+  cells are a fixed size (a 100 km lettered cell over a finer km grid) can
+  enumerate cell labels on their own interval instead of once per major-line cell.
+  Optional, so existing strategies are unaffected.
+
+  `ProjectedGridSystem` also caches transformed grid-line polylines across pan
+  within a zoom band, re-slicing them instead of re-projecting every frame.
+
+- 0d86e43: Add an ol-free `/headless` subpath to every package. It exports the grid
+  codecs (parsing, formatting, CRS definitions, validity rings and plane geometry)
+  without importing `ol` anywhere in its graph, so it runs under plain Node and in
+  workers. The main entry re-exports everything from `/headless`; nothing is
+  removed from it.
+
+  `@zwaarcontrast/ol-graticule-projected` adds `registerProj4` (register a CRS
+  with proj4 only) and `syncOlProjections` (push proj4's definitions into
+  OpenLayers afterwards). `registerCRS` now also syncs OpenLayers for a code the
+  headless path registered first.
+
+- c054d7f: Add `createProjectedGridSystemFromEPSG(code, options)`: a projected grid for
+  any EPSG code, fetched at runtime. The proj4 definition comes from epsg.io
+  (datum shifts included) and the EPSG area of use from spatialreference.org;
+  the grid is clipped to that area. Lookups are cached per code for the session,
+  and a code already registered with proj4 is not fetched again. A `+nadgrids`
+  shift becomes `+nadgrids=@grid,@null`, so it applies once `loadNadgrid` has
+  loaded the grid and falls back to no shift until then. `sources` overrides
+  where definitions and areas of use are fetched from.
+
+  `lookupEPSG(code)` returns the spatialreference.org record for a code, through
+  the same cache: name, type, area of use in words and as a box, scope, and the
+  axes with their units. A CRS that lists several usages reports the first, so
+  its grid is clipped too. A code neither service knows rejects with
+  `Unknown EPSG code: <code>`.
+
+### Patch Changes
+
+- ea57c4e: Build against OpenLayers 10.11, whose `getTransform` may return `null` and
+  `Map.getViewport()` may return `undefined`. A missing transform now throws a
+  clear error naming both projections.
+- Updated dependencies [6b960f9]
+- Updated dependencies [f975503]
+- Updated dependencies [579f34a]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [0d86e43]
+- Updated dependencies [28d9a14]
+- Updated dependencies [ea57c4e]
+- Updated dependencies [f975503]
+- Updated dependencies [c901af8]
+  - @zwaarcontrast/ol-graticule@4.0.0
+
 ## 3.0.0
 
 ### Patch Changes

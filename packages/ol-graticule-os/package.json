@@ -1,6 +1,6 @@
 {
   "name": "@zwaarcontrast/ol-graticule-os",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Historical Ordnance Survey grids for ol-graticule: the 1930s transverse Mercator yard grid of Great Britain.",
   "license": "MIT",
@@ -53,8 +53,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "peerDependencies": {
-    "@zwaarcontrast/ol-graticule": "^3.0.0",
-    "@zwaarcontrast/ol-graticule-projected": "^3.0.0",
+    "@zwaarcontrast/ol-graticule": "^4.0.0",
+    "@zwaarcontrast/ol-graticule-projected": "^4.0.0",
     "ol": "^10.0.0",
     "proj4": "^2.9.0"
   },
