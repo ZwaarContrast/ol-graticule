@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { UniversalGraticule } from '../UniversalGraticule.js';
 import { CanvasGraticuleLayer } from '../CanvasGraticuleLayer.js';
 import { WebGLGraticuleLayer } from '../WebGLGraticuleLayer.js';
@@ -40,4 +40,14 @@ describe('UniversalGraticule facade', () => {
     expect(g.getOpacity()).toBe(0.5);
     expect(child(g)?.getOpacity()).toBe(1);
   });
+
+  it.each<'canvas' | 'gl'>(['canvas', 'gl'])(
+    'disposing the group disposes its %s layer',
+    (renderer) => {
+      const g = new UniversalGraticule({ renderer });
+      const dispose = vi.spyOn(child(g), 'dispose');
+      g.dispose();
+      expect(dispose).toHaveBeenCalledOnce();
+    },
+  );
 });
