@@ -134,11 +134,30 @@ For Dutch RD (EPSG:28992/28991) with RDNAPTRANS 2018 pre-bundled, use
 [`@zwaarcontrast/ol-graticule-rd`](../ol-graticule-rd) instead of wiring this
 up yourself.
 
+## Grids from an EPSG code
+
+`createProjectedGridSystemFromEPSG` builds a grid for any EPSG code at runtime.
+It fetches the proj4 definition from epsg.io (datum shifts included) and the
+EPSG area of use from spatialreference.org, and clips the grid to that area:
+
+```ts
+import { createProjectedGridSystemFromEPSG } from '@zwaarcontrast/ol-graticule-projected';
+
+const gridSystem = await createProjectedGridSystemFromEPSG(27700);
+map.addLayer(new UniversalGraticule({ gridSystem }));
+```
+
+Lookups are cached per code for the session, and a code already registered
+with proj4 is not fetched again. A `+nadgrids` shift becomes
+`+nadgrids=@grid,@null`: it applies once `loadNadgrid` has loaded the grid,
+and falls back to no shift until then. Pass `sources` to fetch from elsewhere.
+
 ## Exports
 
 - `ProjectedGridSystem`, `ProjectedGridSystemOptions`
 - `registerCRS(code, proj4Def)`, idempotent proj4 + OL registration.
 - `loadNadgrid(name, url)`, fetch + register an NTv2 `.gsb` file.
+- `createProjectedGridSystemFromEPSG(code, options)`, a clipped grid for any EPSG code.
 - `MetricIntervals`, `MetricFormatter`, re-exported from core for convenience.
 
 ## License
