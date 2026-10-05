@@ -2,7 +2,7 @@ import Feature from 'ol/Feature';
 import LineString from 'ol/geom/LineString';
 import Point from 'ol/geom/Point';
 import { get as getProjection } from 'ol/proj';
-import { transform, getTransform } from 'ol/proj';
+import { transform } from 'ol/proj';
 import { getIntersection, isEmpty } from 'ol/extent';
 import type { TransformFunction } from 'ol/proj';
 import type { Extent } from 'ol/extent';
@@ -37,6 +37,7 @@ import {
 } from '@zwaarcontrast/ol-graticule';
 import { registerCRS } from '../registerCRS.js';
 import { LineTransformCache, type LinePolyline } from './lineTransformCache.js';
+import { requireTransform } from './requireTransform.js';
 
 export interface ProjectedGridSystemOptions {
   /** The target CRS code, e.g. 'EPSG:4326', 'EPSG:27500', 'EPSG:32633' */
@@ -367,8 +368,8 @@ export class ProjectedGridSystem implements GridSystem {
   /** Null when the view is entirely outside the CRS's valid extent. */
   private renderContext_(extent: Extent, resolution: number, viewProjection: ProjectionLike): RenderContext | null {
     return this.ctxCache_.get(extent, resolution, viewProjection, () => {
-      const viewToCrs = getTransform(viewProjection, this.crs_);
-      const crsToView = getTransform(this.crs_, viewProjection);
+      const viewToCrs = requireTransform(viewProjection, this.crs_);
+      const crsToView = requireTransform(this.crs_, viewProjection);
 
       let targetExtent = transformExtentSampled(extent, viewToCrs);
       if (!isFinite(targetExtent[0]) || !isFinite(targetExtent[1]) ||

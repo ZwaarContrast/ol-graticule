@@ -5,7 +5,8 @@ import Point from 'ol/geom/Point';
 import type { Geometry } from 'ol/geom';
 import type { Extent } from 'ol/extent';
 import type { ProjectionLike } from 'ol/proj';
-import { getTransform, transform, transformExtent } from 'ol/proj';
+import { transform, transformExtent } from 'ol/proj';
+import { requireTransform } from './requireTransform.js';
 
 import type {
   GridSystem,
@@ -127,7 +128,7 @@ export class LuftwaffeGridSystem implements GridSystem {
     const ctx = this.renderContext_(extent, resolution, viewProjection);
     if (ctx.geoExtent[3] - ctx.geoExtent[1] <= 0) return [];
 
-    const transformFn = getTransform('EPSG:4326', viewProjection);
+    const transformFn = requireTransform('EPSG:4326', viewProjection);
     const deepest = this.levels_[ctx.deepestLevel]!;
     const specs: FlatLineSpec[] = [];
 
@@ -232,7 +233,7 @@ export class LuftwaffeGridSystem implements GridSystem {
       }
     }
     if (texts.length === 0) return;
-    const toView = getTransform('EPSG:4326', viewProjection);
+    const toView = requireTransform('EPSG:4326', viewProjection);
     transformBatchCached(flat, flat, 2, toView, this.transformCache_);
     for (let i = 0; i < texts.length; i++) {
       out.push({
@@ -274,7 +275,7 @@ export class LuftwaffeGridSystem implements GridSystem {
   private renderContext_(extent: Extent, resolution: number, viewProjection: ProjectionLike): RenderContext {
     return this.ctxCache_.get(extent, resolution, viewProjection, () => {
       const geoExtent = transformExtent(extent, viewProjection, 'EPSG:4326');
-      const transformFn = getTransform('EPSG:4326', viewProjection);
+      const transformFn = requireTransform('EPSG:4326', viewProjection);
       const fallback = geoExtent[2] - geoExtent[0];
       const targetResolution = measureTargetResolution(geoExtent, transformFn, resolution) ?? fallback;
       const degPerPx = targetResolution > 0 ? targetResolution : 1;

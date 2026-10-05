@@ -1,6 +1,6 @@
 import Feature from 'ol/Feature';
 import Point from 'ol/geom/Point';
-import { transformExtent, getTransform, transform } from 'ol/proj';
+import { transformExtent, transform } from 'ol/proj';
 import type { TransformFunction } from 'ol/proj';
 import type { Extent } from 'ol/extent';
 import type { Geometry } from 'ol/geom';
@@ -22,6 +22,7 @@ import { TransformCache, transformBatchCached } from '../util/transformCache.js'
 import { normalizeLon } from '../util/geo.js';
 import { ParseError } from '../util/ParseError.js';
 import { parsePairViaFormatter } from '../util/parseCoordinatePair.js';
+import { requireTransform } from '../util/requireTransform.js';
 
 const MAJOR_SKIP_EPSILON_RATIO = 0.5;
 
@@ -119,7 +120,7 @@ export class GeographicGridSystem implements GridSystem {
   }
 
   formatCoordinate(coordinate: [number, number], viewProjection: ProjectionLike): FormattedCoordinate {
-    const toDeg = getTransform(viewProjection, 'EPSG:4326');
+    const toDeg = requireTransform(viewProjection, 'EPSG:4326');
     const [rawLon, lat] = toDeg(coordinate, undefined, 2);
     if (rawLon === undefined || lat === undefined) {
       return { x: '-', y: '-' };
@@ -148,7 +149,7 @@ export class GeographicGridSystem implements GridSystem {
   private renderContext_(extent: Extent, resolution: number, viewProjection: ProjectionLike): RenderContext {
     return this.ctxCache_.get(extent, resolution, viewProjection, () => {
       const target = transformExtent(extent, viewProjection, 'EPSG:4326');
-      const transformFn = getTransform('EPSG:4326', viewProjection);
+      const transformFn = requireTransform('EPSG:4326', viewProjection);
       const fallback = target[2] - target[0];
       const targetResolution = measureTargetResolution(target, transformFn, resolution) ?? fallback;
       const interval = this.intervals_.getInterval(targetResolution, viewProjection);

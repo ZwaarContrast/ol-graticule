@@ -2,7 +2,7 @@ import Feature from 'ol/Feature';
 import LineString from 'ol/geom/LineString';
 import Point from 'ol/geom/Point';
 import Polygon from 'ol/geom/Polygon';
-import { get as getProjection, getTransform, transform } from 'ol/proj';
+import { get as getProjection, transform } from 'ol/proj';
 import type { Coordinate } from 'ol/coordinate';
 import { boundingExtent, getIntersection, isEmpty } from 'ol/extent';
 import type { Extent } from 'ol/extent';
@@ -23,6 +23,7 @@ import { densifyRing, projectRing } from '../clipping/densifyRing.js';
 import { snapRingToCellGrid } from '../clipping/snapRingToCellGrid.js';
 import { transformExtentSampled } from '../util/geo.js';
 import { ParseError } from '../util/ParseError.js';
+import { requireTransform } from '../util/requireTransform.js';
 
 /** Clip-polygon input for {@link PolygonClippedGridSystem}. */
 export interface PolygonClip {
@@ -259,7 +260,7 @@ export class PolygonClippedGridSystem implements GridSystem {
       index: new PolygonEdgeIndex(projectedRings),
       polyCrsRings: clipRingsInPolygonCrs,
       polyCrsIndex: new PolygonEdgeIndex(clipRingsInPolygonCrs),
-      viewToPolygon: getTransform(viewProjection, this.polygonCrs_),
+      viewToPolygon: requireTransform(viewProjection, this.polygonCrs_),
       isSnap: snapInterval !== undefined,
     };
     this.viewCache_.set(key, state);

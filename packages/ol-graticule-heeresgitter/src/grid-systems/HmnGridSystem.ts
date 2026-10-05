@@ -11,7 +11,7 @@ import type { Extent } from 'ol/extent';
 import type { Geometry } from 'ol/geom';
 import type { ProjectionLike, TransformFunction } from 'ol/proj';
 import { getIntersection, isEmpty } from 'ol/extent';
-import { getTransform } from 'ol/proj';
+import { requireTransform } from './requireTransform.js';
 
 import type {
   FlatLineSpec,
@@ -337,8 +337,8 @@ class HmnZoneRenderer implements GridSystem {
 
   private context_(extent: Extent, resolution: number, viewProjection: ProjectionLike): RenderContext | null {
     return this.ctxCache_.get(extent, resolution, viewProjection, () => {
-      const toCrs = getTransform(viewProjection, this.crs_);
-      const toView = getTransform(this.crs_, viewProjection);
+      const toCrs = requireTransform(viewProjection, this.crs_);
+      const toView = requireTransform(this.crs_, viewProjection);
       let target = transformExtentSampled(extent, toCrs);
       if (![target[0], target[1], target[2], target[3]].every(Number.isFinite)) return null;
 

@@ -99,7 +99,8 @@ export class HoverLensRenderer {
   }
 
   attach(map: OLMap): void {
-    this.pointers_.attach(map.getViewport(), () => map.render());
+    const viewport = map.getViewport();
+    if (viewport) this.pointers_.attach(viewport, () => map.render());
   }
 
   detach(): void {
