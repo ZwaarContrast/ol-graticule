@@ -38,8 +38,9 @@ jobs:
       # One failing cell shouldn't mask issues in the others.
       fail-fast: false
       matrix:
-        # Node versions match `engines.node: ">=20.0.0"`.
-        node: [20, 22]
+        # Node versions match `engines.node: ">=20.0.0"`: the oldest supported
+        # (20, end of life but still in `engines`), the LTS lines and current.
+        node: [20, 22, 24, 26]
         # OL version matches `peerDependencies: { "ol": "^10.0.0" }`.
         ol: ['10']
     steps:
