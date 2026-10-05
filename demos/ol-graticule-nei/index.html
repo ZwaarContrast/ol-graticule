@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Netherlands East Indies grids · ol-graticule-nei demo</title>
+    <meta
+      name="description"
+      content="Live demo of @zwaarcontrast/ol-graticule-nei: the WWII NEI Southern Zone (Lambert, Java and the Lesser Sundas) and NEI Equatorial Zone (EPSG:3001, Mercator) grids on the Batavia datum."
+    />
+    <meta name="author" content="Zwaar Contrast" />
+    <link
+      rel="canonical"
+      href="https://zwaarcontrast.nl/ol-graticule/ol-graticule-nei/"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ol-graticule" />
+    <meta
+      property="og:title"
+      content="Netherlands East Indies grids · ol-graticule-nei demo"
+    />
+    <meta
+      property="og:description"
+      content="WWII Netherlands East Indies grids on the Batavia datum, for OpenLayers."
+    />
+    <meta
+      property="og:url"
+      content="https://zwaarcontrast.nl/ol-graticule/ol-graticule-nei/"
+    />
+    <meta
+      property="og:image"
+      content="https://github.com/ZwaarContrast/ol-graticule/raw/main/packages/ol-graticule-nei/images/preview.jpg"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="675" />
+    <meta
+      property="og:image:alt"
+      content="NEI Southern and Equatorial Zone grids over the Indonesian archipelago"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="NEI grids · ol-graticule-nei demo" />
+    <meta
+      name="twitter:description"
+      content="WWII Netherlands East Indies grids on the Batavia datum, for OpenLayers."
+    />
+    <meta
+      name="twitter:image"
+      content="https://github.com/ZwaarContrast/ol-graticule/raw/main/packages/ol-graticule-nei/images/preview.jpg"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="NEI Southern and Equatorial Zone grids over the Indonesian archipelago"
+    />
+    <link rel="stylesheet" href="../shared.css" />
+    <style>
+      .zone-picker {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+      }
+      .zone-picker select {
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: 100%;
+        font:
+          500 12px/1.2 ui-monospace,
+          'SF Mono',
+          monospace;
+        background: rgba(245, 239, 230, 0.08);
+        color: var(--paper);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 5px 9px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div class="badge">
+      <h1>Netherlands East Indies · NEI zones</h1>
+      <p>
+        <a href="https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-nei"
+          ><code>@zwaarcontrast/ol-graticule-nei</code></a
+        >
+      </p>
+      <p>
+        NEI Southern Zone (Java and the Lesser Sundas) and NEI Equatorial Zone
+        (EPSG:3001), each clipped to its published limits.
+        <a href="../">← All demos</a>
+      </p>
+      <label class="zone-picker">
+        Zone
+        <select id="zone"></select>
+      </label>
+    </div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
