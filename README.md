@@ -42,7 +42,7 @@ what you need.
 | Luftwaffe GNMV / JMN | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-luftwaffe-planquadrat` |
 | Wehrmacht DHG / HMN | `@zwaarcontrast/ol-graticule` + `@zwaarcontrast/ol-graticule-heeresgitter` (+ `@zwaarcontrast/ol-graticule-projected` + `proj4`) |
 
-`ol` is a peer dependency of every package (>=9 <11).
+`ol` is a peer dependency of every package (`^10.0.0`).
 
 ## Quick example
 

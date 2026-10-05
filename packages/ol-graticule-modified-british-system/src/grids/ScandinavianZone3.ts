@@ -18,9 +18,15 @@ import { createMBSGridSystem, type MBSGridSystemOptions } from './shared.js';
 
 export const SCANDINAVIAN_ZONE_3_CRS = 'MBS:SCANDINAVIAN_ZONE_3';
 
-/** LCC on Bessel 1841; lat_1=55°N, lat_2=60°N, lat_0=57.5°, lon_0=20°. */
+/**
+ * LCC on Bessel 1841; lat_1=55°N, lat_2=60°N, lat_0=57.5°, lon_0=20°, false
+ * origin 900 000 m E / 543 365.71 m N — the latter read verbatim off the GRID
+ * DATA table of GSGS 4416 sheet J.5 Heiligenhafen (War Office, 1944), which
+ * prints this grid alongside Nord de Guerre. It corrects the 543 355 this
+ * package carried from a secondary source, a 10.71 m error.
+ */
 export const SCANDINAVIAN_ZONE_3_PROJ4 =
-  '+proj=lcc +lat_1=55 +lat_2=60 +lat_0=57.5 +lon_0=20 +x_0=900000 +y_0=543355 ' +
+  '+proj=lcc +lat_1=55 +lat_2=60 +lat_0=57.5 +lon_0=20 +x_0=900000 +y_0=543365.71 ' +
   '+ellps=bessel +no_defs +type=crs';
 
 /** WGS84 bbox `[lonMin, latMin, lonMax, latMax]` covering mainland Norway, Sweden, Denmark plus buffer. */

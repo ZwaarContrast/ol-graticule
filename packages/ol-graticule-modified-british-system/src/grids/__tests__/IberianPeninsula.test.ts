@@ -85,7 +85,11 @@ describe('Iberian Peninsula MBS factory', () => {
     it(`reproduces ${anchor.sheet} ${anchor.corner} corner, ${anchor.url}`, () => {
       // Side-effect: register the CRS with proj4/OL.
       createIberianPeninsulaGridSystem();
-      const [x, y] = transform([anchor.lon, anchor.lat], 'EPSG:4326', IBERIAN_PENINSULA_CRS);
+      const [x, y] = transform(
+        [anchor.lon, anchor.lat],
+        'EPSG:4326',
+        IBERIAN_PENINSULA_CRS,
+      );
       // Tolerance: 50 m. Six-corner least-squares fit gives RMS 1.2 m;
       // 50 m absorbs ICGC OCR / arcsecond-rounding noise on the printed
       // sheet face.
@@ -96,7 +100,7 @@ describe('Iberian Peninsula MBS factory', () => {
 
   const cities: [string, [number, number]][] = [
     ['Madrid', [-3.7038, 40.4168]],
-    ['Porto', [-8.6110, 41.1496]],
+    ['Porto', [-8.611, 41.1496]],
     ['Barcelona', [2.1734, 41.3851]],
     ['Lisbon', [-9.1393, 38.7223]],
     ['Seville', [-5.9845, 37.3891]],
@@ -107,8 +111,44 @@ describe('Iberian Peninsula MBS factory', () => {
       const grid = createIberianPeninsulaGridSystem();
       const [x, y] = transform(lonLat, 'EPSG:4326', IBERIAN_PENINSULA_CRS);
       const formatted = grid.formatCoordinate([x!, y!], IBERIAN_PENINSULA_CRS);
-      if (!('combined' in formatted)) throw new Error('expected combined label');
+      if (!('combined' in formatted))
+        throw new Error('expected combined label');
       expect(formatted.combined).toMatch(/^[a-z][A-Z] \d{3} \d{3}$/);
     });
   }
+
+  it("the Madrid City Plan's printed grid block pins the false origin", () => {
+    // AMS M981 Madrid City Plan 1:12 500 (1st ed. AMS 1, 3.1943) prints an
+    // IBERIAN PENINSULA ZONE GRID block: Lambert Conical Orthomorphic, Hayford,
+    // origin 40°N and 3°41'14.55"W (Madrid Meridian), false co-ordinates
+    // 600 000 m E / 530 000 m N, scale factor 1.000000. The origin must
+    // therefore land exactly on the false coordinates.
+    createIberianPeninsulaGridSystem();
+    const madridMeridian = -(3 + 41 / 60 + 14.55 / 3600);
+    const [x, y] = transform(
+      [madridMeridian, 40],
+      'EPSG:4326',
+      IBERIAN_PENINSULA_CRS,
+    );
+    expect(x).toBeCloseTo(600_000, -1);
+    expect(y).toBeCloseTo(530_000, -1);
+  });
+
+  it('reproduces the worked reference on GSGS 4148 Cadiz', () => {
+    // Sheet S 3608 Cadiz (1st ed., W.O. 1941) works an example: POINT
+    // BENAHAVIS, LETTER U, REFERENCE U 7845 — 78 km E, 45 km N inside the
+    // 100 km square, to the nearest 1 000 m. Benahavís village sits at roughly
+    // 5°02'W, 36°31'N; the sheet's own "point" is some feature there, so allow
+    // a kilometre either way rather than pretending to know which.
+    createIberianPeninsulaGridSystem();
+    const [x, y] = transform(
+      [-5.046, 36.522],
+      'EPSG:4326',
+      IBERIAN_PENINSULA_CRS,
+    );
+    expect(x ?? 0).toBeGreaterThan(477_000);
+    expect(x ?? 0).toBeLessThan(479_500);
+    expect(y ?? 0).toBeGreaterThan(143_500);
+    expect(y ?? 0).toBeLessThan(146_000);
+  });
 });

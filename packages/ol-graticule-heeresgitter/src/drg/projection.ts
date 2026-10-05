@@ -2,6 +2,13 @@
  * proj4 wiring for the Gauß-Krüger 3° strips (Bessel 1841 ellipsoid, Potsdam
  * datum, scale 1.0, Kennziffer-prefixed false easting).
  *
+ * Every parameter below is stated verbatim by the Planheft section *Das
+ * Deutsche Reichsgitter* (p. C 3): Bezugsellipsoid Bessel, Projektion
+ * Gauß-Krüger, Ausgangspunkt Potsdam, Maßstabsreduktion 0 (hence `+k=1`),
+ * Hochwerte counted from the equator at 0 (hence `+lat_0=0 +y_0=0`),
+ * Rechtswerte from the central meridian at 500 000 with the Kennziffer set in
+ * front of them (hence the `Kennziffer × 1 000 000` in `falseEasting`).
+ *
  * Strips 2..5 are the German ones and match EPSG:31466..31469; the same
  * definition generalises to every Kennziffer.
  */
