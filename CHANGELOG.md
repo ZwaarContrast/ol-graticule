@@ -1,5 +1,440 @@
 # Changelog
 
+## 4.0.0
+
+### @zwaarcontrast/ol-graticule
+
+### Major Changes
+
+- f975503: Split rendering into a Canvas 2D and a WebGL backend, with `UniversalGraticule`
+  as a thin facade over both. This decouples the grid logic from the rasterizer so
+  a non-OpenLayers backend (MapLibre) can be added without touching grid systems.
+
+  **Breaking:** `UniversalGraticule` now extends `LayerGroup` instead of
+  `VectorLayer`. `map.addLayer(graticule)` is unchanged, and `getGridSystem`,
+  `setGridSystem` and `setHoverLens` all still work, but the `VectorLayer` surface
+  is gone: `getSource()`, `setStyle()`, `getFeatures()`, the `postrender` event,
+  and the `style`, `declutter`, `renderBuffer`, `updateWhileAnimating` and
+  `updateWhileInteracting` options. `UniversalGraticuleOptions` now takes
+  `LayerGroup` options (`opacity`, `visible`, `extent`, `zIndex`, `minResolution`,
+  `maxResolution`, `minZoom`, `maxZoom`, `properties`) plus the graticule config.
+
+  If you relied on the layer internals, construct `CanvasGraticuleLayer` directly
+  to pin the old single-layer behaviour.
+
+  New `renderer` option: `'auto'` (default) probes for WebGL 2 and falls back to
+  canvas when it is absent or software-rendered, `'gl'` and `'canvas'` force a
+  backend. `CanvasGraticuleLayer` and `WebGLGraticuleLayer` are exported for
+  callers that want to skip the probe.
+
+  Adds `@mapbox/tiny-sdf` as a dependency, used to build the SDF glyph atlas for
+  GPU label rendering.
+
+### Minor Changes
+
+- 6b960f9: Adaptive grid-line densification. Grid lines are now sampled only where they
+  curve in the view projection: straight lines collapse to 2 points and points
+  cluster where the line bends, cutting coordinate-transform work during pan and
+  zoom. PolygonClippedGridSystem snap mode no longer re-densifies every line each
+  render, which made rapid scroll-zoom on clipped grids (e.g. MBS) far smoother.
+
+  Low-level gridline helpers changed as part of this: `adaptiveAxisTs` and
+  `uniformTs` replace `densifyCount`, and `pushAxisGridLineSpecs`,
+  `emitFlatLineFeatures`, and `FlatLineSpec` now take per-axis `t` samples instead
+  of a point count.
+
+- f975503: Add an optional `getCellInterval` to `IntervalStrategy`, so a grid whose label
+  cells are a fixed size (a 100 km lettered cell over a finer km grid) can
+  enumerate cell labels on their own interval instead of once per major-line cell.
+  Optional, so existing strategies are unaffected.
+
+  `ProjectedGridSystem` also caches transformed grid-line polylines across pan
+  within a zoom band, re-slicing them instead of re-projecting every frame.
+
+- 0d86e43: Add an ol-free `/headless` subpath to every package. It exports the grid
+  codecs (parsing, formatting, CRS definitions, validity rings and plane geometry)
+  without importing `ol` anywhere in its graph, so it runs under plain Node and in
+  workers. The main entry re-exports everything from `/headless`; nothing is
+  removed from it.
+
+  `@zwaarcontrast/ol-graticule-projected` adds `registerProj4` (register a CRS
+  with proj4 only) and `syncOlProjections` (push proj4's definitions into
+  OpenLayers afterwards). `registerCRS` now also syncs OpenLayers for a code the
+  headless path registered first.
+
+- 28d9a14: Add an optional pointer "hover lens". As the cursor moves over the grid, lines
+  swell toward it and taper away in all directions, with a clear hole at the
+  crossing under the pointer so the aim point stays uncovered. Enable it through
+  `GraticuleStyle.hoverLens`, or toggle it at runtime with
+  `UniversalGraticule.setHoverLens`; omit it or pass `false` to disable.
+
+### Patch Changes
+
+- 579f34a: Fix two clipped-grid rendering defects.
+
+  Grid lines that run along a snapped coverage edge (the MBS theatre staircases,
+  the GSGS per-grid validity edges) were chopped into fragments when zoomed out,
+  because the clip ring was inflated by a fixed ground distance while a line's own
+  densification error is a fixed fraction of a pixel. The slack is now measured in
+  screen pixels, capped at 5% of the snap interval, so an edge line survives whole
+  at every zoom.
+
+  The WebGL hover lens drew every grid's swell and crossing dots in the first
+  grid's ink; each grid now lenses in its own colour, matching Canvas. Its
+  crossing holes and cell size are no longer overwritten by the last grid built,
+  and multi-touch no longer double-draws the swell.
+
+- f975503: Relax the adaptive densification tolerance from 0.25 px to 0.5 px. Grid lines
+  are densified until they sit within this distance of the true projected curve,
+  so this halves the vertex count on curved lines at the cost of up to half a
+  pixel of deviation. Pass a smaller `maxDevPx` to `adaptiveAxisTs` to restore the
+  previous fidelity.
+
+  `LruCache.get` also skips MRU promotion while the cache is below capacity, where
+  nothing can be evicted yet.
+
+- af14ae4: fix: remove redundant unanchored `\s*` from PixelFormatter pixel-suffix strip, eliminating a polynomial-ReDoS backtracking path (no behavior change)
+- ea57c4e: Build against OpenLayers 10.11, whose `getTransform` may return `null` and
+  `Map.getViewport()` may return `undefined`. A missing transform now throws a
+  clear error naming both projections.
+- c901af8: `UniversalGraticule.dispose()` now disposes the layer it wraps, freeing the
+  WebGL layer's context, atlas and buffers.
+
+### @zwaarcontrast/ol-graticule-heeresgitter
+
+### Major Changes
+
+- 24941be: **Breaking:** `proj4` moves from `dependencies` to `peerDependencies`, matching
+  every other package in the monorepo. Install it alongside this package:
+
+  ```bash
+  npm install @zwaarcontrast/ol-graticule-heeresgitter proj4
+  ```
+
+  proj4 keeps its CRS registry in module-level state. This package registers its
+  Gauß-Krüger strip definitions through `registerCRS` from
+  `@zwaarcontrast/ol-graticule-projected` (a peer, so it uses the caller's proj4),
+  then projects through its own `proj4` import. As a plain dependency those two
+  could resolve to separate copies, leaving the strip definition registered on one
+  instance and looked up on the other, so the transform failed. A peer guarantees
+  one shared instance.
+
+### Minor Changes
+
+- 579f34a: Anchor the DRG (3° Reichsgitter) specification to the Planheft. Its _Das Deutsche Reichsgitter_ section (Planheft Schweiz OKH g 23/1 p. C 3, same text in Planheft Osteuropa Merkblatt 34/31b) states every projection parameter the package already used, so the DRG now rests on two independent sources rather than on sheet 5503 Elsenborn alone. The Planheft also tabulates exactly five strips, central meridians 3° to 15°E against Kennziffern 1-5, in the Osteuropa edition too, so `DRG_PUBLISHED_KENNZIFFERN` and `isPublishedDrgKennziffer()` are exported to separate a strip the sources attest from one the formula merely admits. The published list is documented as a fact to know rather than a filter to run: a sheet printing an unlisted Kennziffer is the only evidence that could extend the list, so a check built on it would reject exactly that sheet. The 10' strip overlap is now marked as the one unsourced DRG constant, with the Planheft passage that appears to contradict it recorded beside it.
+- 0d86e43: Add an ol-free `/headless` subpath to every package. It exports the grid
+  codecs (parsing, formatting, CRS definitions, validity rings and plane geometry)
+  without importing `ol` anywhere in its graph, so it runs under plain Node and in
+  workers. The main entry re-exports everything from `/headless`; nothing is
+  removed from it.
+
+  `@zwaarcontrast/ol-graticule-projected` adds `registerProj4` (register a CRS
+  with proj4 only) and `syncOlProjections` (push proj4's definitions into
+  OpenLayers afterwards). `registerCRS` now also syncs OpenLayers for a code the
+  headless path registered first.
+
+- c1ab985: Add the **Deutsches Reichsgitter** (DRG), the Gauß-Krüger 3°-strip grid printed
+  on German Reich map sheets before the 6° Heeresgitter replaced it. Same Bessel
+  1841 / Potsdam family and the same `k=1`, but the strips are 3° wide, the
+  Kennziffer is the central meridian divided by 3, and it is carried as the
+  leading digit of the Rechtswert rather than quoted separately: false easting is
+  `Kennziffer × 1 000 000 + 500 000`, so a corner label reading `2512` is strip 2
+  (CM 6° E), Rechtswert 512 km. Strips 2–5 match EPSG:31466–31469.
+
+  New exports: `DrgGridSystem`, `encodeDrg`, `encodeDrgText`, `decodeDrg`,
+  `parseDrg`, `formatDrgEasting`, `formatDrgNorthing`, the `drg*` zone and
+  projection helpers, and the `DrgCoord` / `DrgZone` types. Labels follow the
+  sheet's _Planzeiger_ rules: kilometres on grid lines (`2512`, or `12` in the
+  _kurz_ form), metres for point references, Rechtswert first.
+
+  Encoding and geometry are anchored to sheet 5503 (3207 alt) Elsenborn,
+  _Planblatt A_, Geheim, Sonderdruck der Heeresplankammer, Stand 1.10.1939, whose
+  printed grid runs 2512–2523 km east and 5585–5595 km north. Note that a sheet's
+  printed graticule is Potsdam/Bessel, not WGS 84; `encodeDrg` takes WGS 84 and
+  applies the Helmert shift, which moves a corner by roughly 130 m in the Eifel.
+
+### Patch Changes
+
+- 4fa53bb: fix: remove ambiguous `\s*` overlap in the HMN label pattern, eliminating a polynomial-ReDoS backtracking path (no behavior change)
+- ea57c4e: Build against OpenLayers 10.11, whose `getTransform` may return `null` and
+  `Map.getViewport()` may return `undefined`. A missing transform now throws a
+  clear error naming both projections.
+- Updated dependencies [6b960f9]
+- Updated dependencies [24941be]
+- Updated dependencies [f975503]
+- Updated dependencies [579f34a]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [0d86e43]
+- Updated dependencies [28d9a14]
+- Updated dependencies [ea57c4e]
+- Updated dependencies [c054d7f]
+- Updated dependencies [f975503]
+- Updated dependencies [c901af8]
+  - @zwaarcontrast/ol-graticule@4.0.0
+  - @zwaarcontrast/ol-graticule-projected@4.0.0
+
+### @zwaarcontrast/ol-graticule-luftwaffe-planquadrat
+
+### Minor Changes
+
+- 0d86e43: Add an ol-free `/headless` subpath to every package. It exports the grid
+  codecs (parsing, formatting, CRS definitions, validity rings and plane geometry)
+  without importing `ol` anywhere in its graph, so it runs under plain Node and in
+  workers. The main entry re-exports everything from `/headless`; nothing is
+  removed from it.
+
+  `@zwaarcontrast/ol-graticule-projected` adds `registerProj4` (register a CRS
+  with proj4 only) and `syncOlProjections` (push proj4's definitions into
+  OpenLayers afterwards). `registerCRS` now also syncs OpenLayers for a code the
+  headless path registered first.
+
+### Patch Changes
+
+- ea57c4e: Build against OpenLayers 10.11, whose `getTransform` may return `null` and
+  `Map.getViewport()` may return `undefined`. A missing transform now throws a
+  clear error naming both projections.
+- Updated dependencies [6b960f9]
+- Updated dependencies [f975503]
+- Updated dependencies [579f34a]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [0d86e43]
+- Updated dependencies [28d9a14]
+- Updated dependencies [ea57c4e]
+- Updated dependencies [f975503]
+- Updated dependencies [c901af8]
+  - @zwaarcontrast/ol-graticule@4.0.0
+
+### @zwaarcontrast/ol-graticule-mgrs
+
+### Minor Changes
+
+- 24941be: Raise the `proj4` peer range from `^2.9.0` to `^2.12.0`, matching the `^2.12.0`
+  that `ol-graticule-heeresgitter` already declares.
+
+  proj4 keeps its CRS registry in module-level state, so a consumer combining
+  heeresgitter (which depends on proj4 directly) with these packages could resolve
+  two proj4 copies when the ranges did not overlap, leaving definitions registered
+  through one copy invisible to the other. A single range across the monorepo
+  dedupes to one instance.
+
+- 0d86e43: Add an ol-free `/headless` subpath to every package. It exports the grid
+  codecs (parsing, formatting, CRS definitions, validity rings and plane geometry)
+  without importing `ol` anywhere in its graph, so it runs under plain Node and in
+  workers. The main entry re-exports everything from `/headless`; nothing is
+  removed from it.
+
+  `@zwaarcontrast/ol-graticule-projected` adds `registerProj4` (register a CRS
+  with proj4 only) and `syncOlProjections` (push proj4's definitions into
+  OpenLayers afterwards). `registerCRS` now also syncs OpenLayers for a code the
+  headless path registered first.
+
+### Patch Changes
+
+- ea57c4e: Build against OpenLayers 10.11, whose `getTransform` may return `null` and
+  `Map.getViewport()` may return `undefined`. A missing transform now throws a
+  clear error naming both projections.
+- Updated dependencies [6b960f9]
+- Updated dependencies [24941be]
+- Updated dependencies [f975503]
+- Updated dependencies [579f34a]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [0d86e43]
+- Updated dependencies [28d9a14]
+- Updated dependencies [ea57c4e]
+- Updated dependencies [c054d7f]
+- Updated dependencies [f975503]
+- Updated dependencies [c901af8]
+  - @zwaarcontrast/ol-graticule@4.0.0
+  - @zwaarcontrast/ol-graticule-projected@4.0.0
+
+### @zwaarcontrast/ol-graticule-modified-british-system
+
+### Minor Changes
+
+- 24941be: Raise the `proj4` peer range from `^2.9.0` to `^2.12.0`, matching the `^2.12.0`
+  that `ol-graticule-heeresgitter` already declares.
+
+  proj4 keeps its CRS registry in module-level state, so a consumer combining
+  heeresgitter (which depends on proj4 directly) with these packages could resolve
+  two proj4 copies when the ranges did not overlap, leaving definitions registered
+  through one copy invisible to the other. A single range across the monorepo
+  dedupes to one instance.
+
+- 0d86e43: Add an ol-free `/headless` subpath to every package. It exports the grid
+  codecs (parsing, formatting, CRS definitions, validity rings and plane geometry)
+  without importing `ol` anywhere in its graph, so it runs under plain Node and in
+  workers. The main entry re-exports everything from `/headless`; nothing is
+  removed from it.
+
+  `@zwaarcontrast/ol-graticule-projected` adds `registerProj4` (register a CRS
+  with proj4 only) and `syncOlProjections` (push proj4's definitions into
+  OpenLayers afterwards). `registerCRS` now also syncs OpenLayers for a code the
+  headless path registered first.
+
+- 579f34a: Add `NORD_DE_GUERRE_BBOX_WGS84`. Every other MBS family already published a
+  WGS84 bbox; Nord de Guerre had only projected metres, so it was the one family a
+  consumer could not give a lon/lat validity to.
+
+  It is derived by projecting `NORD_DE_GUERRE_CLIP_POLYGON` out of EPSG:27500
+  (1.00°W to 20.49°E, 46.10°N to 56.50°N) and rounding outward, with tests
+  asserting it contains every vertex of that polygon and the theatre's obvious
+  cities.
+
+  Deriving rather than copying matters here: this grid is EPSG:27500, the French
+  civil definition with a false easting of 500 000, while the British wartime Nord
+  de Guerre Zone re-origined to 600 000. The same projected metres name ground
+  100 km apart in the two conventions, so a bbox borrowed from the wartime grid
+  would be wrong by that much.
+
+### Patch Changes
+
+- fa9475c: fix: remove `\s*` that overlapped `[\d\s]*` in the MBS compound-reference pattern, eliminating a polynomial-ReDoS backtracking path (no behavior change)
+- 55201f5: refactor: extract a shared MBS grid factory, collapsing the duplicated theatre wiring across the nine grid modules into createMBSGridSystem and assembleMBSGridSystem (no public API change)
+- 579f34a: Pin the Irish Cassini false northing to the sheet that states it, after a
+  proposal to change it from 250 000 to 425 661 m.
+
+  GSGS 3982 Ireland Sheet 3 Dublin (2nd ed. 2.1942) says its position twice, and
+  both agree with 250 000: the margin works an example — "Full Co-ordinates of
+  BALLIVOR 269254", i.e. 269 km E / 254 km N, where this definition gives
+  269.6 / 254.2 — and the west margin labels a 300 km northing line just below the
+  54° parallel, where this definition puts 305.6 km. The proposed value would make
+  that same sheet read 269430 and label its margin ~480.
+
+  GSGS 4136 Ireland One Inch sheet 307 confirms it from a second series: its NW
+  corner is printed W. Lon 7°59' / Lat 55°1' and its west margin labels that spot
+  "420,000 m.N.", where this definition gives 418.8 km. The proposed value would
+  need that margin to read 595,000.
+
+  It also agrees with the War Office's 1948 grid-systems diagram, which draws the
+  Irish Grid's 500 km northing across northern Ireland: 250 000 puts that line at
+  55.75°N, just off the north coast, where 425 661 would put it at 54.17°N,
+  through the middle of the island.
+
+  Both checks are now tests, so the value cannot be quietly changed back.
+
+- Updated dependencies [6b960f9]
+- Updated dependencies [24941be]
+- Updated dependencies [f975503]
+- Updated dependencies [579f34a]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [0d86e43]
+- Updated dependencies [28d9a14]
+- Updated dependencies [ea57c4e]
+- Updated dependencies [c054d7f]
+- Updated dependencies [f975503]
+- Updated dependencies [c901af8]
+  - @zwaarcontrast/ol-graticule@4.0.0
+  - @zwaarcontrast/ol-graticule-projected@4.0.0
+
+### @zwaarcontrast/ol-graticule-projected
+
+### Minor Changes
+
+- 24941be: Raise the `proj4` peer range from `^2.9.0` to `^2.12.0`, matching the `^2.12.0`
+  that `ol-graticule-heeresgitter` already declares.
+
+  proj4 keeps its CRS registry in module-level state, so a consumer combining
+  heeresgitter (which depends on proj4 directly) with these packages could resolve
+  two proj4 copies when the ranges did not overlap, leaving definitions registered
+  through one copy invisible to the other. A single range across the monorepo
+  dedupes to one instance.
+
+- f975503: Add an optional `getCellInterval` to `IntervalStrategy`, so a grid whose label
+  cells are a fixed size (a 100 km lettered cell over a finer km grid) can
+  enumerate cell labels on their own interval instead of once per major-line cell.
+  Optional, so existing strategies are unaffected.
+
+  `ProjectedGridSystem` also caches transformed grid-line polylines across pan
+  within a zoom band, re-slicing them instead of re-projecting every frame.
+
+- 0d86e43: Add an ol-free `/headless` subpath to every package. It exports the grid
+  codecs (parsing, formatting, CRS definitions, validity rings and plane geometry)
+  without importing `ol` anywhere in its graph, so it runs under plain Node and in
+  workers. The main entry re-exports everything from `/headless`; nothing is
+  removed from it.
+
+  `@zwaarcontrast/ol-graticule-projected` adds `registerProj4` (register a CRS
+  with proj4 only) and `syncOlProjections` (push proj4's definitions into
+  OpenLayers afterwards). `registerCRS` now also syncs OpenLayers for a code the
+  headless path registered first.
+
+- c054d7f: Add `createProjectedGridSystemFromEPSG(code, options)`: a projected grid for
+  any EPSG code, fetched at runtime. The proj4 definition comes from epsg.io
+  (datum shifts included) and the EPSG area of use from spatialreference.org;
+  the grid is clipped to that area. Lookups are cached per code for the session,
+  and a code already registered with proj4 is not fetched again. A `+nadgrids`
+  shift becomes `+nadgrids=@grid,@null`, so it applies once `loadNadgrid` has
+  loaded the grid and falls back to no shift until then. `sources` overrides
+  where definitions and areas of use are fetched from.
+
+  `lookupEPSG(code)` returns the spatialreference.org record for a code, through
+  the same cache: name, type, area of use in words and as a box, scope, and the
+  axes with their units. A CRS that lists several usages reports the first, so
+  its grid is clipped too. A code neither service knows rejects with
+  `Unknown EPSG code: <code>`.
+
+### Patch Changes
+
+- ea57c4e: Build against OpenLayers 10.11, whose `getTransform` may return `null` and
+  `Map.getViewport()` may return `undefined`. A missing transform now throws a
+  clear error naming both projections.
+- Updated dependencies [6b960f9]
+- Updated dependencies [f975503]
+- Updated dependencies [579f34a]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [0d86e43]
+- Updated dependencies [28d9a14]
+- Updated dependencies [ea57c4e]
+- Updated dependencies [f975503]
+- Updated dependencies [c901af8]
+  - @zwaarcontrast/ol-graticule@4.0.0
+
+### @zwaarcontrast/ol-graticule-rd
+
+### Minor Changes
+
+- 24941be: Raise the `proj4` peer range from `^2.9.0` to `^2.12.0`, matching the `^2.12.0`
+  that `ol-graticule-heeresgitter` already declares.
+
+  proj4 keeps its CRS registry in module-level state, so a consumer combining
+  heeresgitter (which depends on proj4 directly) with these packages could resolve
+  two proj4 copies when the ranges did not overlap, leaving definitions registered
+  through one copy invisible to the other. A single range across the monorepo
+  dedupes to one instance.
+
+- 0d86e43: Add an ol-free `/headless` subpath to every package. It exports the grid
+  codecs (parsing, formatting, CRS definitions, validity rings and plane geometry)
+  without importing `ol` anywhere in its graph, so it runs under plain Node and in
+  workers. The main entry re-exports everything from `/headless`; nothing is
+  removed from it.
+
+  `@zwaarcontrast/ol-graticule-projected` adds `registerProj4` (register a CRS
+  with proj4 only) and `syncOlProjections` (push proj4's definitions into
+  OpenLayers afterwards). `registerCRS` now also syncs OpenLayers for a code the
+  headless path registered first.
+
+### Patch Changes
+
+- Updated dependencies [6b960f9]
+- Updated dependencies [24941be]
+- Updated dependencies [f975503]
+- Updated dependencies [579f34a]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [0d86e43]
+- Updated dependencies [28d9a14]
+- Updated dependencies [ea57c4e]
+- Updated dependencies [c054d7f]
+- Updated dependencies [f975503]
+- Updated dependencies [c901af8]
+  - @zwaarcontrast/ol-graticule@4.0.0
+  - @zwaarcontrast/ol-graticule-projected@4.0.0
+
 ## 3.0.0
 
 ### @zwaarcontrast/ol-graticule
@@ -790,3 +1225,98 @@ gy=37` with NW corner `(64°00'N, 7°30'E)` and the printed `NV..SX` block
 - Updated dependencies [be0c565]
   - @zwaarcontrast/ol-graticule@1.0.0
   - @zwaarcontrast/ol-graticule-projected@1.0.0
+
+## 0.2.0
+
+### @zwaarcontrast/ol-graticule-nei
+
+### Minor Changes
+
+- 4ecca0b: Initial release. Netherlands East Indies WWII grids on the Batavia datum
+  (Bessel 1841, EPSG:8452 shift to WGS84): the NEI Southern Zone (Java and the
+  Lesser Sundas, Lambert conformal conic on 8°S 110°E) and the NEI Equatorial
+  Zone (EPSG:3001, Mercator on 110°E), each clipped to its published limits.
+
+  `NEI_GRIDS` holds both zones keyed by CRS, with
+  `createNEISouthernZoneGridSystem` and `createNEIEquatorialZoneGridSystem`
+  building them; the CRS codes, proj4 strings and validity rings are exported
+  ol-free from `/headless`.
+
+### Patch Changes
+
+- Updated dependencies [6b960f9]
+- Updated dependencies [24941be]
+- Updated dependencies [f975503]
+- Updated dependencies [579f34a]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [0d86e43]
+- Updated dependencies [28d9a14]
+- Updated dependencies [ea57c4e]
+- Updated dependencies [c054d7f]
+- Updated dependencies [f975503]
+- Updated dependencies [c901af8]
+  - @zwaarcontrast/ol-graticule@4.0.0
+  - @zwaarcontrast/ol-graticule-projected@4.0.0
+
+### @zwaarcontrast/ol-graticule-ngo
+
+### Minor Changes
+
+- 926ead5: Initial release. The Norwegian Gauss-Krüger strips ("norweg. Gitterstreifen")
+  as German 1:50 000 sheets of Norway print them: all eight strips (I to VIII),
+  each transverse Mercator from the Oslo meridian on the modified Bessel
+  ellipsoid, with the sheets' own origins and false co-ordinates. Every strip is
+  checked against a scanned sheet to within 25 m.
+
+  `NGO_GRIDS` holds every strip keyed by CRS, `createNGOStripGridSystem(strip)`
+  builds one, and `NGO_STRIPS` is exported ol-free from `/headless`.
+
+### Patch Changes
+
+- Updated dependencies [6b960f9]
+- Updated dependencies [24941be]
+- Updated dependencies [f975503]
+- Updated dependencies [579f34a]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [0d86e43]
+- Updated dependencies [28d9a14]
+- Updated dependencies [ea57c4e]
+- Updated dependencies [c054d7f]
+- Updated dependencies [f975503]
+- Updated dependencies [c901af8]
+  - @zwaarcontrast/ol-graticule@4.0.0
+  - @zwaarcontrast/ol-graticule-projected@4.0.0
+
+### @zwaarcontrast/ol-graticule-os
+
+### Minor Changes
+
+- 0a8dbfa: Initial release. Historical Ordnance Survey grids, starting with the 1930s yard
+  grid of Great Britain: transverse Mercator from 49°N 2°W on Airy, scale reduced
+  by one part in 2500, false origin 1 000 000 yards west and south, as printed on
+  the One-inch Fifth and Quarter-inch Fourth Editions. Clipped to the Quarter-inch
+  Fourth Edition sheet faces (Great Britain with Orkney and Shetland), with
+  full-figure yard labels.
+
+  `createOSYardGridSystem()` builds it, `OS_GRIDS` holds it keyed by CRS, and the
+  CRS, proj4 string, validity rings and `YardFormatter` are exported ol-free from
+  `/headless`.
+
+### Patch Changes
+
+- Updated dependencies [6b960f9]
+- Updated dependencies [24941be]
+- Updated dependencies [f975503]
+- Updated dependencies [579f34a]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [0d86e43]
+- Updated dependencies [28d9a14]
+- Updated dependencies [ea57c4e]
+- Updated dependencies [c054d7f]
+- Updated dependencies [f975503]
+- Updated dependencies [c901af8]
+  - @zwaarcontrast/ol-graticule@4.0.0
+  - @zwaarcontrast/ol-graticule-projected@4.0.0

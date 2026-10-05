@@ -1,6 +1,6 @@
 {
   "name": "@zwaarcontrast/ol-graticule-nei",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "Netherlands East Indies WWII grids (NEI Southern Zone, NEI Equatorial Zone / EPSG:3001) on the Batavia datum, for ol-graticule.",
   "license": "MIT",
@@ -54,8 +54,8 @@
     "test:coverage": "vitest run --coverage"
   },
   "peerDependencies": {
-    "@zwaarcontrast/ol-graticule": "^3.0.0",
-    "@zwaarcontrast/ol-graticule-projected": "^3.0.0",
+    "@zwaarcontrast/ol-graticule": "^4.0.0",
+    "@zwaarcontrast/ol-graticule-projected": "^4.0.0",
     "ol": "^10.0.0",
     "proj4": "^2.9.0"
   },

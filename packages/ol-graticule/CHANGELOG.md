@@ -1,5 +1,103 @@
 # @zwaarcontrast/ol-graticule
 
+## 4.0.0
+
+### Major Changes
+
+- f975503: Split rendering into a Canvas 2D and a WebGL backend, with `UniversalGraticule`
+  as a thin facade over both. This decouples the grid logic from the rasterizer so
+  a non-OpenLayers backend (MapLibre) can be added without touching grid systems.
+
+  **Breaking:** `UniversalGraticule` now extends `LayerGroup` instead of
+  `VectorLayer`. `map.addLayer(graticule)` is unchanged, and `getGridSystem`,
+  `setGridSystem` and `setHoverLens` all still work, but the `VectorLayer` surface
+  is gone: `getSource()`, `setStyle()`, `getFeatures()`, the `postrender` event,
+  and the `style`, `declutter`, `renderBuffer`, `updateWhileAnimating` and
+  `updateWhileInteracting` options. `UniversalGraticuleOptions` now takes
+  `LayerGroup` options (`opacity`, `visible`, `extent`, `zIndex`, `minResolution`,
+  `maxResolution`, `minZoom`, `maxZoom`, `properties`) plus the graticule config.
+
+  If you relied on the layer internals, construct `CanvasGraticuleLayer` directly
+  to pin the old single-layer behaviour.
+
+  New `renderer` option: `'auto'` (default) probes for WebGL 2 and falls back to
+  canvas when it is absent or software-rendered, `'gl'` and `'canvas'` force a
+  backend. `CanvasGraticuleLayer` and `WebGLGraticuleLayer` are exported for
+  callers that want to skip the probe.
+
+  Adds `@mapbox/tiny-sdf` as a dependency, used to build the SDF glyph atlas for
+  GPU label rendering.
+
+### Minor Changes
+
+- 6b960f9: Adaptive grid-line densification. Grid lines are now sampled only where they
+  curve in the view projection: straight lines collapse to 2 points and points
+  cluster where the line bends, cutting coordinate-transform work during pan and
+  zoom. PolygonClippedGridSystem snap mode no longer re-densifies every line each
+  render, which made rapid scroll-zoom on clipped grids (e.g. MBS) far smoother.
+
+  Low-level gridline helpers changed as part of this: `adaptiveAxisTs` and
+  `uniformTs` replace `densifyCount`, and `pushAxisGridLineSpecs`,
+  `emitFlatLineFeatures`, and `FlatLineSpec` now take per-axis `t` samples instead
+  of a point count.
+
+- f975503: Add an optional `getCellInterval` to `IntervalStrategy`, so a grid whose label
+  cells are a fixed size (a 100 km lettered cell over a finer km grid) can
+  enumerate cell labels on their own interval instead of once per major-line cell.
+  Optional, so existing strategies are unaffected.
+
+  `ProjectedGridSystem` also caches transformed grid-line polylines across pan
+  within a zoom band, re-slicing them instead of re-projecting every frame.
+
+- 0d86e43: Add an ol-free `/headless` subpath to every package. It exports the grid
+  codecs (parsing, formatting, CRS definitions, validity rings and plane geometry)
+  without importing `ol` anywhere in its graph, so it runs under plain Node and in
+  workers. The main entry re-exports everything from `/headless`; nothing is
+  removed from it.
+
+  `@zwaarcontrast/ol-graticule-projected` adds `registerProj4` (register a CRS
+  with proj4 only) and `syncOlProjections` (push proj4's definitions into
+  OpenLayers afterwards). `registerCRS` now also syncs OpenLayers for a code the
+  headless path registered first.
+
+- 28d9a14: Add an optional pointer "hover lens". As the cursor moves over the grid, lines
+  swell toward it and taper away in all directions, with a clear hole at the
+  crossing under the pointer so the aim point stays uncovered. Enable it through
+  `GraticuleStyle.hoverLens`, or toggle it at runtime with
+  `UniversalGraticule.setHoverLens`; omit it or pass `false` to disable.
+
+### Patch Changes
+
+- 579f34a: Fix two clipped-grid rendering defects.
+
+  Grid lines that run along a snapped coverage edge (the MBS theatre staircases,
+  the GSGS per-grid validity edges) were chopped into fragments when zoomed out,
+  because the clip ring was inflated by a fixed ground distance while a line's own
+  densification error is a fixed fraction of a pixel. The slack is now measured in
+  screen pixels, capped at 5% of the snap interval, so an edge line survives whole
+  at every zoom.
+
+  The WebGL hover lens drew every grid's swell and crossing dots in the first
+  grid's ink; each grid now lenses in its own colour, matching Canvas. Its
+  crossing holes and cell size are no longer overwritten by the last grid built,
+  and multi-touch no longer double-draws the swell.
+
+- f975503: Relax the adaptive densification tolerance from 0.25 px to 0.5 px. Grid lines
+  are densified until they sit within this distance of the true projected curve,
+  so this halves the vertex count on curved lines at the cost of up to half a
+  pixel of deviation. Pass a smaller `maxDevPx` to `adaptiveAxisTs` to restore the
+  previous fidelity.
+
+  `LruCache.get` also skips MRU promotion while the cache is below capacity, where
+  nothing can be evicted yet.
+
+- af14ae4: fix: remove redundant unanchored `\s*` from PixelFormatter pixel-suffix strip, eliminating a polynomial-ReDoS backtracking path (no behavior change)
+- ea57c4e: Build against OpenLayers 10.11, whose `getTransform` may return `null` and
+  `Map.getViewport()` may return `undefined`. A missing transform now throws a
+  clear error naming both projections.
+- c901af8: `UniversalGraticule.dispose()` now disposes the layer it wraps, freeing the
+  WebGL layer's context, atlas and buffers.
+
 ## 3.0.0
 
 ### Major Changes

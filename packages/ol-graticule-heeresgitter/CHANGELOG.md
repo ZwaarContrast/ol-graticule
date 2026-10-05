@@ -1,5 +1,79 @@
 # @zwaarcontrast/ol-graticule-heeresgitter
 
+## 4.0.0
+
+### Major Changes
+
+- 24941be: **Breaking:** `proj4` moves from `dependencies` to `peerDependencies`, matching
+  every other package in the monorepo. Install it alongside this package:
+
+  ```bash
+  npm install @zwaarcontrast/ol-graticule-heeresgitter proj4
+  ```
+
+  proj4 keeps its CRS registry in module-level state. This package registers its
+  Gauß-Krüger strip definitions through `registerCRS` from
+  `@zwaarcontrast/ol-graticule-projected` (a peer, so it uses the caller's proj4),
+  then projects through its own `proj4` import. As a plain dependency those two
+  could resolve to separate copies, leaving the strip definition registered on one
+  instance and looked up on the other, so the transform failed. A peer guarantees
+  one shared instance.
+
+### Minor Changes
+
+- 579f34a: Anchor the DRG (3° Reichsgitter) specification to the Planheft. Its _Das Deutsche Reichsgitter_ section (Planheft Schweiz OKH g 23/1 p. C 3, same text in Planheft Osteuropa Merkblatt 34/31b) states every projection parameter the package already used, so the DRG now rests on two independent sources rather than on sheet 5503 Elsenborn alone. The Planheft also tabulates exactly five strips, central meridians 3° to 15°E against Kennziffern 1-5, in the Osteuropa edition too, so `DRG_PUBLISHED_KENNZIFFERN` and `isPublishedDrgKennziffer()` are exported to separate a strip the sources attest from one the formula merely admits. The published list is documented as a fact to know rather than a filter to run: a sheet printing an unlisted Kennziffer is the only evidence that could extend the list, so a check built on it would reject exactly that sheet. The 10' strip overlap is now marked as the one unsourced DRG constant, with the Planheft passage that appears to contradict it recorded beside it.
+- 0d86e43: Add an ol-free `/headless` subpath to every package. It exports the grid
+  codecs (parsing, formatting, CRS definitions, validity rings and plane geometry)
+  without importing `ol` anywhere in its graph, so it runs under plain Node and in
+  workers. The main entry re-exports everything from `/headless`; nothing is
+  removed from it.
+
+  `@zwaarcontrast/ol-graticule-projected` adds `registerProj4` (register a CRS
+  with proj4 only) and `syncOlProjections` (push proj4's definitions into
+  OpenLayers afterwards). `registerCRS` now also syncs OpenLayers for a code the
+  headless path registered first.
+
+- c1ab985: Add the **Deutsches Reichsgitter** (DRG), the Gauß-Krüger 3°-strip grid printed
+  on German Reich map sheets before the 6° Heeresgitter replaced it. Same Bessel
+  1841 / Potsdam family and the same `k=1`, but the strips are 3° wide, the
+  Kennziffer is the central meridian divided by 3, and it is carried as the
+  leading digit of the Rechtswert rather than quoted separately: false easting is
+  `Kennziffer × 1 000 000 + 500 000`, so a corner label reading `2512` is strip 2
+  (CM 6° E), Rechtswert 512 km. Strips 2–5 match EPSG:31466–31469.
+
+  New exports: `DrgGridSystem`, `encodeDrg`, `encodeDrgText`, `decodeDrg`,
+  `parseDrg`, `formatDrgEasting`, `formatDrgNorthing`, the `drg*` zone and
+  projection helpers, and the `DrgCoord` / `DrgZone` types. Labels follow the
+  sheet's _Planzeiger_ rules: kilometres on grid lines (`2512`, or `12` in the
+  _kurz_ form), metres for point references, Rechtswert first.
+
+  Encoding and geometry are anchored to sheet 5503 (3207 alt) Elsenborn,
+  _Planblatt A_, Geheim, Sonderdruck der Heeresplankammer, Stand 1.10.1939, whose
+  printed grid runs 2512–2523 km east and 5585–5595 km north. Note that a sheet's
+  printed graticule is Potsdam/Bessel, not WGS 84; `encodeDrg` takes WGS 84 and
+  applies the Helmert shift, which moves a corner by roughly 130 m in the Eifel.
+
+### Patch Changes
+
+- 4fa53bb: fix: remove ambiguous `\s*` overlap in the HMN label pattern, eliminating a polynomial-ReDoS backtracking path (no behavior change)
+- ea57c4e: Build against OpenLayers 10.11, whose `getTransform` may return `null` and
+  `Map.getViewport()` may return `undefined`. A missing transform now throws a
+  clear error naming both projections.
+- Updated dependencies [6b960f9]
+- Updated dependencies [24941be]
+- Updated dependencies [f975503]
+- Updated dependencies [579f34a]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [0d86e43]
+- Updated dependencies [28d9a14]
+- Updated dependencies [ea57c4e]
+- Updated dependencies [c054d7f]
+- Updated dependencies [f975503]
+- Updated dependencies [c901af8]
+  - @zwaarcontrast/ol-graticule@4.0.0
+  - @zwaarcontrast/ol-graticule-projected@4.0.0
+
 ## 3.0.0
 
 ### Patch Changes

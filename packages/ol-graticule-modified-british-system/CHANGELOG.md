@@ -1,5 +1,85 @@
 # @zwaarcontrast/ol-graticule-modified-british-system
 
+## 4.0.0
+
+### Minor Changes
+
+- 24941be: Raise the `proj4` peer range from `^2.9.0` to `^2.12.0`, matching the `^2.12.0`
+  that `ol-graticule-heeresgitter` already declares.
+
+  proj4 keeps its CRS registry in module-level state, so a consumer combining
+  heeresgitter (which depends on proj4 directly) with these packages could resolve
+  two proj4 copies when the ranges did not overlap, leaving definitions registered
+  through one copy invisible to the other. A single range across the monorepo
+  dedupes to one instance.
+
+- 0d86e43: Add an ol-free `/headless` subpath to every package. It exports the grid
+  codecs (parsing, formatting, CRS definitions, validity rings and plane geometry)
+  without importing `ol` anywhere in its graph, so it runs under plain Node and in
+  workers. The main entry re-exports everything from `/headless`; nothing is
+  removed from it.
+
+  `@zwaarcontrast/ol-graticule-projected` adds `registerProj4` (register a CRS
+  with proj4 only) and `syncOlProjections` (push proj4's definitions into
+  OpenLayers afterwards). `registerCRS` now also syncs OpenLayers for a code the
+  headless path registered first.
+
+- 579f34a: Add `NORD_DE_GUERRE_BBOX_WGS84`. Every other MBS family already published a
+  WGS84 bbox; Nord de Guerre had only projected metres, so it was the one family a
+  consumer could not give a lon/lat validity to.
+
+  It is derived by projecting `NORD_DE_GUERRE_CLIP_POLYGON` out of EPSG:27500
+  (1.00°W to 20.49°E, 46.10°N to 56.50°N) and rounding outward, with tests
+  asserting it contains every vertex of that polygon and the theatre's obvious
+  cities.
+
+  Deriving rather than copying matters here: this grid is EPSG:27500, the French
+  civil definition with a false easting of 500 000, while the British wartime Nord
+  de Guerre Zone re-origined to 600 000. The same projected metres name ground
+  100 km apart in the two conventions, so a bbox borrowed from the wartime grid
+  would be wrong by that much.
+
+### Patch Changes
+
+- fa9475c: fix: remove `\s*` that overlapped `[\d\s]*` in the MBS compound-reference pattern, eliminating a polynomial-ReDoS backtracking path (no behavior change)
+- 55201f5: refactor: extract a shared MBS grid factory, collapsing the duplicated theatre wiring across the nine grid modules into createMBSGridSystem and assembleMBSGridSystem (no public API change)
+- 579f34a: Pin the Irish Cassini false northing to the sheet that states it, after a
+  proposal to change it from 250 000 to 425 661 m.
+
+  GSGS 3982 Ireland Sheet 3 Dublin (2nd ed. 2.1942) says its position twice, and
+  both agree with 250 000: the margin works an example — "Full Co-ordinates of
+  BALLIVOR 269254", i.e. 269 km E / 254 km N, where this definition gives
+  269.6 / 254.2 — and the west margin labels a 300 km northing line just below the
+  54° parallel, where this definition puts 305.6 km. The proposed value would make
+  that same sheet read 269430 and label its margin ~480.
+
+  GSGS 4136 Ireland One Inch sheet 307 confirms it from a second series: its NW
+  corner is printed W. Lon 7°59' / Lat 55°1' and its west margin labels that spot
+  "420,000 m.N.", where this definition gives 418.8 km. The proposed value would
+  need that margin to read 595,000.
+
+  It also agrees with the War Office's 1948 grid-systems diagram, which draws the
+  Irish Grid's 500 km northing across northern Ireland: 250 000 puts that line at
+  55.75°N, just off the north coast, where 425 661 would put it at 54.17°N,
+  through the middle of the island.
+
+  Both checks are now tests, so the value cannot be quietly changed back.
+
+- Updated dependencies [6b960f9]
+- Updated dependencies [24941be]
+- Updated dependencies [f975503]
+- Updated dependencies [579f34a]
+- Updated dependencies [f975503]
+- Updated dependencies [af14ae4]
+- Updated dependencies [0d86e43]
+- Updated dependencies [28d9a14]
+- Updated dependencies [ea57c4e]
+- Updated dependencies [c054d7f]
+- Updated dependencies [f975503]
+- Updated dependencies [c901af8]
+  - @zwaarcontrast/ol-graticule@4.0.0
+  - @zwaarcontrast/ol-graticule-projected@4.0.0
+
 ## 3.0.0
 
 ### Patch Changes
