@@ -45,7 +45,7 @@
     "@typescript-eslint/parser": "^8.68.0",
     "@vitest/coverage-v8": "^4.1.11",
     "eslint": "^10.11.0",
-    "eslint-config-prettier": "^9.1.0",
+    "eslint-config-prettier": "^10.1.8",
     "fast-check": "^4.9.0",
     "happy-dom": "^20.9.0",
     "knip": "^6.32.2",
