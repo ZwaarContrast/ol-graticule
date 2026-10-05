@@ -1,0 +1,69 @@
+{
+  "name": "@zwaarcontrast/ol-graticule-nei",
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Netherlands East Indies WWII grids (NEI Southern Zone, NEI Equatorial Zone / EPSG:3001) on the Batavia datum, for ol-graticule.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZwaarContrast/ol-graticule.git",
+    "directory": "packages/ol-graticule-nei"
+  },
+  "homepage": "https://github.com/ZwaarContrast/ol-graticule/tree/main/packages/ol-graticule-nei#readme",
+  "bugs": {
+    "url": "https://github.com/ZwaarContrast/ol-graticule/issues"
+  },
+  "keywords": [
+    "openlayers",
+    "ol",
+    "graticule",
+    "grid",
+    "nei",
+    "netherlands-east-indies",
+    "indonesia",
+    "batavia",
+    "epsg-3001",
+    "wwii",
+    "ams"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./headless": {
+      "import": "./dist/headless.js",
+      "types": "./dist/headless.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "node ../../node_modules/typescript-7/bin/tsc --build",
+    "type-check": "tsc --build --noEmit",
+    "dev": "tsc --build --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
+  "peerDependencies": {
+    "@zwaarcontrast/ol-graticule": "^3.0.0",
+    "@zwaarcontrast/ol-graticule-projected": "^3.0.0",
+    "ol": "^10.0.0",
+    "proj4": "^2.9.0"
+  },
+  "devDependencies": {
+    "@zwaarcontrast/ol-graticule": "*",
+    "@zwaarcontrast/ol-graticule-projected": "*",
+    "@zwaarcontrast/test-utils": "*",
+    "typescript": "~6.0.3",
+    "vitest": "^4.0.17"
+  }
+}

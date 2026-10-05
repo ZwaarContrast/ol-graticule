@@ -135,6 +135,7 @@ const DEMOS: { path: string; selector: string; name: string; renderers?: readonl
   { path: '/ol-graticule-projected/', selector: '#map', name: 'ol-graticule-projected' },
   { path: '/ol-graticule-modified-british-system/', selector: '#map', name: 'mbs' },
   { path: '/ol-graticule-rd/', selector: '#map', name: 'rd' },
+  { path: '/ol-graticule-nei/', selector: '#map', name: 'nei' },
   { path: '/ol-graticule-mgrs/', selector: '#map', name: 'mgrs' },
   { path: '/ol-graticule-marinequadratkarte/', selector: '#map', name: 'kriegsmarine' },
   { path: '/ol-graticule-luftwaffe-planquadrat/', selector: '#map', name: 'luftwaffe' },
