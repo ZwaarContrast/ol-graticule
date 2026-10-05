@@ -72,9 +72,8 @@ export const NORD_DE_GUERRE_EXTENT: [number, number, number, number] = [
  * which spans 1.00°W-20.49°E and 46.10°-56.50°N, then rounded outward. Note it
  * has to be derived rather than copied: this grid is EPSG:27500, the French
  * civil definition with a false easting of 500 000, and the British wartime
- * Nord de Guerre Zone re-origined to 600 000 — so the same projected metres
- * name ground 100 km apart in the two conventions. See the cross-package parity
- * test in ol-graticule-gsgs, which asserts exactly that offset.
+ * Nord de Guerre Zone re-origined to 600 000, so the same projected metres
+ * name ground 100 km apart in the two conventions.
  */
 export const NORD_DE_GUERRE_BBOX_WGS84: [number, number, number, number] = [
   -2, 45.5, 21, 57,
