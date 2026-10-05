@@ -16,7 +16,7 @@ import {
   zoneForLon,
   zonesContainingLon,
 } from '../zones.js';
-import { registerZone } from '../projection.js';
+import { forwardInZone, registerZone } from '../projection.js';
 import type { DatumShift, DrgCoord } from '../types.js';
 import {
   decodeDrg,
