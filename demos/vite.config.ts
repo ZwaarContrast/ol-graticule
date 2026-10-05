@@ -35,6 +35,7 @@ export default defineConfig({
         'ol-graticule-rd': resolve(__dirname, 'ol-graticule-rd/index.html'),
         'ol-graticule-mgrs': resolve(__dirname, 'ol-graticule-mgrs/index.html'),
         'ol-graticule-nei': resolve(__dirname, 'ol-graticule-nei/index.html'),
+        'ol-graticule-ngo': resolve(__dirname, 'ol-graticule-ngo/index.html'),
         'ol-graticule-marinequadratkarte': resolve(
           __dirname,
           'ol-graticule-marinequadratkarte/index.html',

@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>
+      Norwegian strips (norweg. Gitterstreifen) · ol-graticule-ngo demo
+    </title>
+    <meta
+      name="description"
+      content="Live demo of @zwaarcontrast/ol-graticule-ngo: the eight Norwegian Gauss-Krüger strips as German WWII 1:50 000 sheets of Norway print them, transverse Mercator from the Oslo meridian on the modified Bessel ellipsoid."
+    />
+    <meta name="author" content="Zwaar Contrast" />
+    <link
+      rel="canonical"
+      href="https://zwaarcontrast.nl/ol-graticule/ol-graticule-ngo/"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="ol-graticule" />
+    <meta
+      property="og:title"
+      content="Norwegian strips (norweg. Gitterstreifen) · ol-graticule-ngo demo"
+    />
+    <meta
+      property="og:description"
+      content="The eight Norwegian Gauss-Krüger strips of the German WWII sheets of Norway, for OpenLayers."
+    />
+    <meta
+      property="og:url"
+      content="https://zwaarcontrast.nl/ol-graticule/ol-graticule-ngo/"
+    />
+    <meta
+      property="og:image"
+      content="https://github.com/ZwaarContrast/ol-graticule/raw/main/packages/ol-graticule-ngo/images/preview.jpg"
+    />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="675" />
+    <meta
+      property="og:image:alt"
+      content="Eight Norwegian Gauss-Krüger strip grids side by side over Norway"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Norwegian strips · ol-graticule-ngo demo"
+    />
+    <meta
+      name="twitter:description"
+      content="The eight Norwegian Gauss-Krüger strips of the German WWII sheets of Norway, for OpenLayers."
+    />
+    <meta
+      name="twitter:image"
+      content="https://github.com/ZwaarContrast/ol-graticule/raw/main/packages/ol-graticule-ngo/images/preview.jpg"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="Eight Norwegian Gauss-Krüger strip grids side by side over Norway"
+    />
+    <link rel="stylesheet" href="../shared.css" />
+    <style>
+      .zone-picker {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+      }
+      .zone-picker select {
+        flex: 1 1 auto;
+        min-width: 0;
+        max-width: 100%;
+        font:
+          500 12px/1.2 ui-monospace,
+          'SF Mono',
+          monospace;
+        background: rgba(245, 239, 230, 0.08);
+        color: var(--paper);
+        border: 1px solid var(--border);
+        border-radius: 6px;
+        padding: 5px 9px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="map"></div>
+    <div class="badge">
+      <h1>Norwegian strips · I to VIII</h1>
+      <p>
+        <a href="https://www.npmjs.com/package/@zwaarcontrast/ol-graticule-ngo"
+          ><code>@zwaarcontrast/ol-graticule-ngo</code></a
+        >
+      </p>
+      <p>
+        Gauss-Krüger strips from the Oslo meridian, as German 1:50 000 sheets of
+        Norway print them. Each strip is clipped to its EPSG band.
+        <a href="../">← All demos</a>
+      </p>
+      <label class="zone-picker">
+        Strip
+        <select id="zone"></select>
+      </label>
+    </div>
+    <script type="module" src="./main.ts"></script>
+  </body>
+</html>
