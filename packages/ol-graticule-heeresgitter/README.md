@@ -120,7 +120,11 @@ renderer uses these as its hard clip envelope.
 
 Zone numbering is `n = L_m / 3°`, so Kennziffer 2 = CM 6°E, 3 = CM 9°E,
 4 = CM 12°E, 5 = CM 15°E. Strips 2–5 are the German ones and match
-EPSG:31466–31469.
+EPSG:31466–31469. West of Greenwich the count runs on modulo 120, so the
+strip on 3°W is Kennziffer 119: a German _England 1:10 000_ sheet of
+Accrington (BB 9 f, 7.40) prints "Mit Gauß-Krüger-Gitternetz im Streifen 3°
+westl. Greenwich, Kennziffer 119", with eastings labelled `119541`. Kennziffern
+0–59 run east from Greenwich, 60–119 from 180° to 3°W.
 
 Every row above except the overlap is stated verbatim in the Planheft
 section _Das Deutsche Reichsgitter_ (p. C 3), which also gives the strip
