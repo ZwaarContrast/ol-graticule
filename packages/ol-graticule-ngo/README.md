@@ -53,8 +53,16 @@ options except `crs`, `proj4Def` and `extent`, which the strip fixes.
 strings and WGS84 validity bands) is also exported ol-free from
 `@zwaarcontrast/ol-graticule-ngo/headless`.
 
-Each strip is clipped to a band between the EPSG zone boundaries (the
-midpoints of adjacent central meridians), over the latitudes of that zone's
-EPSG area of use (extents 1741-1748): strip V, for instance, runs from 66.15°N
-to 70.27°N. The sheets do not print strip boundaries, and a sheet near one
-carries its own strip past it.
+Each strip has two extents. `validityWgs84` is the EPSG one: a band between
+the zone boundaries (the midpoints of adjacent central meridians), over the
+latitudes of that zone's EPSG area of use (extents 1741-1748); strip V, for
+instance, runs from 66.15°N to 70.27°N. `printedValidityWgs84` is where the
+German sheets print the strip. The sheets do not print strip boundaries, and a
+sheet near one carries its own strip past it: Røgden and Trysil print strip III
+out to 2°10' east of Oslo (12°53' E), past its EPSG boundary at 1°15'. The
+printed extent widens a strip only where a sheet shows this; elsewhere it is the
+EPSG one.
+
+Grids are clipped to the printed extent, and `NGO_GRIDS` reports it as their
+`validityWgs84`, so near a boundary two strips can both contain a point, as on
+the sheets. Use `NGO_STRIPS[strip].validityWgs84` for the official zones.

@@ -23,7 +23,7 @@ mountZonePicker({
   zones: Object.values(NGO_STRIPS).map((def) => ({
     label: `Strip ${def.strip}`,
     gridSystem: createNGOStripGridSystem(def.strip),
-    validityWgs84: def.validityWgs84,
+    validityWgs84: def.printedValidityWgs84,
   })),
   allLabel: 'All strips',
   placeholder: 'easting northing (m)',

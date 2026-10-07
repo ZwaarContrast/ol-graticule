@@ -98,6 +98,35 @@ describe('Norwegian strips', () => {
     expect(inside([10.75, 59.91], NGO_STRIPS.III.validityWgs84)).toBe(true);
   });
 
+  it('widens strip III to the sheets that print it past its EPSG boundary', () => {
+    // Røgden (60°20'-60°40'N) and Trysil (61°00'-61°20'N) centres, both east
+    // of strip III's EPSG edge at 1°15' east of Oslo and printing strip III.
+    for (const sheet of [
+      [12.47, 60.5],
+      [12.55, 61.17],
+    ] satisfies Array<[number, number]>) {
+      expect(inside(sheet, NGO_STRIPS.III.validityWgs84)).toBe(false);
+      expect(inside(sheet, NGO_STRIPS.III.printedValidityWgs84)).toBe(true);
+      expect(inside(sheet, NGO_STRIPS.IV.validityWgs84)).toBe(true);
+    }
+    expect(inside([12.95, 61.17], NGO_STRIPS.III.printedValidityWgs84)).toBe(
+      false,
+    );
+    for (const strip of [
+      'I',
+      'II',
+      'IV',
+      'V',
+      'VI',
+      'VII',
+      'VIII',
+    ] satisfies NGOStripNumber[]) {
+      expect(NGO_STRIPS[strip].printedValidityWgs84).toEqual(
+        NGO_STRIPS[strip].validityWgs84,
+      );
+    }
+  });
+
   it('registers each strip by its CRS code', () => {
     expect(Object.keys(NGO_GRIDS).sort()).toEqual([
       'NGO:STRIP_I',

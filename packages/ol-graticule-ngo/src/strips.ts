@@ -24,7 +24,13 @@ export interface NGOStripDefinition {
   readonly falseEasting: number;
   readonly falseNorthing: number;
   readonly proj4: string;
+  /** EPSG area of use of the strip's zone. */
   readonly validityWgs84: Ring;
+  /**
+   * Where German sheets print the strip: {@link validityWgs84}, widened where
+   * a sheet carries the strip past the EPSG boundary.
+   */
+  readonly printedValidityWgs84: Ring;
 }
 
 /** Oslo meridian, 10°43'22.5" E of Greenwich (EPSG:8913). */
@@ -67,6 +73,25 @@ function edgeLon(strip: string, side: -1 | 1): number {
   return OSLO_LON + (here + neighbour) / 2;
 }
 
+/**
+ * East edge, east of Oslo, where German sheets carry a strip past its EPSG
+ * boundary: strip III on Røgden (to 2°00') and Trysil (to 2°10'), both
+ * printing "Mittelmeridian: Nullmeridian Oslo" with strip III eastings.
+ */
+const PRINTED_EAST_FROM_OSLO: Readonly<Record<string, number>> = {
+  III: 2 + 10 / 60,
+};
+
+function printedValidity(strip: string): Ring {
+  const ring = stripValidity(strip);
+  const printedEast = PRINTED_EAST_FROM_OSLO[strip];
+  if (printedEast === undefined) return ring;
+  const east = Math.max(edgeLon(strip, 1), OSLO_LON + printedEast);
+  return ring.map(([lon, lat], i): [number, number] =>
+    i === 1 || i === 2 ? [east, lat] : [lon, lat],
+  );
+}
+
 function stripValidity(strip: string): Ring {
   const west = edgeLon(strip, -1);
   const east = edgeLon(strip, 1);
@@ -98,6 +123,7 @@ function defineStrip(
       `+pm=oslo +k=1 +x_0=${falseEasting} +y_0=${falseNorthing} ` +
       `${NGO_DATUM} +units=m +no_defs +type=crs`,
     validityWgs84: stripValidity(strip),
+    printedValidityWgs84: printedValidity(strip),
   };
 }
 

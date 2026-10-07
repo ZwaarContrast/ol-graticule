@@ -21,15 +21,15 @@ export type NGOGridSystemOptions = Omit<
   'crs' | 'proj4Def' | 'extent'
 >;
 
-/** Grid system for one strip, clipped to its WGS84 validity band. */
+/** Grid system for one strip, clipped to where German sheets print it. */
 export function createNGOStripGridSystem(
   strip: NGOStripNumber,
   options?: NGOGridSystemOptions,
 ): PolygonClippedGridSystem {
-  const { crs, proj4: def, validityWgs84 } = NGO_STRIPS[strip];
+  const { crs, proj4: def, printedValidityWgs84: validity } = NGO_STRIPS[strip];
   registerCRS(crs, def);
   const toGrid = proj4('EPSG:4326', def);
-  const projected = validityWgs84.map(([lon, lat]): [number, number] => {
+  const projected = validity.map(([lon, lat]): [number, number] => {
     const [x, y] = toGrid.forward([lon, lat]);
     return [x ?? 0, y ?? 0];
   });
@@ -39,7 +39,7 @@ export function createNGOStripGridSystem(
       crs,
       extent: extentFromPolygon(projected, EXTENT_MARGIN_M),
     }),
-    clipPolygon: { rings: [validityWgs84], crs: 'EPSG:4326' },
+    clipPolygon: { rings: [validity], crs: 'EPSG:4326' },
   });
 }
 
@@ -50,7 +50,7 @@ export interface NGOGrid {
   readonly name: string;
   readonly proj4: string;
   createGridSystem(): PolygonClippedGridSystem;
-  /** Validity as WGS84 lon/lat rings. */
+  /** Where German sheets print the strip, as WGS84 lon/lat rings. */
   readonly validityWgs84: ReadonlyArray<Ring>;
 }
 
@@ -60,7 +60,7 @@ function toGrid(def: NGOStripDefinition): NGOGrid {
     name: `Norwegian strip ${def.strip}`,
     proj4: def.proj4,
     createGridSystem: () => createNGOStripGridSystem(def.strip),
-    validityWgs84: [def.validityWgs84],
+    validityWgs84: [def.printedValidityWgs84],
   };
 }
 
