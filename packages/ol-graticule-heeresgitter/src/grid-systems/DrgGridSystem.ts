@@ -36,7 +36,7 @@ import { formatEasting, formatNorthing, parseDrg } from '../drg/codec.js';
 import { DEFAULT_DATUM_SHIFT, registerZone } from '../drg/projection.js';
 import type { DatumShift, DrgZone } from '../drg/types.js';
 import {
-  MAX_KENNZIFFER,
+  kennziffernBetween,
   STRIP_HALF_WIDTH_DEG,
   STRIP_OVERLAP_DEG,
   zoneByKennziffer,
@@ -263,14 +263,10 @@ export class DrgGridSystem implements GridSystem {
       const minLon = Math.min(...lons);
       const maxLon = Math.max(...lons);
       const halfWidth = STRIP_HALF_WIDTH_DEG + overlapDeg;
-      const first = Math.max(0, Math.ceil((minLon - halfWidth) / 3));
-      const last = Math.min(
-        MAX_KENNZIFFER,
+      return kennziffernBetween(
+        Math.ceil((minLon - halfWidth) / 3),
         Math.floor((maxLon + halfWidth) / 3),
       );
-      const result: number[] = [];
-      for (let k = first; k <= last; k++) result.push(k);
-      return result;
     });
   }
 

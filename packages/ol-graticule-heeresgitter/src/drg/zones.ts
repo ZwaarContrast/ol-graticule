@@ -83,11 +83,38 @@ export const ZONE_EASTING_STEP = 1_000_000;
 export const FALSE_EASTING = 500_000;
 
 /**
- * Highest Kennziffer the formula admits. Strip 59 has its central meridian at
- * 177° E. This is a bound on the arithmetic, NOT a claim that the grid was
- * printed there: see {@link PUBLISHED_KENNZIFFERN}.
+ * Highest Kennziffer the formula admits. Kennziffern count central meridians
+ * in 3° steps modulo 120: 0-59 run east from Greenwich to 177° E, 60-119 run
+ * from 180° to 3° W. A German 1:10 000 sheet of Accrington prints "Streifen 3°
+ * westl. Greenwich, Kennziffer 119" with eastings `119541`. This is a bound on
+ * the arithmetic, NOT a claim that the grid was printed everywhere: see
+ * {@link PUBLISHED_KENNZIFFERN}.
  */
-export const MAX_KENNZIFFER = 59;
+export const MAX_KENNZIFFER = 119;
+
+/** Strips per full circle: 360° in 3° steps. */
+const STRIPS_PER_CIRCLE = 120;
+
+/** Kennziffer of a signed strip index (central meridian / 3, -60 to 59). */
+function kennzifferOfIndex(index: number): number {
+  return ((index % STRIPS_PER_CIRCLE) + STRIPS_PER_CIRCLE) % STRIPS_PER_CIRCLE;
+}
+
+/** Signed strip index (-60 to 59) of a Kennziffer. */
+function indexOfKennziffer(kennziffer: number): number {
+  return kennziffer < STRIPS_PER_CIRCLE / 2
+    ? kennziffer
+    : kennziffer - STRIPS_PER_CIRCLE;
+}
+
+/** Strips whose signed index lies in `[first, last]`, west to east, as Kennziffern. */
+export function kennziffernBetween(first: number, last: number): number[] {
+  const lo = Math.max(-STRIPS_PER_CIRCLE / 2, first);
+  const hi = Math.min(STRIPS_PER_CIRCLE / 2 - 1, last);
+  const out: number[] = [];
+  for (let i = lo; i <= hi; i++) out.push(kennzifferOfIndex(i));
+  return out;
+}
 
 /**
  * The strips the Planheft actually tabulates: Kennziffern 1-5, central
@@ -128,12 +155,12 @@ export function cmForKennziffer(kennziffer: number): number {
       `Gauß-Krüger 3° Kennziffer out of range: ${kennziffer}`,
     );
   }
-  return kennziffer * 3;
+  return indexOfKennziffer(kennziffer) * 3;
 }
 
 /** Kennziffer for a central meridian. Inverse of {@link cmForKennziffer}. */
 export function kennzifferForCm(cm: number): number {
-  return cm / 3;
+  return kennzifferOfIndex(cm / 3);
 }
 
 /** Rechtswert of a strip's central meridian. */
@@ -156,8 +183,11 @@ export function zoneByKennziffer(kennziffer: number): DrgZone {
 /** The strip whose central meridian is nearest `lon`, clamped to the supported range. */
 export function zoneForLon(lon: number): DrgZone {
   const nearest = Math.round(lon / 3);
-  const clamped = Math.min(MAX_KENNZIFFER, Math.max(0, nearest));
-  return zoneByKennziffer(clamped);
+  const clamped = Math.min(
+    STRIPS_PER_CIRCLE / 2 - 1,
+    Math.max(-STRIPS_PER_CIRCLE / 2, nearest),
+  );
+  return zoneByKennziffer(kennzifferOfIndex(clamped));
 }
 
 /** Every strip whose nominal band plus 10' overlap contains `lon`. 1 or 2 strips. */
@@ -166,10 +196,10 @@ export function zonesContainingLon(lon: number): DrgZone[] {
   const result: DrgZone[] = [primary];
   const distFromCm = Math.abs(lon - primary.cm);
   if (distFromCm > STRIP_HALF_WIDTH_DEG - STRIP_OVERLAP_DEG) {
-    const neighbour =
-      lon > primary.cm ? primary.kennziffer + 1 : primary.kennziffer - 1;
-    if (neighbour >= 0 && neighbour <= MAX_KENNZIFFER)
-      result.push(zoneByKennziffer(neighbour));
+    const index = indexOfKennziffer(primary.kennziffer);
+    const neighbour = lon > primary.cm ? index + 1 : index - 1;
+    for (const k of kennziffernBetween(neighbour, neighbour))
+      result.push(zoneByKennziffer(k));
   }
   return result;
 }

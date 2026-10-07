@@ -12,6 +12,7 @@ import {
   falseEastingFor,
   isPublishedKennziffer,
   kennzifferForCm,
+  kennziffernBetween,
   zoneByKennziffer,
   zoneForLon,
   zonesContainingLon,
@@ -234,9 +235,46 @@ describe('parseDrg', () => {
     expect(parseDrg('2512 5585')?.canonical).toBe('2512000 5585000');
   });
 
+  it('numbers the strips west of Greenwich from 119 down', () => {
+    // "Mit Gauß-Krüger-Gitternetz im Streifen 3° westl. Greenwich, Kennziffer
+    // 119" (England 1:10 000, Accrington, BB 9 f, 7.40); top-left grid line
+    // labelled 119541.
+    expect(cmForKennziffer(119)).toBe(-3);
+    expect(kennzifferForCm(-3)).toBe(119);
+    expect(cmForKennziffer(60)).toBe(-180);
+    expect(kennzifferForCm(177)).toBe(59);
+    expect(zoneForLon(-2.37).kennziffer).toBe(119);
+    expect(zoneByKennziffer(119).falseEasting).toBe(119_500_000);
+    const parsed = parseDrg('119541 5958');
+    expect(parsed?.coord.kennziffer).toBe(119);
+    if (!parsed) return;
+    const [lat, lon] = decodeDrg(parsed.coord);
+    // The sheet's graticule: 53°45'-53°46' N, 2°22'-2°19' W.
+    expect(lat).toBeGreaterThan(53.74);
+    expect(lat).toBeLessThan(53.78);
+    expect(lon).toBeGreaterThan(-2.4);
+    expect(lon).toBeLessThan(-2.3);
+  });
+
+  it('hands over from strip 119 to strip 0 across Greenwich', () => {
+    expect(
+      zonesContainingLon(-1.45)
+        .map((z) => z.kennziffer)
+        .sort((a, b) => a - b),
+    ).toEqual([0, 119]);
+    expect(
+      zonesContainingLon(1.45)
+        .map((z) => z.kennziffer)
+        .sort((a, b) => a - b),
+    ).toEqual([0, 1]);
+    expect(zoneForLon(0.5).kennziffer).toBe(0);
+    expect(kennziffernBetween(-1, 1)).toEqual([119, 0, 1]);
+    expect(kennziffernBetween(58, 62)).toEqual([58, 59]);
+  });
+
   it('rejects the ambiguous kurz form and out-of-range strips', () => {
     expect(parseDrg('12200 85450')?.coord.kennziffer).not.toBe(2);
-    expect(parseDrg('99512 5585')).toBeUndefined();
+    expect(parseDrg('120512 5585')).toBeUndefined();
     expect(parseDrg('nonsense')).toBeUndefined();
     expect(parseDrg('2512')).toBeUndefined();
   });
