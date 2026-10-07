@@ -1,5 +1,47 @@
 # Changelog
 
+## 4.0.1
+
+### @zwaarcontrast/ol-graticule
+
+No changes in this release.
+
+### @zwaarcontrast/ol-graticule-heeresgitter
+
+### Patch Changes
+
+- d4024d0: Document that the default Potsdam datum shift is only right for sheets drawn
+  from German survey: German sheets of other countries carry the local survey's
+  datum (a Finnish sheet is about 445 m off with the Potsdam shift). Also
+  documents `setDhgDatumShift`, the ellipsoid limit of a substituted
+  `datumShift`, and the rotation convention `DatumShift` expects.
+- 5bc742c: DRG strips west of Greenwich: Kennziffern now run modulo 120, so 60–119 are
+  the strips from 180° to 3°W, and Kennziffer 119 is the strip on 3°W. A German
+  1:10 000 sheet of Accrington prints "Streifen 3° westl. Greenwich, Kennziffer
+  119" with eastings like `119541`; such sheets previously failed with a
+  RangeError. Grids and strip lookups now hand over from strip 119 to strip 0
+  across Greenwich.
+
+### @zwaarcontrast/ol-graticule-luftwaffe-planquadrat
+
+No changes in this release.
+
+### @zwaarcontrast/ol-graticule-mgrs
+
+No changes in this release.
+
+### @zwaarcontrast/ol-graticule-modified-british-system
+
+No changes in this release.
+
+### @zwaarcontrast/ol-graticule-projected
+
+No changes in this release.
+
+### @zwaarcontrast/ol-graticule-rd
+
+No changes in this release.
+
 ## 4.0.0
 
 ### @zwaarcontrast/ol-graticule
@@ -1225,6 +1267,19 @@ gy=37` with NW corner `(64°00'N, 7°30'E)` and the printed `NV..SX` block
 - Updated dependencies [be0c565]
   - @zwaarcontrast/ol-graticule@1.0.0
   - @zwaarcontrast/ol-graticule-projected@1.0.0
+
+## 0.3.0
+
+### @zwaarcontrast/ol-graticule-ngo
+
+### Minor Changes
+
+- e1acd98: Add `printedValidityWgs84` to every strip: where German sheets print it. It is
+  the EPSG extent (`validityWgs84`) except where a sheet carries the strip past
+  its EPSG boundary: Røgden and Trysil print strip III out to 2°10' east of Oslo
+  (12°53' E). Grids are now clipped to the printed extent and `NGO_GRIDS`
+  reports it, so near a boundary two strips can both contain a point, as on the
+  sheets.
 
 ## 0.2.0
 
