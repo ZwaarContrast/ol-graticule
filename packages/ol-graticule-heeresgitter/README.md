@@ -365,7 +365,26 @@ theatre-specific factory functions, in contrast to the Modified British
 System which has one factory per theatre. Only local material differs
 (source maps, height datums, place-name conventions). The package uses
 a single global Helmert (Potsdam datum); override per call via
-`datumShift` for the 50–150 m residuals between national triangulations.
+`datumShift`, or for procedural `forward`/`inverse` calls with
+`setDhgDatumShift`.
+
+**The Potsdam shift is only right for sheets drawn from German survey.**
+A German sheet of another country can be redrawn from the local national
+survey, with the grid projected from that survey's latitudes and longitudes.
+The grid then agrees with the sheet's own graticule, but the geodetic datum
+underneath is the local one, and the Potsdam shift places the sheet wrong by
+however far the two datums differ. On a _Finnland 1:50 000_
+sheet (Palojärwi, 69°25'N 30°45'E), the grid matches the printed graticule to
+16 m, yet the Potsdam shift misses mapped water by about 445 m, where a
+three-parameter shift from the Finnish KKJ datum fits within about 35 m (one
+sheet; measured against OpenStreetMap water).
+
+`datumShift` only replaces the Helmert parameters on the Bessel ellipsoid. A
+local datum on another ellipsoid (KKJ is on International 1924) cannot be
+expressed exactly that way, so treat a substituted shift as an approximation.
+`DatumShift` rotations are in arc-seconds in the proj4 `+towgs84` (position
+vector) convention, and `scale` is in ppm: check the convention of any
+published parameters before passing them in.
 
 ## What this package doesn't implement
 
