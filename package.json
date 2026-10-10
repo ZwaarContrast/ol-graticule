@@ -48,7 +48,7 @@
     "eslint-config-prettier": "^10.1.8",
     "fast-check": "^4.9.0",
     "happy-dom": "^20.9.0",
-    "knip": "^6.32.2",
+    "knip": "^6.40.0",
     "prettier": "^3.9.6",
     "typescript": "~6.0.3",
     "typescript-7": "npm:typescript@^7.0.2",
