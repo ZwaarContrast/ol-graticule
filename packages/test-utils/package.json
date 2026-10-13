@@ -17,10 +17,10 @@
     "test:coverage": "vitest run --coverage"
   },
   "peerDependencies": {
-    "ol": "^10.0.0"
+    "ol": "^10.11.0"
   },
   "devDependencies": {
-    "ol": "^10.0.0",
+    "ol": "^10.11.0",
     "typescript": "~6.0.3"
   }
 }

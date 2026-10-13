@@ -54,7 +54,7 @@
   "peerDependencies": {
     "@zwaarcontrast/ol-graticule": "^4.0.0",
     "@zwaarcontrast/ol-graticule-projected": "^4.0.0",
-    "ol": "^10.0.0",
+    "ol": "^10.11.0",
     "proj4": "^2.12.0"
   },
   "devDependencies": {
