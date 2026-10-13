@@ -66,7 +66,7 @@
     "@zwaarcontrast/ol-graticule": "*",
     "@zwaarcontrast/ol-graticule-projected": "*",
     "@zwaarcontrast/test-utils": "*",
-    "typescript": "~6.0.3",
+    "typescript": "~7.0.2",
     "vitest": "^5.0.3"
   }
 }
