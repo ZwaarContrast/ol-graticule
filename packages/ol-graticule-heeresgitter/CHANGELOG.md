@@ -1,5 +1,21 @@
 # @zwaarcontrast/ol-graticule-heeresgitter
 
+## 4.0.1
+
+### Patch Changes
+
+- d4024d0: Document that the default Potsdam datum shift is only right for sheets drawn
+  from German survey: German sheets of other countries carry the local survey's
+  datum (a Finnish sheet is about 445 m off with the Potsdam shift). Also
+  documents `setDhgDatumShift`, the ellipsoid limit of a substituted
+  `datumShift`, and the rotation convention `DatumShift` expects.
+- 5bc742c: DRG strips west of Greenwich: Kennziffern now run modulo 120, so 60–119 are
+  the strips from 180° to 3°W, and Kennziffer 119 is the strip on 3°W. A German
+  1:10 000 sheet of Accrington prints "Streifen 3° westl. Greenwich, Kennziffer
+  119" with eastings like `119541`; such sheets previously failed with a
+  RangeError. Grids and strip lookups now hand over from strip 119 to strip 0
+  across Greenwich.
+
 ## 4.0.0
 
 ### Major Changes
