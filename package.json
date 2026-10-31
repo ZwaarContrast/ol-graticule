@@ -43,7 +43,7 @@
     "@types/proj4": "^2.5.5",
     "@typescript-eslint/eslint-plugin": "^8.72.0",
     "@typescript-eslint/parser": "^8.68.0",
-    "@vitest/coverage-v8": "^5.0.4",
+    "@vitest/coverage-v8": "^5.0.5",
     "eslint": "^10.11.0",
     "eslint-config-prettier": "^10.1.8",
     "fast-check": "^4.9.0",
