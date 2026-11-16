@@ -1,5 +1,9 @@
 # @zwaarcontrast/ol-graticule-luftwaffe-planquadrat
 
+## 4.0.1
+
+No changes in this release.
+
 ## 4.0.0
 
 ### Minor Changes
