@@ -1,6 +1,6 @@
 {
   "name": "@zwaarcontrast/ol-graticule-ngo",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "type": "module",
   "description": "Norwegian Gauss-Krüger strips (norweg. Gitterstreifen) as printed on German WWII sheets of Norway, for ol-graticule.",
   "license": "MIT",
